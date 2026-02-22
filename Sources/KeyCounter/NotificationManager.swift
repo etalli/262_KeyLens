@@ -15,7 +15,7 @@ final class NotificationManager {
     /// 指定キーがマイルストーン（1000の倍数）に達した通知を送る
     func notify(key: String, count: Int) {
         let content = UNMutableNotificationContent()
-        content.title = "⌨️ KeyCounter"
+        content.title = "KeyCounter"
         content.body = "「\(key)」が \(count.formatted()) 回に達しました！"
         content.sound = .default
 
