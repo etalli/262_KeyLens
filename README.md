@@ -287,33 +287,3 @@ Rebuilding the menu on every keystroke is wasteful. Instead, `NSMenuDelegate.men
 
 Centralised localisation singleton. Supports English, Japanese, and system auto-detection. Language preference is persisted in `UserDefaults`.
 
----
-
-## Menu structure
-
-```
-[keyboard icon]
-──────────────────────────
-● Monitoring              <- green / red, tappable if stopped
-──────────────────────────
-Since Feb 1, 2026
-Today: 3,120 keystrokes
-Total: 48,291 keystrokes
-──────────────────────────
-🥇 Space   —  15,234
-🥈 Return  —   8,901
-🥉 e       —   7,432
-   a       —   6,100
-   ...
-──────────────────────────
-About KeyCounter
-Settings…
-  ├─ Open Log Folder
-  ├─ Language
-  │   ├─ System (Auto)
-  │   ├─ English
-  │   └─ 日本語
-  └─ Reset…
-──────────────────────────
-Quit                    Q
-```
