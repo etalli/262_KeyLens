@@ -17,11 +17,36 @@ Always present a plan before implementing. Wait for approval before writing code
 
 ## Commands
 
+```bash
+./build.sh            # Build App Bundle only
+./build.sh --run      # Build and launch immediately
+./build.sh --install  # Build, install to /Applications, codesign, reset TCC, launch (recommended)
+./build.sh --dmg      # Build and create distributable DMG
+```
+
+Logs: `tail -f ~/Library/Logs/KeyCounter/app.log`
+
 ## Conventions
+
+- Always use `build.sh` — never `swift build` alone (notifications require a proper App Bundle)
+- Data file: `~/Library/Application Support/KeyCounter/counts.json`
+- Bilingual docs: every doc has an English version and a Japanese counterpart
+  - `README.md` / `README.ja.md`
+  - `Architecture.md` / `Architecture.ja.md`
 
 ## Code Style
 
+- Swift 5.9+, macOS 13+ target
+- Singleton pattern for shared state (`KeyCountStore.shared`, `L10n.shared`, etc.)
+- Serial `DispatchQueue` for thread safety (never use locks directly)
+- Debounce disk writes with `DispatchWorkItem` cancellation
+
 ## Documentation
+
+When making changes:
+- Feature / behaviour change → update `README.md` and `README.ja.md`
+- Internal design / file responsibility change → update `Architecture.md` and `Architecture.ja.md`
+- Keep both language versions in sync
 
 ## Disabled Rules
 
