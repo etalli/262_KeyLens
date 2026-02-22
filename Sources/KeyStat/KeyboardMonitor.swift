@@ -15,18 +15,18 @@ final class KeyboardMonitor {
     @discardableResult
     func start() -> Bool {
         let trusted = AXIsProcessTrusted()
-        KeyCounter.log("start() called — AXIsProcessTrusted: \(trusted)")
+        KeyStat.log("start() called — AXIsProcessTrusted: \(trusted)")
         guard trusted else { return false }
 
         // 既存タップの再有効化を先に試みる（権限再付与後の高速復帰）
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: true)
             if CGEvent.tapIsEnabled(tap: tap) {
-                KeyCounter.log("Existing tap re-enabled successfully")
+                KeyStat.log("Existing tap re-enabled successfully")
                 return true
             }
             // 再有効化できなかった場合は破棄して新規作成
-            KeyCounter.log("Existing tap could not be re-enabled — recreating")
+            KeyStat.log("Existing tap could not be re-enabled — recreating")
             stop()
         }
 
@@ -41,7 +41,7 @@ final class KeyboardMonitor {
             callback: keyTapCallback,
             userInfo: nil
         )
-        KeyCounter.log("CGEvent.tapCreate result: \(tap != nil ? "success" : "nil (FAILED)")")
+        KeyStat.log("CGEvent.tapCreate result: \(tap != nil ? "success" : "nil (FAILED)")")
         guard let tap else { return false }
 
         eventTap = tap
@@ -49,7 +49,7 @@ final class KeyboardMonitor {
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-        KeyCounter.log("Monitoring started successfully")
+        KeyStat.log("Monitoring started successfully")
         return true
     }
 
@@ -98,7 +98,7 @@ private func keyTapCallback(
 ) -> Unmanaged<CGEvent>? {
     // タイムアウトで無効化された場合は即座に再有効化
     if type == .tapDisabledByTimeout {
-        KeyCounter.log("CGEventTap disabled by timeout — re-enabling")
+        KeyStat.log("CGEventTap disabled by timeout — re-enabling")
         if let tap = (NSApp.delegate as? AppDelegate)?.eventTap {
             CGEvent.tapEnable(tap: tap, enable: true)
         }

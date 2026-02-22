@@ -43,7 +43,7 @@ final class KeyCountStore {
     private init() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("KeyCounter")
+            .appendingPathComponent("KeyStat")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         saveURL = dir.appendingPathComponent("counts.json")
         store = CountData(startedAt: Date(), counts: [:], dailyCounts: [:])
