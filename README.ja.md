@@ -1,4 +1,4 @@
-# KeyCounter
+# KeyStat
 
 [English](README.md) | 日本語
 
@@ -51,10 +51,10 @@ macOS メニューバー常駐型のキーストローク監視・記録アプ�
 
 ```
 swift build -c release
-  └─ .build/release/KeyCounter   （実行ファイル）
+  └─ .build/release/KeyStat   （実行ファイル）
 
-KeyCounter.app/
-  ├── Contents/MacOS/KeyCounter   <- 実行ファイルをここにコピー
+KeyStat.app/
+  ├── Contents/MacOS/KeyStat   <- 実行ファイルをここにコピー
   └── Contents/Info.plist         <- LSUIElement=true でDockに非表示
 ```
 
@@ -62,18 +62,18 @@ KeyCounter.app/
 
 | ステップ | 内容 |
 |----------|------|
-| `cp -r KeyCounter.app /Applications/` | `/Applications` にインストール |
+| `cp -r KeyStat.app /Applications/` | `/Applications` にインストール |
 | `codesign --force --deep --sign -` | ad-hoc 署名（アクセシビリティ権限を安定化） |
-| `pkill -x KeyCounter` | 旧プロセスを停止してからバイナリを差し替え |
+| `pkill -x KeyStat` | 旧プロセスを停止してからバイナリを差し替え |
 | `tccutil reset Accessibility <bundle-id>` | 古いバイナリハッシュの TCC エントリを削除 |
-| `open /Applications/KeyCounter.app` | 新しいビルドを起動 |
+| `open /Applications/KeyStat.app` | 新しいビルドを起動 |
 
 **TCC リセットが必要な理由:** macOS はアクセシビリティ権限をバイナリのハッシュ単位で管理しています。`swift build` のたびに新しいバイナリ（異なるハッシュ）が生成されるため、古い TCC エントリが陳腐化します。リセットしないと、システム設定でトグルが ON になっていても `AXIsProcessTrusted()` が `false` を返し続けます。
 
 ### ログ確認
 
 ```bash
-tail -f ~/Library/Logs/KeyCounter/app.log
+tail -f ~/Library/Logs/KeyStat/app.log
 ```
 
 ---
@@ -84,7 +84,7 @@ tail -f ~/Library/Logs/KeyCounter/app.log
 
 1. **「システム設定を開く」** をクリック
 2. **プライバシーとセキュリティ → アクセシビリティ** に移動
-3. **KeyCounter** を有効化
+3. **KeyStat** を有効化
 4. 任意のアプリに戻る — モニタリングが即座に再開
 
 **権限復帰の仕組み（多段構成）:**
@@ -136,7 +136,7 @@ macOS はグローバル `CGEventTap` のインストールにユーザーの明
 ## データファイル
 
 ```
-~/Library/Application Support/KeyCounter/counts.json
+~/Library/Application Support/KeyStat/counts.json
 ```
 
 ```json

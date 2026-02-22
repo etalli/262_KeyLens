@@ -1,5 +1,5 @@
 #!/bin/bash
-# KeyCounter Build Script
+# KeyStat Build Script
 #
 # Comments in this file are bilingual: English first, Japanese second (日本語).
 #
@@ -10,11 +10,11 @@
 #   ./build.sh --dmg     # Build and create a distributable DMG / 配布用 DMG を作成
 set -e
 
-APP="KeyCounter.app"
-DMG="KeyCounter.dmg"
+APP="KeyStat.app"
+DMG="KeyStat.dmg"
 VERSION=$(date +"%Y%m%d")
 
-echo "=== KeyCounter Build ==="
+echo "=== KeyStat Build ==="
 swift build -c release 2>&1
 
 echo ""
@@ -24,7 +24,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
 
-cp .build/release/KeyCounter "$APP/Contents/MacOS/"
+cp .build/release/KeyStat "$APP/Contents/MacOS/"
 cp Resources/Info.plist "$APP/Contents/"
 
 echo "✅ $APP created"
@@ -43,7 +43,7 @@ if [[ "$1" == "--dmg" ]]; then
 
     rm -f "$DMG"
     hdiutil create \
-        -volname "KeyCounter" \
+        -volname "KeyStat" \
         -srcfolder "$STAGING" \
         -ov \
         -format UDZO \
@@ -56,14 +56,14 @@ if [[ "$1" == "--dmg" ]]; then
     echo "Distribution steps / 配布手順:"
     echo "  1. Share $DMG with the user / $DMG をユーザーに配布する"
     echo "  2. Double-click the DMG to mount it / DMG をダブルクリックしてマウント"
-    echo "  3. Drag KeyCounter.app to the Applications folder / KeyCounter.app を Applications フォルダにドラッグ"
-    echo "  4. Launch /Applications/KeyCounter.app"
+    echo "  3. Drag KeyStat.app to the Applications folder / KeyStat.app を Applications フォルダにドラッグ"
+    echo "  4. Launch /Applications/KeyStat.app"
 
 # --install: Install to /Applications with ad-hoc signing and TCC reset (recommended for development)
 # --install: /Applications にインストール、ad-hoc 署名、TCC リセット（開発時推奨）
 elif [[ "$1" == "--install" ]]; then
     INSTALL_DIR="/Applications"
-    INSTALL_PATH="$INSTALL_DIR/KeyCounter.app"
+    INSTALL_PATH="$INSTALL_DIR/KeyStat.app"
 
     echo "=== Installing to /Applications ==="
 
@@ -85,7 +85,7 @@ elif [[ "$1" == "--install" ]]; then
 
     # Kill any running instance before relaunching
     # 再起動前に実行中のプロセスを終了する
-    pkill -x KeyCounter 2>/dev/null || true
+    pkill -x KeyStat 2>/dev/null || true
     sleep 0.5
 
     # Reset the Accessibility TCC entry for this bundle ID.
@@ -105,10 +105,10 @@ elif [[ "$1" == "--install" ]]; then
     echo "Launched: $INSTALL_PATH"
     echo ""
     echo "Next step / 次の手順:"
-    echo "  System Settings > Privacy & Security > Accessibility — enable KeyCounter"
-    echo "  システム設定 > プライバシーとセキュリティ > アクセシビリティ — KeyCounter を許可"
+    echo "  System Settings > Privacy & Security > Accessibility — enable KeyStat"
+    echo "  システム設定 > プライバシーとセキュリティ > アクセシビリティ — KeyStat を許可"
     echo ""
-    echo "View logs / ログ確認: tail -f ~/Library/Logs/KeyCounter/app.log"
+    echo "View logs / ログ確認: tail -f ~/Library/Logs/KeyStat/app.log"
 
 # --run: Launch the app bundle directly from the project directory (no install)
 # --run: プロジェクトフォルダから直接起動（インストールなし）

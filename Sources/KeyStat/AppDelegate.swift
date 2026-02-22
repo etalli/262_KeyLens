@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         _ = NotificationManager.shared
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        if let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "KeyCounter") {
+        if let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "KeyStat") {
             image.isTemplate = true
             statusItem.button?.image = image
         }
@@ -38,9 +38,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func appDidBecomeActive() {
         guard !monitor.isRunning else { return }
-        KeyCounter.log("appDidBecomeActive — attempting monitor start")
+        KeyStat.log("appDidBecomeActive — attempting monitor start")
         if monitor.start() {
-            KeyCounter.log("appDidBecomeActive — monitoring started")
+            KeyStat.log("appDidBecomeActive — monitoring started")
             permissionTimer?.invalidate()
             permissionTimer = nil
         }
@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func startMonitor() {
         if monitor.start() {
-            KeyCounter.log("monitoring started")
+            KeyStat.log("monitoring started")
         } else {
             // 現在のバイナリをアクセシビリティリストに登録し、設定画面を開く
             let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
@@ -63,17 +63,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] timer in
             guard let self else { return }
             let trusted = AXIsProcessTrusted()
-            KeyCounter.log("permission retry tick — AXIsProcessTrusted: \(trusted)")
+            KeyStat.log("permission retry tick — AXIsProcessTrusted: \(trusted)")
             guard trusted else { return }
 
             timer.invalidate()
             self.permissionTimer = nil
 
             if self.monitor.start() {
-                KeyCounter.log("permission granted -> monitoring started")
+                KeyStat.log("permission granted -> monitoring started")
             } else {
                 // 権限は付与されたが tap 作成失敗 → 自動再起動
-                KeyCounter.log("tap creation failed despite permission — auto-restarting")
+                KeyStat.log("tap creation failed despite permission — auto-restarting")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.restartApp()
                 }
@@ -86,7 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         healthTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             guard !self.monitor.isRunning, self.permissionTimer == nil else { return }
-            KeyCounter.log("health check: monitor stopped — scheduling retry")
+            KeyStat.log("health check: monitor stopped — scheduling retry")
             self.schedulePermissionRetry()
         }
     }
@@ -270,7 +270,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func openSaveDir() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("KeyCounter")
+            .appendingPathComponent("KeyStat")
         NSWorkspace.shared.open(dir)
     }
 
