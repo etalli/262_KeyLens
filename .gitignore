@@ -8,8 +8,9 @@
 xcuserdata/
 DerivedData/
 
-# App Bundle（ビルド生成物）
+# ビルド生成物
 *.app/
+*.dmg
 
 # macOS
 .DS_Store
