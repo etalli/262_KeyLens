@@ -1,6 +1,8 @@
 #!/bin/bash
 # KeyCounter Build Script
 #
+# Comments in this file are bilingual: English first, Japanese second (日本語).
+#
 # Usage / 使い方:
 #   ./build.sh           # Build App Bundle only / App Bundle のみ作成
 #   ./build.sh --run     # Build and launch immediately / ビルド後に即時起動
