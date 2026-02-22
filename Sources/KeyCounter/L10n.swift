@@ -54,6 +54,14 @@ final class L10n {
         ja("（まだ入力なし）", en: "(no input yet)")
     }
 
+    var monitoringActive: String {
+        ja("● 監視中", en: "● Monitoring")
+    }
+
+    var monitoringStopped: String {
+        ja("● 停止中 — クリックして設定を開く", en: "● Stopped — click to open Settings")
+    }
+
     var openSaveFolder: String {
         ja("保存先を開く", en: "Open Save Folder")
     }
