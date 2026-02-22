@@ -56,6 +56,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         let l = L10n.shared
 
+        // 監視状態インジケーター
+        let isRunning = monitor.isRunning
+        let statusTitle = isRunning ? l.monitoringActive : l.monitoringStopped
+        let statusColor: NSColor = isRunning ? .systemGreen : .systemRed
+        let statusAttr = NSAttributedString(
+            string: statusTitle,
+            attributes: [.foregroundColor: statusColor]
+        )
+        let statusItem = NSMenuItem(title: "", action: isRunning ? nil : #selector(openAccessibilitySettings), keyEquivalent: "")
+        statusItem.attributedTitle = statusAttr
+        statusItem.target = self
+        menu.addItem(statusItem)
+        menu.addItem(.separator())
+
         // ヘッダー：記録開始日
         let startedAt = KeyCountStore.shared.startedAt
         let sinceItem = NSMenuItem(title: l.recordingSince(startedAt), action: nil, keyEquivalent: "")
@@ -149,6 +163,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if alert.runModal() == .alertFirstButtonReturn {
             KeyCountStore.shared.reset()
         }
+    }
+
+    @objc private func openAccessibilitySettings() {
+        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        NSWorkspace.shared.open(url)
     }
 
     @objc private func openSaveDir() {

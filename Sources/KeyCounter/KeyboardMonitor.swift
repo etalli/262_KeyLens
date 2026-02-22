@@ -5,6 +5,12 @@ final class KeyboardMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
+    /// 現在監視中かどうか
+    var isRunning: Bool {
+        guard let tap = eventTap else { return false }
+        return CGEvent.tapIsEnabled(tap: tap)
+    }
+
     /// 監視開始。アクセシビリティ権限がない場合は false を返す
     @discardableResult
     func start() -> Bool {
