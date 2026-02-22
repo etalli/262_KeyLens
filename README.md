@@ -1,71 +1,71 @@
 # KeyCounter
 
-macOS メニューバー常駐型のキーボード入力カウンター。
-キーごとの入力回数を記録し、1000 回の倍数に達するたびに通知します。
+A macOS menu bar app that monitors and records global keyboard input.
+Counts keystrokes per key, persists the data to a JSON file, and sends a macOS notification every 1,000 presses.
 
 ---
 
-## 機能
+## Features
 
-- **グローバル監視**: アプリを問わず全キー入力をカウント
-- **メニューバー表示**: ⌨️ アイコンをクリックで上位 10 キーの統計を表示
-- **永続化**: JSON ファイルにカウントを保存（再起動後も継続）
-- **マイルストーン通知**: 各キーが 1000, 2000, 3000... 回に達すると macOS 通知
-
----
-
-## 必要環境
-
-| 項目 | 要件 |
-|------|------|
-| macOS | 13 Ventura 以上 |
-| Swift | 5.9 以上（Xcode 15 同梱） |
-| 権限 | アクセシビリティ（初回起動時に要求） |
+- **Global monitoring**: Counts all keystrokes regardless of the active application
+- **Menu bar statistics**: Click the `KC` label to see the top 10 most-pressed keys
+- **Persistence**: Counts survive reboots — stored in a JSON file
+- **Milestone notifications**: Native macOS notification at every 1,000 presses per key (1000, 2000, ...)
 
 ---
 
-## ビルド方法
+## Requirements
+
+| Item | Requirement |
+|------|-------------|
+| macOS | 13 Ventura or later |
+| Swift | 5.9 or later (bundled with Xcode 15) |
+| Permission | Accessibility (prompted on first launch) |
+
+---
+
+## Build
 
 ```bash
-# 1. リポジトリのルートで実行
+# Build App Bundle
 ./build.sh
 
-# 2. 起動
-open KeyCounter.app
-
-# ビルドと同時に起動する場合
+# Build and launch immediately
 ./build.sh --run
+
+# Build and create a distributable DMG
+./build.sh --dmg
 ```
 
-`swift build` 単体でも実行ファイルは生成されますが、通知機能には App Bundle が必要なため `build.sh` の使用を推奨します。
+> Running `swift build` alone produces the executable but notifications require a proper App Bundle, so use `build.sh`.
 
-### ビルドスクリプトの動作
+### What the build script does
 
 ```
 swift build -c release
-  └─ .build/release/KeyCounter（実行ファイル）
+  └─ .build/release/KeyCounter   (executable)
 
 KeyCounter.app/
-  ├── Contents/MacOS/KeyCounter   ← 実行ファイルをコピー
-  └── Contents/Info.plist         ← LSUIElement=true でDock非表示
+  ├── Contents/MacOS/KeyCounter   <- executable copied here
+  └── Contents/Info.plist         <- LSUIElement=true hides the Dock icon
 ```
 
 ---
 
-## 初回起動時の権限設定
+## Accessibility Permission (first launch)
 
-初回起動時にダイアログが表示されます。
+An alert is shown on first launch if the permission is missing.
 
-1. 「**システム設定を開く**」をクリック
-2. **プライバシーとセキュリティ → アクセシビリティ**
-3. `KeyCounter` をオンにする
-4. 自動的に監視が開始されます（3 秒以内）
+1. Click **Open System Settings**
+2. Go to **Privacy & Security > Accessibility**
+3. Enable **KeyCounter**
+4. Monitoring starts automatically within 3 seconds
 
-> アクセシビリティ権限なしではキー入力を取得できません。
+> Without Accessibility permission the app cannot intercept key events.
 
 ---
 
-## データ保存先
+## Data file
 
 ```
 ~/Library/Application Support/KeyCounter/counts.json
@@ -76,16 +76,15 @@ KeyCounter.app/
   "Space": 15234,
   "Return": 8901,
   "e": 7432,
-  "a": 6100,
-  ...
+  "a": 6100
 }
 ```
 
-メニューの「**保存先を開く**」で Finder から直接アクセスできます。
+Use **Open Save Folder** in the menu to open the directory in Finder.
 
 ---
 
-## ファイル構成
+## File structure
 
 ```
 262_MacOS_keyCounter/
@@ -103,120 +102,121 @@ KeyCounter.app/
 
 ---
 
-## アーキテクチャ / ロジック解説
+## Architecture
 
-### データフロー
+### Data flow
 
 ```
-キー入力
-  │
-  ▼
-CGEventTap（OS レベルのイベントフック）
-  │  KeyboardMonitor.swift
-  │  keyTapCallback() ← @convention(c) グローバル関数
-  │
-  ▼
+Key press
+  |
+  v
+CGEventTap  (OS-level event hook)
+  |  KeyboardMonitor.swift
+  |  keyTapCallback()  <-- file-scope global function (@convention(c) compatible)
+  |
+  v
 KeyCountStore.shared.increment(key:)
-  │  DispatchQueue(serial) で排他制御
-  │  → counts[key] += 1
-  │  → queue.async { save() }   非同期でJSONに書き出し
-  │
-  ├─ milestone(1000の倍数)？
-  │    └─ YES → DispatchQueue.main.async { NotificationManager.notify() }
-  │
-  ▼
-（メニュー開時）
+  |  serial DispatchQueue for thread safety
+  |  counts[key] += 1
+  |  queue.async { save() }   <- write JSON asynchronously
+  |
+  +-- count % 1000 == 0?
+  |     YES -> DispatchQueue.main.async { NotificationManager.notify() }
+  |
+  v
+(on menu open)
 NSMenuDelegate.menuWillOpen
-  └─ KeyCountStore.topKeys() で上位10件を取得して再描画
+  └─ KeyCountStore.topKeys()  -> rebuild menu with latest data
 ```
 
 ---
 
-### 各ファイルの責務
+### File responsibilities
 
 #### [main.swift](Sources/KeyCounter/main.swift)
-エントリポイント。`NSApplication` を `.accessory` ポリシーで起動（Dock 非表示）。
+
+Entry point. Launches `NSApplication` with `.accessory` policy so the app appears only in the menu bar, not in the Dock.
 
 ```swift
-app.setActivationPolicy(.accessory)  // メニューバーのみ、Dockなし
+app.setActivationPolicy(.accessory)
 ```
 
 ---
 
 #### [KeyboardMonitor.swift](Sources/KeyCounter/KeyboardMonitor.swift)
-`CGEventTap` でシステム全体のキーダウンイベントを傍受する。
 
-**重要な設計判断 — `@convention(c)` 問題:**
-`CGEventTapCallBack` は C 関数ポインタ型（`@convention(c)`）のため、
-Swift のクロージャを渡すには変数キャプチャが禁止される。
-そのため、コールバックをファイルスコープの**グローバル関数**として定義し、
-シングルトン（`KeyCountStore.shared` など）経由でアクセスする方式を採用。
+Intercepts system-wide key-down events via `CGEventTap`.
+
+**Key design decision — `@convention(c)` constraint:**
+
+`CGEventTapCallBack` is a C function pointer type, which means Swift closures that capture variables cannot be used directly. The callback is therefore defined as a file-scope global function and accesses state only through singletons (`KeyCountStore.shared`, etc.), which require no capture.
 
 ```
 CGEvent.tapCreate(callback: keyTapCallback)
-                            ↑
-                  グローバル関数（キャプチャなし）
-                  → @convention(c) に暗黙変換可能
+                            ^
+                  global function (no captures)
+                  -> implicitly convertible to @convention(c)
 ```
 
-キーコードから名前への変換は `keyName(for:)` の静的テーブルで行う（macOS US 配列基準）。
+Key code to name translation is handled by a static lookup table in `keyName(for:)` (US keyboard layout).
 
 ---
 
 #### [KeyCountStore.swift](Sources/KeyCounter/KeyCountStore.swift)
-カウントの管理・永続化を担うシングルトン。
 
-**スレッド安全設計:**
-`CGEventTap` コールバックはメインスレッド以外で呼ばれる可能性があるため、
-シリアル `DispatchQueue` で辞書アクセスを排他制御する。
+Singleton that manages counts and persists them to disk.
+
+**Thread safety:**
+
+The `CGEventTap` callback runs outside the main thread. A serial `DispatchQueue` serialises all dictionary access.
 
 ```
-CGEventTap スレッド          メインスレッド
-      │                           │
-  queue.sync { ... }         queue.sync { topKeys() }
-      │ ← 直列化 →               │
-  queue.async { save() }         ...
+CGEventTap thread             Main thread
+      |                            |
+  queue.sync { increment }    queue.sync { topKeys() }
+      |  <-- serialised -->        |
+  queue.async { save() }          ...
 ```
 
-JSON の書き出しは `.atomic` オプションで行い、書き込み途中のファイル破損を防ぐ。
+JSON is written with `.atomic` to prevent file corruption during a write.
 
 ---
 
 #### [NotificationManager.swift](Sources/KeyCounter/NotificationManager.swift)
-`UNUserNotificationCenter` でネイティブ通知を送信。
-`trigger: nil` で即時配信（スケジュールなし）。
-初回アクセス時に通知権限を要求する。
+
+Delivers native notifications via `UNUserNotificationCenter`.
+`trigger: nil` means immediate delivery (no scheduling).
+Notification permission is requested on first singleton access.
 
 ---
 
 #### [AppDelegate.swift](Sources/KeyCounter/AppDelegate.swift)
-メニューバー UI と権限リトライロジックを管理。
 
-**メニュー再構築のタイミング:**
-毎キーストロークでメニューを更新するのは無駄なため、
-`NSMenuDelegate.menuWillOpen` — ユーザーがアイコンをクリックした瞬間のみ再構築する。
+Manages the menu bar UI and the accessibility permission retry loop.
 
-**権限リトライ:**
-権限なしで起動した場合、`Timer` で 3 秒ごとに `AXIsProcessTrusted()` を確認し、
-権限が付与されたら自動的に監視を開始する。
+**Menu rebuild strategy:**
+Rebuilding the menu on every keystroke is wasteful. Instead, `NSMenuDelegate.menuWillOpen` is used to rebuild only when the user actually opens the menu.
+
+**Permission retry:**
+If the app starts without Accessibility permission, a `Timer` polls `AXIsProcessTrusted()` every 3 seconds and starts monitoring automatically once permission is granted.
 
 ---
 
-## メニュー表示例
+## Menu example
 
 ```
-⌨️
-━━━━━━━━━━━━━━━━━━
-合計: 48,291 キー入力
-─────────────────
-🥇 Space  —  15,234 回
-🥈 Return —   8,901 回
-🥉 e      —   7,432 回
-   a      —   6,100 回
-   s      —   5,880 回
+KC
+--------------------------
+Total: 48,291 keystrokes
+--------------------------
+1  Space   --  15,234
+2  Return  --   8,901
+3  e       --   7,432
+4  a       --   6,100
+5  s       --   5,880
    ...
-─────────────────
-保存先を開く
-─────────────────
-終了             ⌘Q
+--------------------------
+Open Save Folder
+--------------------------
+Quit                    Q
 ```

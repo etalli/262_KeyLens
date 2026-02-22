@@ -11,7 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         // メニューバーアイコンを設定
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "⌨️"
+        statusItem.button?.title = "KC"
 
         let menu = NSMenu()
         menu.delegate = self   // menuWillOpen でメニューを再構築
@@ -77,11 +77,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             empty.isEnabled = false
             menu.addItem(empty)
         } else {
-            let rankEmoji = ["🥇", "🥈", "🥉"]
             for (i, (key, count)) in topKeys.enumerated() {
-                let prefix = rankEmoji[safe: i] ?? "  "
+                let rank = String(format: "%2d", i + 1)
                 let item = NSMenuItem(
-                    title: "\(prefix) \(key)  —  \(count.formatted()) 回",
+                    title: "\(rank)  \(key)  --  \(count.formatted())",
                     action: nil,
                     keyEquivalent: ""
                 )
