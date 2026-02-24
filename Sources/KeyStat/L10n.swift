@@ -151,6 +151,10 @@ final class L10n {
         ja("グラフ表示…", en: "Show Charts…")
     }
 
+    var overlayMenuItem: String {
+        ja("キーオーバーレイ", en: "Keystroke Overlay")
+    }
+
     var exportCSVMenuItem: String {
         ja("CSV 書き出し…", en: "Export CSV…")
     }

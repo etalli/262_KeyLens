@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = NotificationManager.shared
+        _ = KeystrokeOverlayController.shared
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "KeyStat") {
@@ -195,6 +196,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let chartsItem = NSMenuItem(title: l.chartsMenuItem, action: #selector(showCharts), keyEquivalent: "")
         chartsItem.target = self
         menu.addItem(chartsItem)
+
+        let overlayItem = NSMenuItem(title: l.overlayMenuItem, action: #selector(toggleOverlay), keyEquivalent: "")
+        overlayItem.target = self
+        overlayItem.state = KeystrokeOverlayController.shared.isEnabled ? .on : .off
+        menu.addItem(overlayItem)
         menu.addItem(.separator())
     }
 
@@ -258,6 +264,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func showCharts() {
         ChartsWindowController.shared.showWindow()
+    }
+
+    @objc private func toggleOverlay() {
+        KeystrokeOverlayController.shared.isEnabled.toggle()
     }
 
     @objc private func exportCSV() {

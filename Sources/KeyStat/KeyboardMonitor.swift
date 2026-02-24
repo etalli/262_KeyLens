@@ -91,6 +91,12 @@ final class KeyboardMonitor {
     }
 }
 
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let keystrokeInput = Notification.Name("com.keystat.keystrokeInput")
+}
+
 // MARK: - CGEventTap コールバック
 // @convention(c) 互換にするためグローバル関数として定義（キャプチャ不要）
 private func inputTapCallback(
@@ -131,6 +137,12 @@ private func inputTapCallback(
         // 通知はメインスレッドで発行
         DispatchQueue.main.async {
             NotificationManager.shared.notify(key: name, count: result.count)
+        }
+    }
+
+    if type == .keyDown {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .keystrokeInput, object: name)
         }
     }
     return Unmanaged.passRetained(event)

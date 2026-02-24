@@ -149,6 +149,7 @@ The app currently uses an ad-hoc signature (`codesign --sign -`), which is suffi
     "Return": 8901,
     "e": 7432
   },
+  
   "dailyCounts": {
     "2026-02-22": 3120
   }
