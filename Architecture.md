@@ -11,11 +11,19 @@ graph TD
     A[main.swift] --> B[AppDelegate]
     B --> C[KeyboardMonitor]
     B --> D[NSStatusItem / Menu]
+    B --> I[StatsWindowController]
+    B --> J[ChartsWindowController]
+    B --> K[KeystrokeOverlayController]
     C -->|key event| E[KeyCountStore]
+    C -->|keystrokeInput notification| K
     E -->|every 1000 presses| F[NotificationManager]
     E -->|JSON save| G[(counts.json)]
     D -->|fetch display data| E
     D -->|language switch| H[L10n]
+    J -->|reads counts| E
+    J --> L[ChartsView / KeyType]
+    M[AIPromptStore] -->|currentPrompt| B
+    M -->|reads language| H
 ```
 
 ---
@@ -23,7 +31,7 @@ graph TD
 ## File structure
 
 ```
-262_MacOS_keyCounter/
+262_KeyLens/
 ├── Package.swift
 ├── build.sh
 ├── Resources/
@@ -33,7 +41,13 @@ graph TD
     ├── AppDelegate.swift
     ├── KeyboardMonitor.swift
     ├── KeyCountStore.swift
+    ├── KeyType.swift
     ├── NotificationManager.swift
+    ├── StatsWindowController.swift
+    ├── ChartsWindowController.swift
+    ├── ChartsView.swift
+    ├── KeystrokeOverlayController.swift
+    ├── AIPromptStore.swift
     └── L10n.swift
 ```
 
@@ -48,6 +62,8 @@ Key press
 CGEventTap  (OS-level event hook)
   |  KeyboardMonitor.swift
   |  keyTapCallback()  <-- file-scope global function (@convention(c) compatible)
+  |
+  +-- post Notification(.keystrokeInput)  --> KeystrokeOverlayController
   |
   v
 KeyCountStore.shared.increment(key:)
@@ -98,6 +114,8 @@ CGEvent.tapCreate(callback: keyTapCallback)
 
 Key code to name translation is handled by a static lookup table in `keyName(for:)` (US keyboard layout).
 
+After translating a key name, the callback posts a `Notification(.keystrokeInput)` so `KeystrokeOverlayController` can display it without polling.
+
 ---
 
 ### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift)
@@ -122,11 +140,47 @@ JSON is written with `.atomic` to prevent file corruption. Consecutive writes wi
 
 ---
 
+### [KeyType.swift](Sources/KeyLens/KeyType.swift)
+
+Classifies key names into categories (`letter`, `number`, `arrow`, `control`, `function`, `mouse`, `other`). Each case carries a `color` and a `label` used by `ChartsView` to colour-code bar segments.
+
+---
+
 ### [NotificationManager.swift](Sources/KeyLens/NotificationManager.swift)
 
 Delivers native notifications via `UNUserNotificationCenter`.
 `trigger: nil` means immediate delivery (no scheduling).
 Notification permission is requested on first singleton access.
+
+---
+
+### [StatsWindowController.swift](Sources/KeyLens/StatsWindowController.swift)
+
+Displays a ranked table of all keys and mouse buttons with total and today's counts. Built with `NSTableView` (AppKit). Reloads from `KeyCountStore` each time the window is shown.
+
+---
+
+### [ChartsWindowController.swift](Sources/KeyLens/ChartsWindowController.swift) / [ChartsView.swift](Sources/KeyLens/ChartsView.swift)
+
+`ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand.
+
+Four chart tabs:
+- **Top 20 Keys** — horizontal bar coloured by `KeyType`
+- **Daily Totals** — line chart of per-day keystroke counts
+- **Key Categories** — donut chart of `KeyType` distribution
+- **Top 10 per Day** — grouped bar chart of the top keys across recent days
+
+---
+
+### [KeystrokeOverlayController.swift](Sources/KeyLens/KeystrokeOverlayController.swift)
+
+Floating `NSPanel` that shows the last N keystrokes in real time using a SwiftUI `OverlayView`. Listens for `Notification(.keystrokeInput)` posted by `KeyboardMonitor`. The panel fades out after 3 s of inactivity using a debounced `DispatchWorkItem`. Toggle state is persisted in `UserDefaults`.
+
+---
+
+### [AIPromptStore.swift](Sources/KeyLens/AIPromptStore.swift)
+
+Singleton that stores and retrieves the AI analysis prompt. Built-in defaults exist for English and Japanese. User edits are persisted in `UserDefaults` keyed by language, so each language retains an independent prompt.
 
 ---
 
