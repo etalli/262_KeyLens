@@ -167,6 +167,22 @@ final class L10n {
         ja("ここに保存", en: "Save Here")
     }
 
+    var copyDataMenuItem: String {
+        ja("データをコピー", en: "Copy Data to Clipboard")
+    }
+
+    var editPromptMenuItem: String {
+        ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
+    }
+
+    var editPromptTitle: String {
+        ja("AIプロンプト", en: "AI Prompt")
+    }
+
+    var editPromptSave: String {
+        ja("保存", en: "Save")
+    }
+
     func statsWindowHeader(since: String, today: String, total: String) -> String {
         ja(
             "\(since) から記録中  |  本日: \(today) 入力  |  合計: \(total) 入力",
