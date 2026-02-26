@@ -53,6 +53,42 @@ English | [日本語](README.ja.md)
 
 ---
 
+
+
+## Security
+
+| | Details |
+|---|---|
+| **Records** | Key names (e.g. `Space`, `e`) and mouse button names with press counts only |
+| **Does NOT record** | Typed text, sequences, passwords, clipboard content, or cursor position |
+| **Storage** | Local JSON file only — no network transmission |
+| **Event access** | `.listenOnly` tap — read-only, cannot inject or modify keystrokes |
+
+<details>
+<summary>Full risk summary</summary>
+
+| Area | Risk | Mitigation |
+|------|------|------------|
+| Global key monitoring | High (by nature) | `.listenOnly` + `tailAppendEventTap` — passive only |
+| Data content | Low | Key name + count only; typed text cannot be reconstructed |
+| Data file | Medium | Unencrypted; readable by any process running as the same user |
+| Network | None | No outbound connections |
+| Code signing | Medium | Ad-hoc only; Gatekeeper blocks distribution to other users |
+
+</details>
+
+---
+
+## Data file
+
+```
+~/Library/Application Support/KeyLens/counts.json
+```
+
+Use **Settings… > Open Log Folder** to open the directory in Finder.
+
+---
+
 ## Build from Source
 
 ```bash
@@ -106,40 +142,6 @@ An alert is shown on first launch if the permission is missing.
 | App becomes active (`didBecomeActiveNotification`) | ~instant |
 | Permission retry timer | every 3 s |
 | Health check timer | every 5 s |
-
----
-
-## Security
-
-| | Details |
-|---|---|
-| **Records** | Key names (e.g. `Space`, `e`) and mouse button names with press counts only |
-| **Does NOT record** | Typed text, sequences, passwords, clipboard content, or cursor position |
-| **Storage** | Local JSON file only — no network transmission |
-| **Event access** | `.listenOnly` tap — read-only, cannot inject or modify keystrokes |
-
-<details>
-<summary>Full risk summary</summary>
-
-| Area | Risk | Mitigation |
-|------|------|------------|
-| Global key monitoring | High (by nature) | `.listenOnly` + `tailAppendEventTap` — passive only |
-| Data content | Low | Key name + count only; typed text cannot be reconstructed |
-| Data file | Medium | Unencrypted; readable by any process running as the same user |
-| Network | None | No outbound connections |
-| Code signing | Medium | Ad-hoc only; Gatekeeper blocks distribution to other users |
-
-</details>
-
----
-
-## Data file
-
-```
-~/Library/Application Support/KeyLens/counts.json
-```
-
-Use **Settings… > Open Log Folder** to open the directory in Finder.
 
 ---
 
