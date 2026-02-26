@@ -83,7 +83,7 @@ final class KeyCountStore {
         let count: Int = queue.sync {
             store.counts[key, default: 0] += 1
             store.dailyCounts[today, default: [:]][key, default: 0] += 1
-            // Welford's online algorithm: 1000ms 以内の間隔のみ平均・最大に加算
+            // Welford's online algorithm: 1000ms 以内の間隔のみ平均・最小に加算
             if let last = store.lastInputTime {
                 let intervalMs = timestamp.timeIntervalSince(last) * 1000
                 if intervalMs <= 1000 {

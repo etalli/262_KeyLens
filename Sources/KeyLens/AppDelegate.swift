@@ -145,10 +145,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func addStatusSection(to menu: NSMenu) {
         let l = L10n.shared
         let isRunning = monitor.isRunning
-        let statusAttr = NSAttributedString(
-            string: isRunning ? l.monitoringActive : l.monitoringStopped,
-            attributes: [.foregroundColor: isRunning ? NSColor.systemGreen : NSColor.systemRed]
+        let dotColor: NSColor = isRunning ? .systemGreen : .systemRed
+        let fullString = isRunning ? l.monitoringActive : l.monitoringStopped
+        let statusAttr = NSMutableAttributedString(
+            string: fullString,
+            attributes: [.foregroundColor: NSColor.labelColor]
         )
+        if let dotRange = fullString.range(of: "●") {
+            let nsRange = NSRange(dotRange, in: fullString)
+            statusAttr.addAttribute(.foregroundColor, value: dotColor, range: nsRange)
+        }
         let item = NSMenuItem(
             title: "",
             action: isRunning ? nil : #selector(openAccessibilitySettings),
@@ -260,6 +266,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         csvItem.target = self
         settingsMenu.addItem(csvItem)
 
+        let copyDataItem = NSMenuItem(title: l.copyDataMenuItem, action: #selector(copyDataToClipboard), keyEquivalent: "")
+        copyDataItem.target = self
+        settingsMenu.addItem(copyDataItem)
+
+        let editPromptItem = NSMenuItem(title: l.editPromptMenuItem, action: #selector(editAIPrompt), keyEquivalent: "")
+        editPromptItem.target = self
+        settingsMenu.addItem(editPromptItem)
+
         settingsMenu.addItem(.separator())
 
         // 破壊的操作
@@ -364,6 +378,119 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func openAccessibilitySettings() {
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
         NSWorkspace.shared.open(url)
+    }
+
+    private static let aiPromptDefaults: [Language: String] = [
+        .english: """
+You are a keyboard layout optimization analyst.
+
+Using the provided key input log:
+
+1. Compute:
+   - Total key frequency
+   - Bigram and trigram frequency
+   - Same-finger repetition rate
+   - Hand alternation rate
+   - Temporal change of frequency (learning/adaptation trend)
+
+2. Identify:
+   - Keys that cause high ergonomic load
+   - Keys that would benefit from relocation to thumbs
+   - Frequently combined key pairs suitable for thumb modifiers
+
+3. Assume:
+   - Split keyboard
+   - 4 thumb keys per hand
+   - Minimize finger travel and same-finger repetition
+
+Output:
+- Data summary table
+- Optimization reasoning
+- Recommended thumb assignments
+- Expected ergonomic improvement estimate
+""",
+        .japanese: """
+あなたはキーボードレイアウト最適化の専門家です。
+
+以下のキー入力ログを分析してください：
+
+1. 計算してください：
+   - キーごとの使用頻度
+   - バイグラム・トライグラム頻度
+   - 同指連続入力率
+   - 左右交互打鍵率
+   - 頻度の時系列変化（学習・適応トレンド）
+
+2. 特定してください：
+   - 人間工学的負荷が高いキー
+   - 親指キーに移動すると効果的なキー
+   - 親指モディファイアに適したキーの組み合わせ
+
+3. 前提条件：
+   - 分割キーボード
+   - 片手4つの親指キー
+   - 指の移動距離と同指連続入力を最小化
+
+出力：
+- データサマリー表
+- 最適化の根拠
+- 推奨親指キー割り当て
+- 期待される人間工学的改善効果の推定
+"""
+    ]
+
+    private static func aiPromptKey(for lang: Language) -> String {
+        "aiPrompt_\(lang.rawValue)"
+    }
+
+    private static func currentPrompt() -> String {
+        let lang = L10n.shared.resolved
+        let key = aiPromptKey(for: lang)
+        return UserDefaults.standard.string(forKey: key)
+            ?? aiPromptDefaults[lang]
+            ?? aiPromptDefaults[.english]!
+    }
+
+    @objc private func copyDataToClipboard() {
+        let url = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("KeyLens/counts.json")
+        guard let data = try? Data(contentsOf: url),
+              let json = String(data: data, encoding: .utf8) else { return }
+        let content = "\(Self.currentPrompt())\n\n\(json)"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(content, forType: .string)
+    }
+
+    @objc private func editAIPrompt() {
+        let l = L10n.shared
+        let current = Self.currentPrompt()
+
+        let alert = NSAlert()
+        alert.messageText = l.editPromptTitle
+        alert.addButton(withTitle: l.editPromptSave)
+        alert.addButton(withTitle: l.cancel)
+
+        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 480, height: 240))
+        scrollView.hasVerticalScroller = true
+        scrollView.autohidesScrollers = true
+        scrollView.borderType = .bezelBorder
+
+        let textView = NSTextView(frame: scrollView.contentView.bounds)
+        textView.autoresizingMask = [.width]
+        textView.isEditable = true
+        textView.isRichText = false
+        textView.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        textView.string = current
+        scrollView.documentView = textView
+
+        alert.accessoryView = scrollView
+
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            let lang = L10n.shared.resolved
+            UserDefaults.standard.set(textView.string, forKey: Self.aiPromptKey(for: lang))
+        }
     }
 
     @objc private func openSaveDir() {
