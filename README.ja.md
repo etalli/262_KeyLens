@@ -165,4 +165,4 @@ macOS はグローバル `CGEventTap` のインストールにユーザーの明
 
 ---
 
-内部設計の詳細は [Architecture.ja.md](Architecture.ja.md) を参照してください。
+内部設計の詳細は [Architecture.md](Architecture.md) を参照してください。

@@ -1,6 +1,6 @@
 # Architecture
 
-English | [日本語](Architecture.ja.md)
+English
 
 ## Overview
 
