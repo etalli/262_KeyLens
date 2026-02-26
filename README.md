@@ -2,33 +2,45 @@
 
 English | [日本語](README.ja.md)
 
+<div align="center">
+
 [![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat-square&logo=swift)
+[![Download DMG](https://img.shields.io/badge/⬇_Download-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 
-A macOS menu bar app that monitors and records global keyboard and mouse input.
-Counts keystrokes and mouse clicks per key/button, saves the data to a JSON file, and sends a macOS notification every 1,000 presses.
+**A macOS menu bar app that monitors and records global keyboard and mouse input.**
 
-![alt text](images/menu.png)
+![Menu screenshot](images/menu.png)
+
+</div>
 
 ---
 
 ## Features
 
-- **Global monitoring**: Counts all keystrokes and mouse clicks regardless of the active application
-- **Mouse click tracking**: Left / Right / Middle buttons and extra buttons are counted separately
-- **Menu bar statistics**: Click the keyboard icon to see today's count, total count, average keystroke interval, minimum keystroke interval (fastest burst), and the top 10 most-used keys/buttons
-- **Show All**: Open a full ranked list of every key and mouse button with total and today's counts
-- **Charts**: Interactive charts window with four views — Top 20 Keys (horizontal bar, color-coded by type), Daily Totals (line chart), Key Categories (donut), Top 10 per Day (grouped bar)
-- **CSV Export**: Export all data as two CSV files — summary (total counts per key) and daily breakdown — saved to a folder of your choice
-- **Copy Data to Clipboard**: Copy `counts.json` to the clipboard with a customizable AI prompt prepended — paste directly into an AI assistant for analysis
-- **Edit AI Prompt**: Customize the prompt text prepended to clipboard data via **Settings… > Edit AI Prompt…**; separate prompts stored per language (English / Japanese)
-- **Keystroke Overlay**: Real-time semi-transparent floating window in the bottom-left of the screen showing recent keystrokes; modifier combinations displayed as ⌘C / ⇧A style; fades out after 3 seconds of inactivity; toggled via the menu
-- **Today's count**: Daily input total, reset automatically at midnight
-- **Data saving**: Counts survive reboots — stored in a JSON file
-- **Milestone notifications**: Native macOS notification at every 1,000 presses per key/button (1000, 2000, …)
-- **Multilingual UI**: English / 日本語 / System auto-detect
-- **Instant permission recovery**: Monitoring resumes automatically when Accessibility permission is granted
+- ⌨️ **Global monitoring** — Counts all keystrokes and mouse clicks regardless of the active application
+- 🖱️ **Mouse click tracking** — Left / Right / Middle buttons and extra buttons are counted separately
+- 📊 **Menu bar statistics** — Today's count, total count, average keystroke interval, minimum keystroke interval (fastest burst), and the top 10 most-used keys/buttons
+- 📋 **Show All** — Full ranked list of every key and mouse button with total and today's counts
+- 📈 **Charts** — Four interactive views: Top 20 Keys (bar), Daily Totals (line), Key Categories (donut), Top 10 per Day (grouped bar)
+- 📤 **CSV Export** — Summary and daily breakdown exported to a folder of your choice
+- 🤖 **Copy Data to Clipboard** — Copy `counts.json` with a customizable AI prompt prepended; paste directly into an AI assistant for analysis
+- ✏️ **Edit AI Prompt** — Customize the prompt via **Settings… > Edit AI Prompt…**; stored separately per language
+- 🔍 **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style); fades after 3 s of inactivity
+- 🔔 **Milestone notifications** — Native macOS notification at every 1,000 presses per key
+- 🌍 **Multilingual UI** — English / 日本語 / System auto-detect
+- ⚡ **Instant permission recovery** — Monitoring resumes automatically when Accessibility permission is granted
+
+---
+
+## Quick Install
+
+1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
+2. Open the DMG and drag **KeyLens.app** to `/Applications`
+3. Launch the app — grant **Accessibility** permission when prompted
+
+> **Note:** The app uses an ad-hoc signature and is intended for personal use. Gatekeeper may warn on first launch — right-click the app and choose **Open** to bypass.
 
 ---
 
@@ -42,36 +54,19 @@ Counts keystrokes and mouse clicks per key/button, saves the data to a JSON file
 
 ---
 
-## Build
+## Build from Source
 
 ```bash
-# Build App Bundle only
-./build.sh
-
-# Build and launch immediately (from project directory)
-./build.sh --run
-
-# Build, install to /Applications, codesign, reset TCC, and launch  ← recommended
-./build.sh --install
-
-# Build and create a distributable DMG (drag app to /Applications)
-./build.sh --dmg
+./build.sh            # Build App Bundle only
+./build.sh --run      # Build and launch immediately
+./build.sh --install  # Build, install to /Applications, codesign, reset TCC, launch  ← recommended
+./build.sh --dmg      # Build distributable DMG
 ```
 
-> Running `swift build` alone produces the executable, but notifications require a proper App Bundle. Always use `build.sh`.
+> Always use `build.sh` — running `swift build` alone won't produce a working notification bundle.
 
-### What the build script does
-
-```
-swift build -c release
-  └─ .build/release/KeyLens   (executable)
-
-KeyLens.app/
-  ├── Contents/MacOS/KeyLens   <- executable copied here
-  └── Contents/Info.plist         <- LSUIElement=true hides the Dock icon
-```
-
-### `--install` steps (recommended for development)
+<details>
+<summary>What <code>--install</code> does</summary>
 
 | Step | What it does |
 |------|--------------|
@@ -79,15 +74,20 @@ KeyLens.app/
 | `codesign --force --deep --sign -` | Ad-hoc signature (stabilises Accessibility permission) |
 | `pkill -x KeyLens` | Stops the running process before replacing the binary |
 | `tccutil reset Accessibility <bundle-id>` | Clears the stale TCC entry for the old binary hash |
-| `open ~/Applications/KeyLens.app` | Launches the new build |
+| `open /Applications/KeyLens.app` | Launches the new build |
 
-**Why TCC reset is needed:** macOS stores Accessibility permissions keyed by binary hash. Each `swift build` produces a new binary with a different hash, making the old TCC entry stale. Without resetting, `AXIsProcessTrusted()` returns `false` even though the toggle appears ON in System Settings.
+**Why TCC reset is needed:** macOS stores Accessibility permissions keyed by binary hash. Each `swift build` produces a new binary, making the old TCC entry stale. Without resetting, `AXIsProcessTrusted()` returns `false` even though the toggle appears ON in System Settings.
 
-### Logs
+</details>
+
+<details>
+<summary>Logs</summary>
 
 ```bash
 tail -f ~/Library/Logs/KeyLens/app.log
 ```
+
+</details>
 
 ---
 
@@ -112,37 +112,25 @@ An alert is shown on first launch if the permission is missing.
 
 ## Security
 
-### What this app does and does not do
-
 | | Details |
 |---|---|
-| **Records** | Key names (e.g. `Space`, `e`) and mouse button names (e.g. `🖱Left`) with press counts only |
-| **Does NOT record** | Typed text, sequences, passwords, clipboard content, or mouse cursor position |
+| **Records** | Key names (e.g. `Space`, `e`) and mouse button names with press counts only |
+| **Does NOT record** | Typed text, sequences, passwords, clipboard content, or cursor position |
 | **Storage** | Local JSON file only — no network transmission |
 | **Event access** | `.listenOnly` tap — read-only, cannot inject or modify keystrokes |
 
-### Risk summary
+<details>
+<summary>Full risk summary</summary>
 
-| Area | Risk | Mitigation in this app |
-|------|------|------------------------|
+| Area | Risk | Mitigation |
+|------|------|------------|
 | Global key monitoring | High (by nature) | `.listenOnly` + `tailAppendEventTap` — passive only |
 | Data content | Low | Key name + count only; typed text cannot be reconstructed |
 | Data file | Medium | Unencrypted; readable by any process running as the same user |
 | Network | None | No outbound connections |
-| Process execution | Low | Only runs `/usr/bin/open` with a hardcoded bundle path |
 | Code signing | Medium | Ad-hoc only; Gatekeeper blocks distribution to other users |
 
-### Why Accessibility permission is required
-
-macOS requires explicit user consent (via System Settings > Privacy & Security > Accessibility) before any app can install a global `CGEventTap`. Without this permission, `AXIsProcessTrusted()` returns `false` and the tap is never created. This is a macOS-enforced gate — the app cannot monitor keystrokes silently without the user granting it.
-
-### For distribution
-
-The app currently uses an ad-hoc signature (`codesign --sign -`), which is sufficient for personal use. To distribute to other users:
-
-- Enrol in the **Apple Developer Program** ($99/year)
-- Sign with a **Developer ID Application** certificate
-- Submit for **Apple Notarisation** (required for Gatekeeper approval on macOS 10.15+)
+</details>
 
 ---
 
@@ -152,23 +140,7 @@ The app currently uses an ad-hoc signature (`codesign --sign -`), which is suffi
 ~/Library/Application Support/KeyLens/counts.json
 ```
 
-```json
-{
-  "startedAt": "2026-01-01T00:00:00Z",
-  "counts": {
-    "Space": 15234,
-    "Return": 8901,
-    "e": 7432
-  },
-  
-  "dailyCounts": {
-    "2026-02-22": 3120
-  }
-}
-```
-
-Use **Settings… > Open Log Folder** in the menu to open the directory in Finder.
-
+Use **Settings… > Open Log Folder** to open the directory in Finder.
 
 ---
 
