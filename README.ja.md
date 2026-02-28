@@ -144,4 +144,4 @@ tail -f ~/Library/Logs/KeyLens/app.log
 
 ---
 
-内部設計の詳細は [Architecture.md](Architecture.md) を参照してください。
+内部設計の詳細は [Architecture.md](docs/Architecture.md) を参照してください。
