@@ -18,7 +18,7 @@ final class OverlayViewModel: ObservableObject {
 
     private var fadeTimer: DispatchWorkItem?
     private let maxVisible = 10
-    private var fadeDelay: Double { OverlayConfig.current.fadeDelay }
+    private var fadeDelay: Double { config.fadeDelay }
 
     init() {
         NotificationCenter.default.addObserver(

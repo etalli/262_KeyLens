@@ -298,7 +298,7 @@ final class L10n {
         let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .none
         f.locale = Locale(identifier: "ja_JP"); return f
     }()
-    private static let dateFormatterEn: DateFormatter = {
+    static let dateFormatterEn: DateFormatter = {
         let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .none
         f.locale = Locale(identifier: "en_US"); return f
     }()
