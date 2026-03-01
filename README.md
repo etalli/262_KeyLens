@@ -156,7 +156,7 @@ An alert is shown on first launch if the permission is missing.
 ---
 
 For internal design details, see [Architecture.md](docs/Architecture.md).
-For the development roadmap, see [Roadmap.md](Roadmap.md).
+For the development roadmap, see [Roadmap.md](docs/Roadmap.md).
 
 
 Feedback Welcome!
