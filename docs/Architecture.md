@@ -8,18 +8,18 @@ KeyLens is built around three layers: event monitoring, data management, and UI 
 
 ```mermaid
 graph TD
-    A[main.swift] --> B[AppDelegate]
+    A[KeyLensApp.swift] --> B[AppDelegate]
+    A --> V[MenuBarExtra / MenuView]
     B --> C[KeyboardMonitor]
-    B --> D[NSStatusItem / Menu]
     B --> I[StatsWindowController]
     B --> J[ChartsWindowController]
     B --> K[KeystrokeOverlayController]
     C -->|key event| E[KeyCountStore]
     C -->|keystrokeInput notification| K
-    E -->|every 1000 presses| F[NotificationManager]
+    E -->|every milestone presses| F[NotificationManager]
     E -->|JSON save| G[(counts.json)]
-    D -->|fetch display data| E
-    D -->|language switch| H[L10n]
+    V -->|fetch display data| E
+    V -->|language switch| H[L10n]
     J -->|reads counts| E
     J --> L[ChartsView / KeyType]
     M[AIPromptStore] -->|currentPrompt| B
@@ -37,8 +37,10 @@ graph TD
 ├── Resources/
 │   └── Info.plist
 └── Sources/KeyLens/
-    ├── main.swift
+    ├── KeyLensApp.swift
     ├── AppDelegate.swift
+    ├── AppDelegate+Actions.swift
+    ├── MenuView.swift
     ├── KeyboardMonitor.swift
     ├── KeyCountStore.swift
     ├── KeyType.swift
@@ -47,6 +49,7 @@ graph TD
     ├── ChartsWindowController.swift
     ├── ChartsView.swift
     ├── KeystrokeOverlayController.swift
+    ├── OverlaySettingsController.swift
     ├── AIPromptStore.swift
     └── L10n.swift
 ```
@@ -61,7 +64,7 @@ Key press
   v
 CGEventTap  (OS-level event hook)
   |  KeyboardMonitor.swift
-  |  keyTapCallback()  <-- file-scope global function (@convention(c) compatible)
+  |  inputTapCallback()  <-- file-scope global function (@convention(c) compatible)
   |
   +-- post Notification(.keystrokeInput)  --> KeystrokeOverlayController
   |
@@ -72,26 +75,68 @@ KeyCountStore.shared.increment(key:)
   |  dailyCounts[today] += 1
   |  scheduleSave()   <- debounced 2 s write
   |
-  +-- count % 1000 == 0?
+  +-- count % milestoneInterval == 0?
   |     YES -> DispatchQueue.main.async { NotificationManager.notify() }
   |
   v
 (on menu open)
-NSMenuDelegate.menuWillOpen
-  └─ KeyCountStore.{todayCount, totalCount, topKeys()}  -> rebuild menu
+MenuBarExtra panel renders MenuView
+  └─ KeyCountStore.{todayCount, totalCount, topKeys()}  -> display stats
 ```
 
 ---
 
 ## File responsibilities
 
-### [main.swift](Sources/KeyLens/main.swift)
+### [KeyLensApp.swift](Sources/KeyLens/KeyLensApp.swift)
 
-Entry point. Launches `NSApplication` with `.accessory` policy so the app appears only in the menu bar, not in the Dock.
+Entry point (marked with `@main`). Declares the app using SwiftUI's `App` protocol with a `MenuBarExtra` scene.
 
 ```swift
-app.setActivationPolicy(.accessory)
+@main
+struct KeyLensApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    var body: some Scene {
+        MenuBarExtra {
+            MenuView().environmentObject(appDelegate)
+        } label: {
+            Label("KeyLens", systemImage: "keyboard")
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
 ```
+
+`Info.plist` sets `LSUIElement = true` to suppress the Dock icon and the app-specific menu bar. `MenuBarExtra` provides the status bar icon and the popup panel. `@NSApplicationDelegateAdaptor` bridges to `AppDelegate` for lifecycle and monitor management.
+
+---
+
+### [AppDelegate.swift](Sources/KeyLens/AppDelegate.swift)
+
+Manages the `KeyboardMonitor` lifecycle and Accessibility permission recovery. Conforms to `ObservableObject` so `MenuView` can react to state changes (e.g. `isMonitoring`, `copyConfirmed`).
+
+**Permission recovery (layered):**
+1. `appDidBecomeActive` — fires when the user switches back to any app; attempts `monitor.start()` immediately
+2. `schedulePermissionRetry()` — polls `AXIsProcessTrusted()` every 3 s as a fallback
+3. `setupHealthCheck()` — checks `monitor.isRunning` every 5 s and triggers retry if stopped
+
+---
+
+### [AppDelegate+Actions.swift](Sources/KeyLens/AppDelegate+Actions.swift)
+
+Extension on `AppDelegate` containing all user-initiated actions triggered from `MenuView`: showing windows, toggling the overlay, exporting CSV, copying data to clipboard, editing the AI prompt, changing language, resetting counts, etc.
+
+---
+
+### [MenuView.swift](Sources/KeyLens/MenuView.swift)
+
+SwiftUI view that renders the `MenuBarExtra` popup panel. Reads live data from `KeyCountStore.shared` on each render. Uses `@EnvironmentObject var appDelegate` to dispatch actions. Key subcomponents:
+
+- **`OverlayRow`** — toggle + hover gear button + fixed-position checkmark in one row
+- **`DataMenuRow`** — NSMenu popup for CSV export, AI prompt editing, open log folder
+- **`SettingsMenuRow`** — NSMenu popup for Launch at Login, Language, Notify Every, Reset
+- **`HoverRowStyle`** — shared `ButtonStyle` with hover highlight
 
 ---
 
@@ -104,7 +149,7 @@ Intercepts system-wide key-down events via `CGEventTap`.
 `CGEventTapCallBack` is a C function pointer type, which means Swift closures that capture variables cannot be used directly. The callback is therefore defined as a file-scope global function and accesses state only through singletons (`KeyCountStore.shared`, etc.), which require no capture.
 
 ```
-CGEvent.tapCreate(callback: keyTapCallback)
+CGEvent.tapCreate(callback: inputTapCallback)
                             ^
                   global function (no captures)
                   -> implicitly convertible to @convention(c)
@@ -184,24 +229,10 @@ Singleton that stores and retrieves the AI analysis prompt. Built-in defaults ex
 
 ---
 
-### [AppDelegate.swift](Sources/KeyLens/AppDelegate.swift)
-
-Manages the menu bar UI and accessibility permission recovery.
-
-**Menu rebuild strategy:**
-Rebuilding the menu on every keystroke is wasteful. Instead, `NSMenuDelegate.menuWillOpen` is used to rebuild only when the user actually opens the menu. The menu is split into three sections: status, stats, settings.
-
-**Permission recovery (layered):**
-1. `appDidBecomeActive` — fires when the user switches back to any app; attempts `monitor.start()` immediately
-2. `schedulePermissionRetry()` — polls `AXIsProcessTrusted()` every 3 s as a fallback
-3. `setupHealthCheck()` — checks `monitor.isRunning` every 5 s and triggers retry if stopped
-
----
-
 ### [L10n.swift](Sources/KeyLens/L10n.swift)
 
 Centralised localisation singleton. Supports English, Japanese, and system auto-detection. Language preference is persisted in `UserDefaults`.
 
 ### Data Dir.
 
-~/Library/Application Support/KeyLens/ 
+~/Library/Application Support/KeyLens/

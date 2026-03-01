@@ -6,12 +6,20 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
-![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat-square&logo=swift)
 [![DMG をダウンロード](https://img.shields.io/badge/⬇_ダウンロード-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 
 **macOS メニューバー常駐型のキーストローク・マウスクリック監視・記録アプリ**
 
-![メニュースクリーンショット](images/menu.png)
+<table>
+  <tr>
+    <td><img src="images/menu_v037.png" width="280"/></td>
+    <td><img src="images/Heatmap.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center">メニュー</td>
+    <td align="center">ヒートマップ</td>
+  </tr>
+</table>
 
 </div>
 
@@ -26,7 +34,7 @@
 - **グラフ表示** — 4 種類のインタラクティブなグラフ：Top 20 キー（横棒）、日別合計（折れ線）、キー分類（ドーナツ）、日別 Top 10（グループ棒グラフ）
 - **CSV 書き出し** — サマリーと日別明細を 2 ファイルに書き出し、保存先フォルダを指定
 - **データをコピー** — `counts.json` をカスタマイズ可能な AI プロンプト付きでクリップボードにコピー、そのまま AI に貼り付けて分析
-- **AI プロンプト編集** — **設定… > AI プロンプトを編集…** でプロンプトを編集、言語ごとに保存
+- **AI プロンプト編集** — **データ… > AI プロンプトを編集…** でプロンプトを編集、言語ごとに保存
 - **キーオーバーレイ** — ⌘C / ⇧A 形式で最近のキー入力をリアルタイム表示、3 秒で自動フェードアウト
 - **マイルストーン通知** — キー／ボタンごとに 1,000 回ごとにネイティブ通知
 - **多言語 UI** — English / 日本語 / システム自動検出
