@@ -29,6 +29,7 @@ extension AppDelegate {
 
     func toggleOverlay() {
         KeystrokeOverlayController.shared.isEnabled.toggle()
+        objectWillChange.send()
     }
 
     func showOverlaySettings() {
@@ -46,6 +47,7 @@ extension AppDelegate {
         } catch {
             KeyLens.log("LaunchAtLogin toggle failed: \(error)")
         }
+        objectWillChange.send()
     }
 
     func exportCSV() {
@@ -77,10 +79,12 @@ extension AppDelegate {
 
     func changeLanguage(to lang: Language) {
         L10n.shared.language = lang
+        objectWillChange.send()
     }
 
     func setMilestoneInterval(_ interval: Int) {
         KeyCountStore.milestoneInterval = interval
+        objectWillChange.send()
     }
 
     func resetCounts() {
@@ -146,6 +150,10 @@ extension AppDelegate {
         let content = "\(AIPromptStore.shared.currentPrompt)\n\n\(json)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(content, forType: .string)
+        copyConfirmed = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            self?.copyConfirmed = false
+        }
     }
 
     func editAIPrompt() {

@@ -9,7 +9,7 @@ enum Language: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .system:   return "System (Auto)"
+        case .system:   return "Auto"
         case .english:  return "English"
         case .japanese: return "日本語"
         }

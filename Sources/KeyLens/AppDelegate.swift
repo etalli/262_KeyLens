@@ -3,6 +3,7 @@ import ServiceManagement
 
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @Published var isMonitoring = false
+    @Published var copyConfirmed = false
     let monitor = KeyboardMonitor()
     private var permissionTimer: Timer?
     private var healthTimer: Timer?
