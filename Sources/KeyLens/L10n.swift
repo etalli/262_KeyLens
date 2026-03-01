@@ -260,6 +260,10 @@ final class L10n {
         ja("データをコピー", en: "Copy Data to Clipboard")
     }
 
+    var copiedConfirmation: String {
+        ja("コピーしました！", en: "Copied!")
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }

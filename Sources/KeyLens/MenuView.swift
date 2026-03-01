@@ -118,72 +118,20 @@ struct MenuView: View {
     // MARK: - Settings
 
     private var settingsSection: some View {
-        let l = L10n.shared
         return VStack(alignment: .leading, spacing: 0) {
-            // ログイン時起動
-            toggleRow(l.launchAtLogin, isOn: SMAppService.mainApp.status == .enabled) {
-                appDelegate.toggleLaunchAtLogin()
-            }
             // オーバーレイ（トグル + 設定ギア 1行）
             OverlayRow()
+            Divider().padding(.horizontal, 14).padding(.vertical, 2)
             // データ操作サブメニュー
             DataMenuRow()
-
-            Divider().padding(.horizontal, 14).padding(.vertical, 2)
-
-            // 言語
-            languageSection
-
-            Divider().padding(.horizontal, 14).padding(.vertical, 2)
-
-            // 通知間隔
-            milestoneSection
-
-            Divider().padding(.horizontal, 14).padding(.vertical, 2)
-
-            // リセット
-            menuRow(l.resetMenuItem) { appDelegate.resetCounts() }
+            // クリップボードへコピー（コピー後 1.5s だけ ✓ 表示）
+            menuRow(appDelegate.copyConfirmed ? "\(L10n.shared.copyDataMenuItem) - \(L10n.shared.copiedConfirmation)" : L10n.shared.copyDataMenuItem) {
+                appDelegate.copyDataToClipboard()
+            }
+            // 設定サブメニュー（Launch at Login・言語・通知間隔・リセット）
+            SettingsMenuRow()
         }
         .padding(.vertical, 4)
-    }
-
-    private var languageSection: some View {
-        let l = L10n.shared
-        return HStack(spacing: 0) {
-            Text(l.languageMenuTitle)
-                .font(.system(size: 13))
-                .foregroundColor(.secondary)
-                .padding(.leading, 14)
-            Spacer()
-            ForEach(Language.allCases, id: \.self) { lang in
-                LanguageChipButton(lang: lang, isSelected: l.language == lang) {
-                    appDelegate.changeLanguage(to: lang)
-                }
-            }
-            .padding(.trailing, 10)
-        }
-        .padding(.vertical, 5)
-    }
-
-    private var milestoneSection: some View {
-        let l = L10n.shared
-        return HStack(spacing: 0) {
-            Text(l.notificationIntervalMenuTitle)
-                .font(.system(size: 13))
-                .foregroundColor(.secondary)
-                .padding(.leading, 14)
-            Spacer()
-            HStack(spacing: 4) {
-                ForEach([100, 500, 1000, 5000, 10000], id: \.self) { interval in
-                    MilestoneChipButton(interval: interval,
-                                        isSelected: KeyCountStore.milestoneInterval == interval) {
-                        appDelegate.setMilestoneInterval(interval)
-                    }
-                }
-            }
-            .padding(.trailing, 10)
-        }
-        .padding(.vertical, 5)
     }
 
     // MARK: - Footer
@@ -247,58 +195,6 @@ struct MenuView: View {
             .padding(.vertical, 6)
         }
         .buttonStyle(HoverRowStyle())
-    }
-}
-
-// MARK: - Chip Buttons
-
-private struct LanguageChipButton: View {
-    let lang: Language
-    let isSelected: Bool
-    let action: () -> Void
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(lang.displayName, action: action)
-            .buttonStyle(.plain)
-            .font(.system(size: 12))
-            .foregroundColor(isSelected ? .accentColor : .primary)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(isSelected
-                          ? Color.accentColor.opacity(0.15)
-                          : (isHovered ? Color.primary.opacity(0.08) : Color.clear))
-            )
-            .onHover { isHovered = $0 }
-            .animation(.easeInOut(duration: 0.12), value: isHovered)
-    }
-}
-
-private struct MilestoneChipButton: View {
-    let interval: Int
-    let isSelected: Bool
-    let action: () -> Void
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(interval >= 1000 ? "\(interval / 1000)k" : "\(interval)")
-                .font(.system(size: 11))
-        }
-        .buttonStyle(.plain)
-        .foregroundColor(isSelected ? .accentColor : .primary)
-        .padding(.horizontal, 5)
-        .padding(.vertical, 2)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(isSelected
-                      ? Color.accentColor.opacity(0.2)
-                      : (isHovered ? Color.primary.opacity(0.08) : Color.clear))
-        )
-        .onHover { isHovered = $0 }
-        .animation(.easeInOut(duration: 0.12), value: isHovered)
     }
 }
 
@@ -396,10 +292,91 @@ private struct DataMenuRow: View {
         }
 
         add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
-        add(appDelegate.copyConfirmed ? "✓ Copied!" : l.copyDataMenuItem) { appDelegate.copyDataToClipboard() }
         add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
         menu.addItem(.separator())
         add(l.openSaveFolder)          { appDelegate.openSaveDir() }
+
+        guard let event = NSApp.currentEvent else { return }
+        withExtendedLifetime(held) {
+            NSMenu.popUpContextMenu(menu, with: event, for: event.window?.contentView ?? NSView())
+        }
+    }
+}
+
+// MARK: - SettingsMenuRow (submenu: Language / Notify Every / Reset)
+
+private struct SettingsMenuRow: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+
+    var body: some View {
+        Button(action: showMenu) {
+            HStack {
+                Text(L10n.shared.settingsMenuTitle)
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            .contentShape(Rectangle())
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(HoverRowStyle())
+    }
+
+    private func showMenu() {
+        let l = L10n.shared
+        let menu = NSMenu()
+        var held: [NSMenuItemAction] = []
+
+        func add(_ title: String, checked: Bool = false, _ block: @escaping () -> Void) {
+            let a = NSMenuItemAction(block)
+            held.append(a)
+            let item = NSMenuItem(title: title, action: #selector(NSMenuItemAction.invoke), keyEquivalent: "")
+            item.target = a
+            item.state = checked ? .on : .off
+            menu.addItem(item)
+        }
+
+        func header(_ title: String) {
+            let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            menu.addItem(item)
+        }
+
+        // Launch at Login
+        add(l.launchAtLogin, checked: SMAppService.mainApp.status == .enabled) {
+            appDelegate.toggleLaunchAtLogin()
+        }
+
+        menu.addItem(.separator())
+
+        // Language
+        header(l.languageMenuTitle)
+        let currentLang = l.language
+        for lang in Language.allCases {
+            add(lang.displayName, checked: currentLang == lang) {
+                appDelegate.changeLanguage(to: lang)
+            }
+        }
+
+        menu.addItem(.separator())
+
+        // Notify Every
+        header(l.notificationIntervalMenuTitle)
+        let currentInterval = KeyCountStore.milestoneInterval
+        for interval in [100, 500, 1000, 5000, 10000] {
+            add(l.notificationIntervalLabel(interval), checked: currentInterval == interval) {
+                appDelegate.setMilestoneInterval(interval)
+            }
+        }
+
+        menu.addItem(.separator())
+
+        // Reset
+        add(l.resetMenuItem) { appDelegate.resetCounts() }
 
         guard let event = NSApp.currentEvent else { return }
         withExtendedLifetime(held) {
