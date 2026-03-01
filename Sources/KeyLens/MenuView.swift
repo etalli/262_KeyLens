@@ -55,12 +55,24 @@ struct MenuView: View {
         let l = L10n.shared
         let store = KeyCountStore.shared
         let rankEmoji = ["🥇", "🥈", "🥉"]
-        let topKeys = store.topKeys(limit: 10)
+        let topKeys = store.topKeys(limit: 3)
 
         return VStack(alignment: .leading, spacing: 0) {
             infoRow(l.recordingSince(store.startedAt))
-            infoRow(String(format: l.todayFormat, store.todayCount.formatted()))
-            infoRow(String(format: l.totalFormat, store.totalCount.formatted()))
+
+            // Today + Total を1行に
+            HStack {
+                Text(String(format: l.todayFormat, store.todayCount.formatted()))
+                    .foregroundColor(.primary)
+                Spacer()
+                Text(String(format: l.totalFormat, store.totalCount.formatted()))
+                    .foregroundColor(.secondary)
+            }
+            .font(.system(size: 13))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 4)
+
+            // Avg / Min
             if let avgMs = store.averageIntervalMs {
                 infoRow(String(format: l.avgIntervalFormat, avgMs))
             }
@@ -68,23 +80,24 @@ struct MenuView: View {
                 infoRow(String(format: l.minIntervalFormat, minMs))
             }
 
+            // Top 3 バッジ
             if !topKeys.isEmpty {
-                Divider().padding(.horizontal, 14).padding(.vertical, 4)
-                ForEach(Array(topKeys.enumerated()), id: \.offset) { i, entry in
-                    HStack {
-                        Text(i < rankEmoji.count ? rankEmoji[i] : "   ")
-                            .frame(width: 24, alignment: .leading)
-                        Text(displayKey(entry.key))
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(entry.count.formatted())
-                            .foregroundColor(.secondary)
-                            .monospacedDigit()
+                HStack(spacing: 6) {
+                    ForEach(Array(topKeys.enumerated()), id: \.offset) { i, entry in
+                        HStack(spacing: 3) {
+                            Text(rankEmoji[i]).font(.system(size: 11))
+                            Text(displayKey(entry.key)).font(.system(size: 11))
+                                .foregroundColor(.primary)
+                        }
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.primary.opacity(0.06)))
                     }
-                    .font(.system(size: 13))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 4)
+                    Spacer()
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 4)
             } else {
                 infoRow(l.noInput)
             }
@@ -96,12 +109,10 @@ struct MenuView: View {
 
     private var actionRow: some View {
         let l = L10n.shared
-        return HStack(spacing: 8) {
-            actionButton(l.showAllMenuItem) { appDelegate.showAllStats() }
-            actionButton(l.chartsMenuItem)  { appDelegate.showCharts() }
+        return VStack(alignment: .leading, spacing: 0) {
+            menuRow(l.showAllMenuItem) { appDelegate.showAllStats() }
+            menuRow(l.chartsMenuItem)  { appDelegate.showCharts() }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
     }
 
     // MARK: - Settings
@@ -113,15 +124,10 @@ struct MenuView: View {
             toggleRow(l.launchAtLogin, isOn: SMAppService.mainApp.status == .enabled) {
                 appDelegate.toggleLaunchAtLogin()
             }
-            // オーバーレイ
-            toggleRow(l.overlayMenuItem, isOn: KeystrokeOverlayController.shared.isEnabled) {
-                appDelegate.toggleOverlay()
-            }
-            menuRow(l.overlaySettingsMenuItem) { appDelegate.showOverlaySettings() }
-            menuRow(l.openSaveFolder)          { appDelegate.openSaveDir() }
-            menuRow(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
-            menuRow(l.copyDataMenuItem)        { appDelegate.copyDataToClipboard() }
-            menuRow(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
+            // オーバーレイ（トグル + 設定ギア 1行）
+            OverlayRow()
+            // データ操作サブメニュー
+            DataMenuRow()
 
             Divider().padding(.horizontal, 14).padding(.vertical, 2)
 
@@ -161,11 +167,12 @@ struct MenuView: View {
 
     private var milestoneSection: some View {
         let l = L10n.shared
-        return VStack(alignment: .leading, spacing: 4) {
+        return HStack(spacing: 0) {
             Text(l.notificationIntervalMenuTitle)
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
-                .padding(.horizontal, 14)
+                .padding(.leading, 14)
+            Spacer()
             HStack(spacing: 4) {
                 ForEach([100, 500, 1000, 5000, 10000], id: \.self) { interval in
                     MilestoneChipButton(interval: interval,
@@ -174,7 +181,7 @@ struct MenuView: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(.trailing, 10)
         }
         .padding(.vertical, 5)
     }
@@ -205,13 +212,6 @@ struct MenuView: View {
             .foregroundColor(.primary)
             .padding(.horizontal, 14)
             .padding(.vertical, 4)
-    }
-
-    private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .frame(maxWidth: .infinity)
     }
 
     private func menuRow(_ title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
@@ -300,6 +300,120 @@ private struct MilestoneChipButton: View {
         .onHover { isHovered = $0 }
         .animation(.easeInOut(duration: 0.12), value: isHovered)
     }
+}
+
+// MARK: - OverlayRow (toggle + gear in one row)
+
+private struct OverlayRow: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+    @State private var isHovered = false
+
+    var body: some View {
+        let l = L10n.shared
+        let isEnabled = KeystrokeOverlayController.shared.isEnabled
+        HStack(spacing: 0) {
+            // トグル部分（テキストのみ）
+            Button(action: { appDelegate.toggleOverlay() }) {
+                HStack {
+                    Text(l.overlayMenuItem)
+                        .font(.system(size: 13))
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+                .padding(.leading, 14)
+                .padding(.trailing, 4)
+                .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+
+            // ギアボタン：チェックマークの左、ホバー時のみ表示
+            Button(action: { appDelegate.showOverlaySettings() }) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 12))
+                    .foregroundColor(isHovered ? .secondary : .clear)
+                    .frame(width: 16)
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .allowsHitTesting(isHovered)
+
+            // チェックマーク（最右端・固定位置・他の toggleRow と揃える）
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(isEnabled ? .accentColor : .clear)
+                .padding(.trailing, 14)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
+                .onTapGesture { appDelegate.toggleOverlay() }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                .padding(.horizontal, 6)
+        )
+        .onHover { isHovered = $0 }
+        .animation(.easeInOut(duration: 0.12), value: isHovered)
+    }
+}
+
+// MARK: - DataMenuRow (submenu)
+
+private struct DataMenuRow: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: showMenu) {
+            HStack {
+                Text("Data...")
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            .contentShape(Rectangle())
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(HoverRowStyle())
+    }
+
+    private func showMenu() {
+        let l = L10n.shared
+        let menu = NSMenu()
+        var held: [NSMenuItemAction] = []
+
+        func add(_ title: String, _ block: @escaping () -> Void) {
+            let a = NSMenuItemAction(block)
+            held.append(a)
+            let item = NSMenuItem(title: title, action: #selector(NSMenuItemAction.invoke), keyEquivalent: "")
+            item.target = a
+            menu.addItem(item)
+        }
+
+        add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
+        add(appDelegate.copyConfirmed ? "✓ Copied!" : l.copyDataMenuItem) { appDelegate.copyDataToClipboard() }
+        add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
+        menu.addItem(.separator())
+        add(l.openSaveFolder)          { appDelegate.openSaveDir() }
+
+        guard let event = NSApp.currentEvent else { return }
+        withExtendedLifetime(held) {
+            NSMenu.popUpContextMenu(menu, with: event, for: event.window?.contentView ?? NSView())
+        }
+    }
+}
+
+// MARK: - NSMenuItemAction helper
+
+private final class NSMenuItemAction: NSObject {
+    let block: () -> Void
+    init(_ block: @escaping () -> Void) { self.block = block }
+    @objc func invoke() { block() }
 }
 
 // MARK: - HoverRowStyle
