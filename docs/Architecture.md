@@ -297,6 +297,34 @@ Reads connected keyboard device information via IOKit. Used to identify the acti
 
 ---
 
-### Data Dir.
+## Persistent Storage
 
-~/Library/Application Support/KeyLens/
+**Path:** `~/Library/Application Support/KeyLens/counts.json`
+
+Encoded as JSON with ISO 8601 dates (`JSONEncoder.dateEncodingStrategy = .iso8601`).
+Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
+
+### counts.json schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `startedAt` | ISO 8601 Date | Timestamp when recording began |
+| `lastInputTime` | ISO 8601 Date? | Timestamp of the last key event |
+| `counts` | `{String: Int}` | Cumulative count per key name |
+| `dailyCounts` | `{date: {key: Int}}` | Per-day per-key counts; key `"yyyy-MM-dd"` |
+| `modifiedCounts` | `{String: Int}` | Modifier-combo counts, e.g. `"⌘c": 42` |
+| `hourlyCounts` | `{String: Int}` | Total keystrokes per hour; key `"yyyy-MM-dd-HH"`. Entries older than 365 days are pruned on load. |
+| `avgIntervalMs` | Double | Running average keystroke interval (ms, Welford; intervals > 1000 ms excluded) |
+| `avgIntervalCount` | Int | Sample count for the running average |
+| `dailyMinIntervalMs` | `{date: Double}` | Minimum keystroke interval per day (ms, ≤ 1000 ms only) |
+| `sameFingerCount` | Int | Cumulative same-finger consecutive pairs |
+| `totalBigramCount` | Int | Cumulative total consecutive pairs (denominator) |
+| `dailySameFingerCount` | `{date: Int}` | Same-finger pairs per day |
+| `dailyTotalBigramCount` | `{date: Int}` | Total pairs per day |
+| `handAlternationCount` | Int | Cumulative hand-alternating pairs |
+| `dailyHandAlternationCount` | `{date: Int}` | Hand-alternating pairs per day |
+| `bigramCounts` | `{String: Int}` | Cumulative bigram frequency; key `"prev→cur"` |
+| `dailyBigramCounts` | `{date: {String: Int}}` | Per-day bigram frequency |
+
+All fields except `startedAt` and `counts` use optional decoding with safe defaults,
+ensuring forward/backward compatibility when new fields are added.
