@@ -10,7 +10,7 @@ English | [日本語](README.ja.md)
 
 **A macOS menu bar app that monitors and records global keyboard and mouse input.**
 
-![Menu screenshot](images/menu_v036.png)
+![Menu screenshot](images/menu_v037.png)
 
 </div>
 
