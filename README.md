@@ -33,7 +33,7 @@ English | [日本語](docs/README.ja.md)
 - **Menu bar statistics** — Today's count, total count, average keystroke interval
 - **Show All** — Full ranked list of every key with total and today's counts
 - **Charts** — Four interactive views: Top 20 Keys, Daily Totals, Key Categories, Top 10 per Day
-- **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style); fades after 3 s of inactivity
+- **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
 ---
 
@@ -153,4 +153,4 @@ For the development roadmap, see [Roadmap](docs/Roadmap.md).
 
 
 Feedback Welcome!
-Feel free to open an issue for anything — bug reports, feature requests, or just a simple question. We’d love to hear from you!
+Feel free to open an issue for anything — bug reports, feature requests, or just a simple question. We’d love to hear from you.
