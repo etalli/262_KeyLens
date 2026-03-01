@@ -39,6 +39,13 @@ struct ShortcutEntry: Identifiable {
     init(_ t: (key: String, count: Int)) { id = t.key; key = t.key; count = t.count }
 }
 
+struct BigramEntry: Identifiable {
+    let id: String
+    let pair: String
+    let count: Int
+    init(_ t: (pair: String, count: Int)) { id = t.pair; pair = t.pair; count = t.count }
+}
+
 // MARK: - ChartsView
 
 struct ChartsView: View {
@@ -49,6 +56,7 @@ struct ChartsView: View {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection("Keyboard Heatmap") { KeyboardHeatmapView(counts: model.keyCounts) }
                 chartSection("Top 20 Keys — All Time") { topKeysChart }
+                chartSection("Top 20 Bigrams") { bigramChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection("Key Categories") { categoryChart }
                 chartSection("Top 10 Keys per Day") { perDayChart }
@@ -108,7 +116,64 @@ struct ChartsView: View {
         }
     }
 
-    // MARK: - Chart 2: Daily Totals (line chart)
+    // MARK: - Chart 2: Top 20 Bigrams (horizontal bar + ergonomic summary)
+
+    @ViewBuilder
+    private var bigramChart: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if model.topBigrams.isEmpty {
+                emptyState
+            } else {
+                let pairOrder = model.topBigrams.map(\.pair)
+                Chart(model.topBigrams) { item in
+                    BarMark(
+                        x: .value("Count", item.count),
+                        y: .value("Bigram", item.pair)
+                    )
+                    .foregroundStyle(Color.teal.opacity(0.8))
+                    .cornerRadius(3)
+                }
+                .chartYScale(domain: pairOrder.reversed())
+                .chartLegend(.hidden)
+                .frame(height: CGFloat(model.topBigrams.count * 26 + 24))
+            }
+
+            // Ergonomic metrics summary (Phase 0 data — previously computed but not shown)
+            HStack(spacing: 24) {
+                ergonomicMetricPair(
+                    label: "Same-finger rate",
+                    allTime: model.sameFingerRate,
+                    today: model.todaySameFingerRate
+                )
+                ergonomicMetricPair(
+                    label: "Hand alternation rate",
+                    allTime: model.handAlternationRate,
+                    today: model.todayHandAltRate
+                )
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    @ViewBuilder
+    private func ergonomicMetricPair(label: String, allTime: Double?, today: Double?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                if let v = allTime {
+                    Text("All-time: \(Int(v * 100))%").font(.caption.monospacedDigit())
+                }
+                if let v = today {
+                    Text("Today: \(Int(v * 100))%").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                }
+                if allTime == nil && today == nil {
+                    Text("—").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    // MARK: - Chart 3: Daily Totals (line chart)
 
     @ViewBuilder
     private var dailyTotalsChart: some View {

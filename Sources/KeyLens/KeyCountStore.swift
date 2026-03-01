@@ -24,6 +24,10 @@ private struct CountData: Codable {
     // Hourly keystroke counts (Issue #18) — key: "yyyy-MM-dd-HH", value: total keystrokes
     // Retention: entries older than 365 days are pruned on load.
     var hourlyCounts: [String: Int]
+    // Bigram frequency table (Issue #12) — key: "a→s", value: cumulative count
+    var bigramCounts: [String: Int]
+    // Daily bigram frequency — "yyyy-MM-dd" -> pair -> count
+    var dailyBigramCounts: [String: [String: Int]]
 
     enum CodingKeys: String, CodingKey {
         case startedAt, counts, dailyCounts
@@ -33,6 +37,7 @@ private struct CountData: Codable {
         case dailySameFingerCount, dailyTotalBigramCount
         case handAlternationCount, dailyHandAlternationCount
         case hourlyCounts
+        case bigramCounts, dailyBigramCounts
     }
 
     init(startedAt: Date, counts: [String: Int], dailyCounts: [String: [String: Int]]) {
@@ -51,6 +56,8 @@ private struct CountData: Codable {
         self.handAlternationCount = 0
         self.dailyHandAlternationCount = [:]
         self.hourlyCounts = [:]
+        self.bigramCounts = [:]
+        self.dailyBigramCounts = [:]
     }
 
     /// 旧フォーマット dailyCounts: [String: Int] からのマイグレーション
@@ -76,6 +83,9 @@ private struct CountData: Codable {
         dailyHandAlternationCount = (try? c.decode([String: Int].self, forKey: .dailyHandAlternationCount)) ?? [:]
         // Hourly counts: default to empty when reading old JSON (backward compatible)
         hourlyCounts = (try? c.decode([String: Int].self, forKey: .hourlyCounts)) ?? [:]
+        // Bigram counts: default to empty when reading old JSON (backward compatible)
+        bigramCounts = (try? c.decode([String: Int].self, forKey: .bigramCounts)) ?? [:]
+        dailyBigramCounts = (try? c.decode([String: [String: Int]].self, forKey: .dailyBigramCounts)) ?? [:]
     }
 }
 
@@ -163,6 +173,10 @@ final class KeyCountStore {
                     store.handAlternationCount += 1
                     store.dailyHandAlternationCount[today, default: 0] += 1
                 }
+                // Raw bigram pair frequency (Issue #12)
+                let pair = "\(prev)→\(key)"
+                store.bigramCounts[pair, default: 0] += 1
+                store.dailyBigramCounts[today, default: [:]][pair, default: 0] += 1
             }
             lastKeyName = key
 
@@ -275,6 +289,26 @@ final class KeyCountStore {
             store.counts.sorted { $0.value > $1.value }
                         .prefix(limit)
                         .map { ($0.key, $0.value) }
+        }
+    }
+
+    /// 累計ビグラム上位 limit 件を降順で返す (Issue #12)
+    func topBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
+        queue.sync {
+            store.bigramCounts.sorted { $0.value > $1.value }
+                              .prefix(limit)
+                              .map { ($0.key, $0.value) }
+        }
+    }
+
+    /// 本日のビグラム上位 limit 件を降順で返す (Issue #12)
+    func todayTopBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
+        let today = todayKey
+        return queue.sync {
+            (store.dailyBigramCounts[today] ?? [:])
+                .sorted { $0.value > $1.value }
+                .prefix(limit)
+                .map { ($0.key, $0.value) }
         }
     }
 

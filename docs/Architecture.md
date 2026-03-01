@@ -36,22 +36,30 @@ graph TD
 ├── build.sh
 ├── Resources/
 │   └── Info.plist
-└── Sources/KeyLens/
-    ├── KeyLensApp.swift
-    ├── AppDelegate.swift
-    ├── AppDelegate+Actions.swift
-    ├── MenuView.swift
-    ├── KeyboardMonitor.swift
-    ├── KeyCountStore.swift
-    ├── KeyType.swift
-    ├── NotificationManager.swift
-    ├── StatsWindowController.swift
-    ├── ChartsWindowController.swift
-    ├── ChartsView.swift
-    ├── KeystrokeOverlayController.swift
-    ├── OverlaySettingsController.swift
-    ├── AIPromptStore.swift
-    └── L10n.swift
+├── Sources/
+│   ├── KeyLens/                          # App executable
+│   │   ├── KeyLensApp.swift
+│   │   ├── AppDelegate.swift
+│   │   ├── AppDelegate+Actions.swift
+│   │   ├── MenuView.swift
+│   │   ├── KeyboardMonitor.swift
+│   │   ├── KeyCountStore.swift
+│   │   ├── KeyType.swift
+│   │   ├── NotificationManager.swift
+│   │   ├── StatsWindowController.swift
+│   │   ├── ChartsWindowController.swift
+│   │   ├── ChartsView.swift
+│   │   ├── KeyboardHeatmapView.swift
+│   │   ├── KeyboardDeviceInfo.swift
+│   │   ├── KeystrokeOverlayController.swift
+│   │   ├── OverlaySettingsController.swift
+│   │   ├── AIPromptStore.swift
+│   │   └── L10n.swift
+│   └── KeyLensCore/                      # Research library (Phase 0+)
+│       └── KeyboardLayout.swift
+└── Tests/
+    └── KeyLensTests/
+        └── KeyboardLayoutTests.swift
 ```
 
 ---
@@ -73,6 +81,11 @@ KeyCountStore.shared.increment(key:)
   |  serial DispatchQueue for thread safety
   |  counts[key] += 1
   |  dailyCounts[today] += 1
+  |  hourlyCounts[hour] += 1
+  |  totalBigramCount += 1          <- if prev key mapped
+  |  sameFingerCount += 1           <- if same finger & hand
+  |  handAlternationCount += 1      <- if different hand
+  |  bigramCounts["prev→key"] += 1  <- raw pair frequency (Issue #12)
   |  scheduleSave()   <- debounced 2 s write
   |
   +-- count % milestoneInterval == 0?
@@ -183,6 +196,19 @@ CGEventTap thread             Main thread
 
 JSON is written with `.atomic` to prevent file corruption. Consecutive writes within 2 seconds are coalesced into a single disk write via `DispatchWorkItem` cancellation.
 
+**Ergonomic data (Phase 0 — Issues #16–#18, #12):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sameFingerCount` / `dailySameFingerCount` | `Int` / `[String: Int]` | Consecutive same-finger pairs |
+| `totalBigramCount` / `dailyTotalBigramCount` | `Int` / `[String: Int]` | Total consecutive pairs |
+| `handAlternationCount` / `dailyHandAlternationCount` | `Int` / `[String: Int]` | Hand-alternating pairs |
+| `hourlyCounts` | `[String: Int]` | Keystroke totals keyed by `"yyyy-MM-dd-HH"` (365-day retention) |
+| `bigramCounts` | `[String: Int]` | Raw pair frequency, e.g. `"Space→t": 42` |
+| `dailyBigramCounts` | `[String: [String: Int]]` | Per-day raw pair frequency |
+
+Accessors: `sameFingerRate`, `todaySameFingerRate`, `handAlternationRate`, `todayHandAlternationRate`, `topBigrams(limit:)`, `todayTopBigrams(limit:)`.
+
 ---
 
 ### [KeyType.swift](Sources/KeyLens/KeyType.swift)
@@ -207,13 +233,17 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 ### [ChartsWindowController.swift](Sources/KeyLens/ChartsWindowController.swift) / [ChartsView.swift](Sources/KeyLens/ChartsView.swift)
 
-`ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand.
+`ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
-Four chart tabs:
+Chart sections (in display order):
+- **Keyboard Heatmap** — physical key layout coloured by frequency
 - **Top 20 Keys** — horizontal bar coloured by `KeyType`
+- **Top 20 Bigrams** — horizontal bar of most frequent consecutive pairs; same-finger rate and hand alternation rate summary below (Phase 0 ergonomic metrics)
 - **Daily Totals** — line chart of per-day keystroke counts
 - **Key Categories** — donut chart of `KeyType` distribution
 - **Top 10 per Day** — grouped bar chart of the top keys across recent days
+- **⌘ Keyboard Shortcuts** — top modifier+key combos
+- **All Keyboard Combos** — all modifier combinations
 
 ---
 
@@ -232,6 +262,40 @@ Singleton that stores and retrieves the AI analysis prompt. Built-in defaults ex
 ### [L10n.swift](Sources/KeyLens/L10n.swift)
 
 Centralised localisation singleton. Supports English, Japanese, and system auto-detection. Language preference is persisted in `UserDefaults`.
+
+---
+
+### [KeyLensCore / KeyboardLayout.swift](Sources/KeyLensCore/KeyboardLayout.swift)
+
+A separate Swift library target (`KeyLensCore`) that exposes keyboard ergonomic abstractions decoupled from the app executable. Consumed by `KeyLens` and `KeyLensTests`.
+
+**Public types:**
+
+| Type | Kind | Description |
+|------|------|-------------|
+| `Hand` | `enum` | `.left`, `.right` |
+| `Finger` | `enum` | `.pinky`, `.ring`, `.middle`, `.index`, `.thumb` |
+| `KeyPosition` | `struct` | `row`, `column`, `hand`, `finger` for a single key |
+| `KeyboardLayout` | `protocol` | Layout abstraction — `name`, `position(for:)`, `finger(for:)` |
+| `ANSILayout` | `struct` | Standard US ANSI implementation (62 `CGKeyCode` entries) |
+| `SplitKeyboardConfig` | `struct` | User-overridable hand assignments for split keyboards |
+| `LayoutRegistry` | `class` (singleton) | Active layout + optional `SplitKeyboardConfig` override; `hand(for:)` respects split config |
+
+`KeyCountStore.increment()` calls `LayoutRegistry.shared` to resolve finger/hand for every keystroke, enabling same-finger and alternation detection without coupling the store to physical key codes.
+
+---
+
+### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
+
+SwiftUI view that renders a visual representation of the physical ANSI keyboard, with each key coloured by its relative keystroke frequency. Used inside `ChartsView` as the first chart section.
+
+---
+
+### [KeyboardDeviceInfo.swift](Sources/KeyLens/KeyboardDeviceInfo.swift)
+
+Reads connected keyboard device information via IOKit. Used to identify the active physical keyboard model.
+
+---
 
 ### Data Dir.
 
