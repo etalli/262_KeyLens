@@ -53,6 +53,7 @@ struct ChartsView: View {
                 chartSection("Key Categories") { categoryChart }
                 chartSection("Top 10 Keys per Day") { perDayChart }
                 chartSection("⌘ Keyboard Shortcuts") { shortcutsChart }
+                chartSection("All Keyboard Combos") { allCombosChart }
             }
             .padding(24)
         }
@@ -280,6 +281,58 @@ struct ChartsView: View {
         case "⌘x": return .orange
         case "⌘z": return .purple
         default:    return .teal
+        }
+    }
+
+    // MARK: - Chart 6: All Keyboard Combos (horizontal bar, modifier-color-coded)
+
+    @ViewBuilder
+    private var allCombosChart: some View {
+        if model.allCombos.isEmpty {
+            emptyState
+        } else {
+            let keyOrder = model.allCombos.map(\.key)
+            VStack(alignment: .leading, spacing: 6) {
+                Chart(model.allCombos) { item in
+                    BarMark(
+                        x: .value("Count", item.count),
+                        y: .value("Combo", item.key)
+                    )
+                    .foregroundStyle(comboColor(item.key))
+                    .cornerRadius(3)
+                    .annotation(position: .trailing, spacing: 4) {
+                        Text(item.count.formatted())
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .chartYScale(domain: keyOrder.reversed())
+                .chartLegend(.hidden)
+                .frame(height: CGFloat(model.allCombos.count * 26 + 24))
+
+                // 凡例
+                HStack(spacing: 14) {
+                    ForEach([("⌘", Color.teal), ("⌃", Color.orange), ("⌥", Color.purple), ("⇧", Color.green), ("Multi", Color.pink)], id: \.0) { label, color in
+                        HStack(spacing: 4) {
+                            Circle().fill(color).frame(width: 8, height: 8)
+                            Text(label).font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func comboColor(_ key: String) -> Color {
+        let modifiers = ["⌘", "⌃", "⌥", "⇧"]
+        let found = modifiers.filter { key.hasPrefix($0) || key.contains($0) }
+        if found.count > 1 { return .pink }
+        switch found.first {
+        case "⌘": return .teal
+        case "⌃": return .orange
+        case "⌥": return .purple
+        case "⇧": return .green
+        default:   return .gray
         }
     }
 
