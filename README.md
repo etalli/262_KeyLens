@@ -5,6 +5,7 @@ English | [日本語](docs/README.ja.md)
 <div align="center">
 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat-square&logo=swift)
 [![Download DMG](https://img.shields.io/badge/⬇_Download-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 [![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 
@@ -29,15 +30,11 @@ English | [日本語](docs/README.ja.md)
 ## Features
 
 - **Global monitoring** — Counts all keystrokes and mouse clicks regardless of the active application
-- **Mouse click tracking** — Left / Right / Middle buttons and extra buttons are counted separately
 - **Menu bar statistics** — Today's count, total count, average keystroke interval, minimum keystroke interval (fastest burst), and the top 10 most-used keys/buttons
 - **Show All** — Full ranked list of every key and mouse button with total and today's counts
 - **Charts** — Four interactive views: Top 20 Keys (bar), Daily Totals (line), Key Categories (donut), Top 10 per Day (grouped bar)
 - **CSV Export** — Summary and daily breakdown exported to a folder of your choice
-- **Copy Data to Clipboard** — Copy `counts.json` with a customizable AI prompt prepended; paste directly into an AI assistant for analysis
-- **Edit AI Prompt** — Customize the prompt via **Settings… > Edit AI Prompt…**; stored separately per language
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style); fades after 3 s of inactivity
-- **Milestone notifications** — Native macOS notification at every 1,000 presses per key
 - **Multilingual UI** — English / 日本語 / System auto-detect
 - **Instant permission recovery** — Monitoring resumes automatically when Accessibility permission is granted
 
@@ -95,7 +92,7 @@ English | [日本語](docs/README.ja.md)
 ~/Library/Application Support/KeyLens/counts.json
 ```
 
-Use **Settings… > Open Log Folder** to open the directory in Finder.
+Use **Settings… > Open Log Folder** to open the directory in Finder. See [Architecture.md](docs/Architecture.md) for the schema.
 
 ---
 
@@ -160,4 +157,4 @@ For the development roadmap, see [Roadmap.md](docs/Roadmap.md).
 
 
 Feedback Welcome!
-Feel free to open an issue for anything — bug reports, feature requests, or just a simple question. We’d love to hear from you!!
+Feel free to open an issue for anything — bug reports, feature requests, or just a simple question. We’d love to hear from you!
