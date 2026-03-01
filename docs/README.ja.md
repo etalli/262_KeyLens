@@ -1,6 +1,6 @@
 # KeyLens
 
-[English](README.md) | 日本語
+[English](../README.md) | 日本語
 
 <div align="center">
 
