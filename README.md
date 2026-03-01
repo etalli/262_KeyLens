@@ -29,10 +29,10 @@ English | [日本語](docs/README.ja.md)
 
 ## Features
 
-- **Global monitoring** — Counts all keystrokes and mouse clicks regardless of the active application
-- **Menu bar statistics** — Today's count, total count, average keystroke interval, minimum keystroke interval (fastest burst), and the top 10 most-used keys/buttons
-- **Show All** — Full ranked list of every key and mouse button with total and today's counts
-- **Charts** — Four interactive views: Top 20 Keys (bar), Daily Totals (line), Key Categories (donut), Top 10 per Day (grouped bar)
+- **Global monitoring** — Counts all keystrokes regardless of the active application
+- **Menu bar statistics** — Today's count, total count, average keystroke interval
+- **Show All** — Full ranked list of every key with total and today's counts
+- **Charts** — Four interactive views: Top 20 Keys, Daily Totals, Key Categories, Top 10 per Day
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style); fades after 3 s of inactivity
 
 ---
