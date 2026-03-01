@@ -10,8 +10,16 @@ English | [日本語](README.ja.md)
 
 **A macOS menu bar app that monitors and records global keyboard and mouse input.**
 
-![Menu screenshot](images/menu_v037.png)
-![Heatmap](images/Heatmap.png)
+<table>
+  <tr>
+    <td><img src="images/menu_v037.png" width="280"/></td>
+    <td><img src="images/Heatmap.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center">Menu</td>
+    <td align="center">Heatmap</td>
+  </tr>
+</table>
 
 
 </div>
