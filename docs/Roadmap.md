@@ -22,7 +22,7 @@ Optimization is designed around split keyboards with active use of thumb keys.
 5. Product Layer
 
 
-# Phase 0 – Measurement Integrity (Top Priority)
+# Phase 0 – Measurement Integrity
 
 ## Goal
 
