@@ -33,10 +33,7 @@ English | [日本語](docs/README.ja.md)
 - **Menu bar statistics** — Today's count, total count, average keystroke interval, minimum keystroke interval (fastest burst), and the top 10 most-used keys/buttons
 - **Show All** — Full ranked list of every key and mouse button with total and today's counts
 - **Charts** — Four interactive views: Top 20 Keys (bar), Daily Totals (line), Key Categories (donut), Top 10 per Day (grouped bar)
-- **CSV Export** — Summary and daily breakdown exported to a folder of your choice
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style); fades after 3 s of inactivity
-- **Multilingual UI** — English / 日本語 / System auto-detect
-- **Instant permission recovery** — Monitoring resumes automatically when Accessibility permission is granted
 
 ---
 
@@ -59,7 +56,6 @@ English | [日本語](docs/README.ja.md)
 | Permission | Accessibility (prompted on first launch) |
 
 ---
-
 
 
 ## Security
@@ -92,7 +88,7 @@ English | [日本語](docs/README.ja.md)
 ~/Library/Application Support/KeyLens/counts.json
 ```
 
-Use **Settings… > Open Log Folder** to open the directory in Finder. See [Architecture.md](docs/Architecture.md) for the schema.
+Use **Settings… > Open Log Folder** to open the directory in Finder. See [Architecture](docs/Architecture.md) for the schema.
 
 ---
 
@@ -152,8 +148,8 @@ An alert is shown on first launch if the permission is missing.
 
 ---
 
-For internal design details, see [Architecture.md](docs/Architecture.md).
-For the development roadmap, see [Roadmap.md](docs/Roadmap.md).
+For internal design details, see [Architecture](docs/Architecture.md).
+For the development roadmap, see [Roadmap](docs/Roadmap.md).
 
 
 Feedback Welcome!
