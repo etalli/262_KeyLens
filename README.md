@@ -8,7 +8,7 @@ English | [日本語](docs/README.ja.md)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
 [![Download DMG](https://img.shields.io/badge/⬇_Download-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 
-**A macOS menu bar app that monitors and records global keyboard and mouse input.**
+**A macOS menu bar app that records and analyzes global keyboard and mouse input.**
 
 <table>
   <tr>
