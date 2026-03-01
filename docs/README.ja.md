@@ -8,7 +8,7 @@
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
 [![DMG をダウンロード](https://img.shields.io/badge/⬇_ダウンロード-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 
-**macOS メニューバー常駐型のキーストローク・マウスクリック監視・記録アプリ**
+**macOS メニューバー常駐型のキーストローク・マウスクリック記録、分析**
 
 <table>
   <tr>
