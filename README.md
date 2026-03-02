@@ -103,6 +103,24 @@ Use **Settings… > Open Log Folder** to open the directory in Finder. See [Arch
 
 > Always use `build.sh` — running `swift build` alone won't produce a working notification bundle.
 
+### Run Tests with Fixed Toolchain
+
+If `swift test` fails due to toolchain mismatch (for example `no such module 'XCTest'`), make sure Command Line Tools points to Xcode:
+
+```bash
+xcode-select -p
+xcrun --find swift
+swift --version
+```
+
+If needed, set the Xcode path explicitly:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
+
+This repository's CI also pins Xcode and verifies `xcode-select -p` before running `swift test`.
+
 <details>
 <summary>What <code>--install</code> does</summary>
 

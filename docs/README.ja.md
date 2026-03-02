@@ -73,6 +73,24 @@
 
 > 必ず `build.sh` を使用してください — `swift build` 単体では通知機能が動作しません。
 
+### ツールチェーンを固定してテストする
+
+`swift test` がツールチェーン不一致（例: `no such module 'XCTest'`）で失敗する場合は、まず Command Line Tools の参照先を確認してください。
+
+```bash
+xcode-select -p
+xcrun --find swift
+swift --version
+```
+
+必要であれば、Xcode の Developer ディレクトリを明示的に設定します。
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
+
+このリポジトリの CI でも Xcode バージョンを固定し、`xcode-select -p` を検証してから `swift test` を実行します。
+
 <details>
 <summary><code>--install</code> の手順</summary>
 
