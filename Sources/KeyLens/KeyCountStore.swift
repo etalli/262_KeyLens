@@ -28,6 +28,22 @@ private struct CountData: Codable {
     var bigramCounts: [String: Int]
     // Daily bigram frequency — "yyyy-MM-dd" -> pair -> count
     var dailyBigramCounts: [String: [String: Int]]
+    // Bigram IKI accumulation (Issue #24) — for empirical calibration of same-finger penalty factors.
+    // Stores the sum and sample count of inter-keystroke intervals (ms, ≤1000ms) per bigram pair.
+    // avgIKI(bigram) = bigramIKISum[bigram] / bigramIKICount[bigram]
+    // ビグラムごとの IKI を蓄積し、同指ペナルティ係数の実測校正に使用する。
+    var bigramIKISum: [String: Double]   // "a→s" -> cumulative IKI sum (ms)
+    var bigramIKICount: [String: Int]    // "a→s" -> number of IKI samples
+    // Alternation reward accumulation (Issue #25) — running total of per-pair reward deltas.
+    // Includes streak multiplier bonus when ≥3 consecutive alternating pairs are detected.
+    // 交互打鍵報酬の累積スコア。ストリーク乗数ボーナスを含む。
+    var alternationRewardScore: Double   // cumulative reward score
+    // High-strain sequence tracking (Issue #28) — same finger + ≥1 row distance.
+    // 高負荷シーケンス（同指 + 縦1行以上の移動）の追跡。
+    var highStrainBigramCount: Int               // cumulative high-strain bigrams
+    var dailyHighStrainBigramCount: [String: Int] // "yyyy-MM-dd" -> count
+    var highStrainTrigramCount: Int               // cumulative high-strain trigrams
+    var dailyHighStrainTrigramCount: [String: Int] // "yyyy-MM-dd" -> count
 
     enum CodingKeys: String, CodingKey {
         case startedAt, counts, dailyCounts
@@ -38,6 +54,10 @@ private struct CountData: Codable {
         case handAlternationCount, dailyHandAlternationCount
         case hourlyCounts
         case bigramCounts, dailyBigramCounts
+        case bigramIKISum, bigramIKICount
+        case alternationRewardScore
+        case highStrainBigramCount, dailyHighStrainBigramCount
+        case highStrainTrigramCount, dailyHighStrainTrigramCount
     }
 
     init(startedAt: Date, counts: [String: Int], dailyCounts: [String: [String: Int]]) {
@@ -58,6 +78,13 @@ private struct CountData: Codable {
         self.hourlyCounts = [:]
         self.bigramCounts = [:]
         self.dailyBigramCounts = [:]
+        self.bigramIKISum = [:]
+        self.bigramIKICount = [:]
+        self.alternationRewardScore = 0
+        self.highStrainBigramCount = 0
+        self.dailyHighStrainBigramCount = [:]
+        self.highStrainTrigramCount = 0
+        self.dailyHighStrainTrigramCount = [:]
     }
 
     /// 旧フォーマット dailyCounts: [String: Int] からのマイグレーション
@@ -86,6 +113,16 @@ private struct CountData: Codable {
         // Bigram counts: default to empty when reading old JSON (backward compatible)
         bigramCounts = (try? c.decode([String: Int].self, forKey: .bigramCounts)) ?? [:]
         dailyBigramCounts = (try? c.decode([String: [String: Int]].self, forKey: .dailyBigramCounts)) ?? [:]
+        // Bigram IKI: default to empty when reading old JSON (backward compatible)
+        bigramIKISum   = (try? c.decode([String: Double].self, forKey: .bigramIKISum))  ?? [:]
+        bigramIKICount = (try? c.decode([String: Int].self,    forKey: .bigramIKICount)) ?? [:]
+        // Alternation reward: default to 0 when reading old JSON (backward compatible)
+        alternationRewardScore = (try? c.decode(Double.self, forKey: .alternationRewardScore)) ?? 0
+        // High-strain fields: default to 0 when reading old JSON (backward compatible)
+        highStrainBigramCount        = (try? c.decode(Int.self,            forKey: .highStrainBigramCount))        ?? 0
+        dailyHighStrainBigramCount   = (try? c.decode([String: Int].self,  forKey: .dailyHighStrainBigramCount))   ?? [:]
+        highStrainTrigramCount       = (try? c.decode(Int.self,            forKey: .highStrainTrigramCount))       ?? 0
+        dailyHighStrainTrigramCount  = (try? c.decode([String: Int].self,  forKey: .dailyHighStrainTrigramCount))  ?? [:]
     }
 }
 
@@ -104,6 +141,17 @@ final class KeyCountStore {
     // In-memory only: last key pressed, used for same-finger bigram detection.
     // Not persisted — bigram chains reset on app restart (acceptable for Phase 0).
     private var lastKeyName: String?
+
+    // In-memory only: whether the previous bigram was high-strain (Issue #28).
+    // Used to detect consecutive high-strain bigrams (trigrams). Resets on app restart.
+    // 直前のビグラムが高負荷だったかのフラグ。トリグラム検出に使用。再起動でリセット。
+    private var lastBigramWasHighStrain: Bool = false
+
+    // In-memory only: consecutive hand-alternating pair count for streak detection (Issue #25).
+    // Reset to 0 when a same-hand pair is detected. Mouse clicks / unmapped keys are neutral
+    // (they break the bigram chain so no reward fires, but do not reset the streak counter).
+    // アプリ再起動でリセット。同手打鍵でゼロクリア。マウスクリックはニュートラル。
+    private var alternationStreak: Int = 0
 
     private init() {
         let dir = FileManager.default
@@ -141,6 +189,9 @@ final class KeyCountStore {
             // Hourly count (Issue #18)
             store.hourlyCounts[hourKey, default: 0] += 1
 
+            // Save previous timestamp before updating — needed for per-bigram IKI below.
+            let prevInputTime = store.lastInputTime
+
             // Welford's online algorithm: 1000ms 以内の間隔のみ平均・最小に加算
             if let last = store.lastInputTime {
                 let intervalMs = timestamp.timeIntervalSince(last) * 1000
@@ -168,15 +219,43 @@ final class KeyCountStore {
                     store.sameFingerCount += 1
                     store.dailySameFingerCount[today, default: 0] += 1
                 }
-                // Hand alternation detection (Issue #17)
+                // Hand alternation detection (Issue #17) + reward accumulation (Issue #25)
                 if prevHand != curHand {
                     store.handAlternationCount += 1
                     store.dailyHandAlternationCount[today, default: 0] += 1
+                    alternationStreak += 1
+                    store.alternationRewardScore +=
+                        layout.alternationRewardModel.reward(forStreak: alternationStreak)
+                } else {
+                    alternationStreak = 0
                 }
                 // Raw bigram pair frequency (Issue #12)
                 let pair = "\(prev)→\(key)"
                 store.bigramCounts[pair, default: 0] += 1
                 store.dailyBigramCounts[today, default: [:]][pair, default: 0] += 1
+                // Bigram IKI accumulation (Issue #24) — only within the 1000ms typing window.
+                // ビグラムごとの IKI を蓄積（校正データ収集フック）。
+                if let prevTime = prevInputTime {
+                    let iki = timestamp.timeIntervalSince(prevTime) * 1000
+                    if iki <= 1000 {
+                        store.bigramIKISum[pair, default: 0]   += iki
+                        store.bigramIKICount[pair, default: 0] += 1
+                    }
+                }
+                // High-strain sequence detection (Issue #28) — same finger + ≥1 row distance.
+                // 高負荷ビグラム検出（同指かつ縦1行以上の移動）。
+                let highStrain = layout.highStrainDetector.isHighStrain(from: prev, to: key, layout: layout)
+                if highStrain {
+                    store.highStrainBigramCount += 1
+                    store.dailyHighStrainBigramCount[today, default: 0] += 1
+                    // Trigram: two consecutive high-strain bigrams.
+                    // トリグラム：高負荷ビグラムが連続した場合。
+                    if lastBigramWasHighStrain {
+                        store.highStrainTrigramCount += 1
+                        store.dailyHighStrainTrigramCount[today, default: 0] += 1
+                    }
+                }
+                lastBigramWasHighStrain = highStrain
             }
             lastKeyName = key
 
@@ -232,6 +311,85 @@ final class KeyCountStore {
             guard total > 0 else { return nil }
             let alt = store.dailyHandAlternationCount[today] ?? 0
             return Double(alt) / Double(total)
+        }
+    }
+
+    /// Cumulative alternation reward score (Issue #25).
+    /// Includes streak multiplier bonus for runs of ≥3 consecutive alternating pairs.
+    /// 交互打鍵報酬の累積スコア（ストリーク乗数ボーナスを含む）。
+    var alternationRewardScore: Double {
+        queue.sync { store.alternationRewardScore }
+    }
+
+    /// Cumulative thumb imbalance ratio (Issue #26).
+    /// Returns nil if no thumb keystrokes have been recorded.
+    /// 累積親指偏り比率。親指打鍵が0件の場合は nil。
+    var thumbImbalanceRatio: Double? {
+        queue.sync {
+            LayoutRegistry.shared.thumbImbalanceDetector
+                .imbalanceRatio(counts: store.counts, layout: LayoutRegistry.shared)
+        }
+    }
+
+    /// Thumb imbalance ratio for a specific day (Issue #26).
+    /// Returns nil if no thumb keystrokes were recorded on that day.
+    /// 指定日の親指偏り比率。当日の親指打鍵が0件の場合は nil。
+    func dailyThumbImbalance(for date: String) -> Double? {
+        queue.sync {
+            guard let dayCounts = store.dailyCounts[date] else { return nil }
+            return LayoutRegistry.shared.thumbImbalanceDetector
+                .imbalanceRatio(counts: dayCounts, layout: LayoutRegistry.shared)
+        }
+    }
+
+    /// Cumulative high-strain bigram count (Issue #28).
+    /// 累積高負荷ビグラム数。
+    var highStrainBigramCount: Int {
+        queue.sync { store.highStrainBigramCount }
+    }
+
+    /// Fraction of all bigrams that are high-strain (Issue #28).
+    /// Returns nil if no bigrams have been recorded.
+    /// 全ビグラムに対する高負荷ビグラムの割合。ビグラムが0件の場合は nil。
+    var highStrainBigramRate: Double? {
+        queue.sync {
+            guard store.totalBigramCount > 0 else { return nil }
+            return Double(store.highStrainBigramCount) / Double(store.totalBigramCount)
+        }
+    }
+
+    /// Cumulative high-strain trigram count (Issue #28).
+    /// 累積高負荷トリグラム数。
+    var highStrainTrigramCount: Int {
+        queue.sync { store.highStrainTrigramCount }
+    }
+
+    /// Top-N high-strain bigrams by frequency (Issue #28).
+    /// Filters bigramCounts using HighStrainDetector at read time.
+    /// 頻度上位 N 件の高負荷ビグラムを返す。読み取り時に HighStrainDetector でフィルタ。
+    func topHighStrainBigrams(limit: Int = 10) -> [(pair: String, count: Int)] {
+        queue.sync {
+            let detector = LayoutRegistry.shared.highStrainDetector
+            let layout   = LayoutRegistry.shared
+            return store.bigramCounts
+                .filter { pair, _ in
+                    let parts = pair.components(separatedBy: "→")
+                    guard parts.count == 2 else { return false }
+                    return detector.isHighStrain(from: parts[0], to: parts[1], layout: layout)
+                }
+                .sorted { $0.value > $1.value }
+                .prefix(limit)
+                .map { (pair: $0.key, count: $0.value) }
+        }
+    }
+
+    /// Thumb efficiency coefficient (Issue #27).
+    /// Returns nil if no keystrokes have been recorded.
+    /// 親指効率係数。打鍵データが0件の場合は nil。
+    var thumbEfficiencyCoefficient: Double? {
+        queue.sync {
+            LayoutRegistry.shared.thumbEfficiencyCalculator
+                .coefficient(counts: store.counts, layout: LayoutRegistry.shared)
         }
     }
 
@@ -309,6 +467,17 @@ final class KeyCountStore {
                 .sorted { $0.value > $1.value }
                 .prefix(limit)
                 .map { ($0.key, $0.value) }
+        }
+    }
+
+    /// Returns the average IKI (ms) for a bigram, or nil if no samples exist.
+    /// Use this to derive empirical distance factors for SameFingerPenalty calibration:
+    ///   factor(tier) ≈ avgIKI(same-finger bigram in tier) / avgIKI(reference bigram)
+    /// ビグラムの平均 IKI（ms）を返す。SameFingerPenalty 距離係数の実測校正に使用。
+    func avgBigramIKI(for bigram: String) -> Double? {
+        queue.sync {
+            guard let count = store.bigramIKICount[bigram], count > 0 else { return nil }
+            return store.bigramIKISum[bigram].map { $0 / Double(count) }
         }
     }
 
@@ -408,7 +577,9 @@ final class KeyCountStore {
         queue.sync {
             store = CountData(startedAt: Date(), counts: [:], dailyCounts: [:])
             lastKeyName = nil
-            // CountData.init already zeros handAlternationCount / dailyHandAlternationCount
+            alternationStreak = 0
+            lastBigramWasHighStrain = false
+            // CountData.init already zeros handAlternationCount / alternationRewardScore / highStrainCounts
         }
         scheduleSave()
     }

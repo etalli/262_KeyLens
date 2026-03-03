@@ -188,7 +188,8 @@ AI is introduced here. ML features follow.
 - Krzywinski, M. (2006–). *Carpalx: Keyboard Layout Optimizer*. bcgsc.ca.
   https://mk.bcgsc.ca/carpalx/
   — Widely referenced layout scoring algorithm. Foundational reference for same-finger penalty and finger load weighting models.
-  Carpalx は、キーボード配列を定量的に評価・最適化するためのツール・モデル。タイピングの労力を数値化し、最小になる配列を見つけるシミュレーションを行う。手や指への負担を減らすことを目的としている。
+  Carpalx は、キーボード配列を定量的に評価・最適化するためのツール・モデル。タイピングの労力を数値化し、最小になる配列を見つけるシミュレーションを行う。手や指への負担を減らすことを目的としている。指の「努力コスト」をモデル化し、小指に最も高いコストを割り当てている。
+
 
 ## Typing Ergonomics & Repetitive Strain Injury(RSI)
 
@@ -200,7 +201,7 @@ AI is introduced here. ML features follow.
 - Kim, J. H., et al. (2014). *Differences in Typing Forces, Muscle Activity, Comfort, and Typing Performance Among Virtual, Notebook, and Desktop Keyboards*. Ergonomics.
   https://pubmed.ncbi.nlm.nih.gov/24856862/
   — Empirical measurement of finger-level muscle activation and typing force. Basis for finger load weighting by finger type.
-  仮想キーボードは指の力と筋肉負担は少ないが、タイピング効率と快適さが大きく劣る。逆に 物理的なキートラベル（押し込み感）がある従来型キーボードは、長時間や生産性重視の入力作業に適している可能性が高いという結論。
+  仮想キーボードは指の力と筋肉負担は少ないが、タイピング効率と快適さが大きく劣る。逆に 物理的なキートラベル（押し込み感）がある従来型キーボードは、長時間や生産性重視の入力作業に適している可能性が高いという結論。験的な指レベルの筋電図（EMG）計測。指ごとの打鍵力と筋活動量を実測し、小指が最も高い活性化率を示すことを確認
 
 - (2024). *Therapeutic Approaches for the Prevention of Upper Limb Repetitive Strain Injuries in Work-Related Computer Use: A Scoping Review*. Journal of Occupational Rehabilitation, Springer Nature.
   https://doi.org/10.1007/s10926-024-10204-z

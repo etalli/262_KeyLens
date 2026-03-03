@@ -66,6 +66,17 @@ public protocol KeyboardLayout {
     /// The returned Finger is hand-agnostic; combine with hand(for:) for full ergonomic data.
     /// e.g. finger(for: "j") → .index, hand(for: "j") → .right  ⟹  right index
     func finger(for keyName: String) -> Finger?
+
+    /// Returns the full ergonomic position for a key name string, or nil if not mapped.
+    /// Used by SameFingerPenalty to determine the physical grid distance between two keys.
+    /// キー名からグリッド座標・手・指を含む KeyPosition を返す。同指ペナルティ計算で使用。
+    func position(for keyName: String) -> KeyPosition?
+}
+
+// Default implementation — returns nil for layouts that do not provide a name→position table.
+// 名前→位置テーブルを持たないレイアウトのデフォルト実装。
+extension KeyboardLayout {
+    public func position(for keyName: String) -> KeyPosition? { nil }
 }
 
 // MARK: - ANSI Layout
@@ -108,6 +119,10 @@ public struct ANSILayout: KeyboardLayout {
         }
 
         return nil
+    }
+
+    public func position(for keyName: String) -> KeyPosition? {
+        ANSILayout.positionNameTable[keyName]
     }
 
     // MARK: - Static lookup: CGKeyCode -> KeyPosition
@@ -291,6 +306,50 @@ public struct ANSILayout: KeyboardLayout {
 
         return t
     }()
+
+    // MARK: - Static lookup: key name String -> KeyPosition
+    // Derived from nameToKeyCode (below) combined with the existing table.
+    // This enables distance-based ergonomic analysis (SameFingerPenalty) using key name strings.
+    // キー名→位置のルックアップ。同指ペナルティの距離計算に使用する。
+    public static let positionNameTable: [String: KeyPosition] =
+        nameToKeyCode.compactMapValues { table[$0] }
+
+    // Maps KeyboardMonitor key name strings to their CGKeyCode.
+    // Key names match the values in handTable / fingerTable.
+    private static let nameToKeyCode: [String: CGKeyCode] = [
+        // MARK: Row 0 — Number / Escape row
+        "Escape": 53, "`": 50,
+        "1": 18, "2": 19, "3": 20, "4": 21, "5": 23,
+        "6": 22, "7": 26, "8": 28, "9": 25, "0": 29,
+        "-": 27, "=": 24, "Delete": 51, "⌦FwdDel": 117,
+
+        // MARK: Row 1 — Top alpha row
+        "Tab": 48,
+        "q": 12, "w": 13, "e": 14, "r": 15, "t": 17,
+        "y": 16, "u": 32, "i": 34, "o": 31, "p": 35,
+        "[": 33, "]": 30, "\\": 42,
+
+        // MARK: Row 2 — Home row
+        "CapsLock": 57,
+        "a": 0, "s": 1, "d": 2, "f": 3, "g": 5,
+        "h": 4, "j": 38, "k": 40, "l": 37,
+        ";": 41, "'": 39, "Return": 36, "↑": 126,
+
+        // MARK: Row 3 — Bottom row
+        "⇧Shift": 56,
+        "z": 6, "x": 7, "c": 8, "v": 9, "b": 11,
+        "n": 45, "m": 46, ",": 43, ".": 47, "/": 44,
+        "←": 123, "↓": 125, "→": 124,
+
+        // MARK: Row 4 — Thumb / space row
+        "⌃Ctrl": 59, "⌥Option": 58, "⌘Cmd": 55, "Space": 49,
+        "Enter(Num)": 76,
+
+        // MARK: Row 5 — Function key row
+        "F1": 122, "F2": 120, "F3": 99, "F4": 118, "F5": 96,
+        "F6": 97,  "F7": 98,  "F8": 100, "F9": 101,
+        "F10": 109, "F11": 103, "F12": 111,
+    ]
 }
 
 // MARK: - SplitKeyboardConfig
@@ -347,10 +406,70 @@ public final class LayoutRegistry {
     /// Set to override hand assignment for split keyboard users. nil = use layout default.
     public var splitConfig: SplitKeyboardConfig? = nil
 
+    /// Active finger load weight table. Defaults to Carpalx / Kim et al. values.
+    /// 有効な指負荷重みテーブル。デフォルトは Carpalx / Kim et al. の値。
+    public var fingerLoadWeight: FingerLoadWeight = .default
+
     /// Returns the hand for a key name, respecting split config if set.
     public func hand(for keyName: String) -> Hand? {
         splitConfig?.hand(for: keyName) ?? current.hand(for: keyName)
     }
+
+    /// Returns the load weight for the finger assigned to a key name, or nil if the key is unknown.
+    /// キー名からその指の負荷重みを返す。未知のキーは nil。
+    public func loadWeight(for keyName: String) -> Double? {
+        guard let finger = current.finger(for: keyName) else { return nil }
+        return fingerLoadWeight.weight(for: finger)
+    }
+
+    /// Active same-finger penalty model. Defaults to exponent = 2.0.
+    /// 有効な同指ペナルティモデル。デフォルトは指数 2.0。
+    public var sameFingerPenaltyModel: SameFingerPenalty = .default
+
+    /// Returns the ergonomic penalty for a same-finger bigram string (e.g. "f→r"),
+    /// or nil if the keys are unknown, not same-finger, or not on the same hand.
+    ///
+    /// This is the primary integration point with KeyCountStore.bigramCounts:
+    /// pass any key from that dictionary directly to compute its penalty.
+    ///
+    /// キー名ビグラム文字列（例："f→r"）に対する同指ペナルティを返す。
+    /// 未知キー・異指・異手の場合は nil。
+    public func sameFingerPenalty(for bigram: String) -> Double? {
+        let parts = bigram.components(separatedBy: "→")
+        guard parts.count == 2 else { return nil }
+        let (k1, k2) = (parts[0], parts[1])
+
+        // Both keys must be on the same hand and use the same finger.
+        // 同じ手・同じ指でなければ同指ビグラムではない。
+        guard let finger1 = current.finger(for: k1),
+              let finger2 = current.finger(for: k2),
+              finger1 == finger2,
+              let hand1 = hand(for: k1),
+              let hand2 = hand(for: k2),
+              hand1 == hand2 else { return nil }
+
+        guard let pos1 = current.position(for: k1),
+              let pos2 = current.position(for: k2) else { return nil }
+
+        let fw = fingerLoadWeight.weight(for: finger1)
+        return sameFingerPenaltyModel.penalty(from: pos1, to: pos2, fingerWeight: fw)
+    }
+
+    /// Active alternation reward model. Defaults to baseReward=1.0, threshold=3, multiplier=1.5.
+    /// 有効な交互打鍵報酬モデル。デフォルトは基本報酬 1.0、しきい値 3、乗数 1.5。
+    public var alternationRewardModel: AlternationReward = .default
+
+    /// Active thumb imbalance detector. Defaults to threshold=0.3.
+    /// 有効な親指偏り検出器。デフォルトは閾値 0.3。
+    public var thumbImbalanceDetector: ThumbImbalanceDetector = .default
+
+    /// Active thumb efficiency calculator. Defaults to expectedThumbRatio=0.15.
+    /// 有効な親指効率計算機。デフォルトは期待比率 0.15。
+    public var thumbEfficiencyCalculator: ThumbEfficiencyCalculator = .default
+
+    /// Active high-strain detector. Defaults to minimumTier=.oneRow.
+    /// 有効な高負荷シーケンス検出器。デフォルトは最小ティア .oneRow。
+    public var highStrainDetector: HighStrainDetector = .default
 
     private init() {}
 }
