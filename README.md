@@ -101,49 +101,7 @@ Use **Settings… > Open Log Folder** to open the directory in Finder. See [Arch
 ./build.sh --dmg      # Build distributable DMG
 ```
 
-> Always use `build.sh` — running `swift build` alone won't produce a working notification bundle.
-
-### Run Tests with Fixed Toolchain
-
-If `swift test` fails due to toolchain mismatch (for example `no such module 'XCTest'`), make sure Command Line Tools points to Xcode:
-
-```bash
-xcode-select -p
-xcrun --find swift
-swift --version
-```
-
-If needed, set the Xcode path explicitly:
-
-```bash
-sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-```
-
-This repository's CI also pins Xcode and verifies `xcode-select -p` before running `swift test`.
-
-<details>
-<summary>What <code>--install</code> does</summary>
-
-| Step | What it does |
-|------|--------------|
-| `cp -r KeyLens.app /Applications/` | Installs to `/Applications` |
-| `codesign --force --deep --sign -` | Ad-hoc signature (stabilizes Accessibility permission) |
-| `pkill -x KeyLens` | Stops the running process before replacing the binary |
-| `tccutil reset Accessibility <bundle-id>` | Clears the stale TCC entry for the old binary hash |
-| `open /Applications/KeyLens.app` | Launches the new build |
-
-**Why TCC reset is needed:** macOS stores Accessibility permissions keyed by binary hash. Each `swift build` produces a new binary, making the old TCC entry stale. Without resetting, `AXIsProcessTrusted()` returns `false` even though the toggle appears ON in System Settings.
-
-</details>
-
-<details>
-<summary>Logs</summary>
-
-```bash
-tail -f ~/Library/Logs/KeyLens/app.log
-```
-
-</details>
+For build internals, test setup, and troubleshooting, see [Architecture — Build & Test](docs/Architecture.md#build--test).
 
 ---
 

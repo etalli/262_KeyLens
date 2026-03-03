@@ -389,3 +389,58 @@ Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
 
 All fields except `startedAt` and `counts` use optional decoding with safe defaults,
 ensuring forward/backward compatibility when new fields are added.
+
+---
+
+## Build & Test
+
+### Build commands
+
+```bash
+./build.sh            # Build App Bundle only
+./build.sh --run      # Build and launch immediately
+./build.sh --install  # Build, install to /Applications, codesign, reset TCC, launch  ← recommended
+./build.sh --dmg      # Build distributable DMG
+```
+
+> Always use `build.sh` — running `swift build` alone won't produce a working notification bundle.
+
+### What `--install` does
+
+| Step | What it does |
+|------|--------------|
+| `cp -r KeyLens.app /Applications/` | Installs to `/Applications` |
+| `codesign --force --deep --sign -` | Ad-hoc signature (stabilizes Accessibility permission) |
+| `pkill -x KeyLens` | Stops the running process before replacing the binary |
+| `tccutil reset Accessibility <bundle-id>` | Clears the stale TCC entry for the old binary hash |
+| `open /Applications/KeyLens.app` | Launches the new build |
+
+**Why TCC reset is needed:** macOS stores Accessibility permissions keyed by binary hash. Each `swift build` produces a new binary, making the old TCC entry stale. Without resetting, `AXIsProcessTrusted()` returns `false` even though the toggle appears ON in System Settings.
+
+### Logs
+
+```bash
+tail -f ~/Library/Logs/KeyLens/app.log
+```
+
+### Run Tests
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
+```
+
+If `swift test` fails with `no such module 'XCTest'`, the Command Line Tools are active instead of the full Xcode toolchain. Fix it with:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
+
+Verify the active toolchain:
+
+```bash
+xcode-select -p      # should point to Xcode.app/Contents/Developer
+xcrun --find swift
+swift --version
+```
+
+The CI workflow pins Xcode and verifies `xcode-select -p` before running `swift test`.
