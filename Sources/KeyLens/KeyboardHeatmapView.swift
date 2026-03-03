@@ -1,5 +1,12 @@
 import SwiftUI
 
+// MARK: - HeatmapMode
+
+enum HeatmapMode: String, CaseIterable {
+    case frequency = "Frequency"
+    case strain    = "Strain"
+}
+
 // MARK: - KeyDef
 
 private struct KeyDef {
@@ -18,6 +25,10 @@ private struct KeyDef {
 
 struct KeyboardHeatmapView: View {
     let counts: [String: Int]
+
+    @State private var mode: HeatmapMode = .frequency
+    @State private var showModeHelp: Bool = false
+    @State private var showStrainLegendHelp: Bool = false
 
     private let keyHeight: CGFloat = 40
     private let keySpacing: CGFloat = 4
@@ -86,6 +97,30 @@ struct KeyboardHeatmapView: View {
         counts.filter { $0.key.hasPrefix("🖱") }.values.max() ?? 1
     }
 
+    // Strain score per key: sum of high-strain bigram counts in which the key participates.
+    // キーごとの高負荷スコア：そのキーが関係する高負荷ビグラムのカウント合計。
+    private var strainScores: [String: Int] {
+        var scores: [String: Int] = [:]
+        for (pair, count) in KeyCountStore.shared.topHighStrainBigrams(limit: 1000) {
+            let parts = pair.components(separatedBy: "→")
+            guard parts.count == 2 else { continue }
+            scores[parts[0], default: 0] += count
+            scores[parts[1], default: 0] += count
+        }
+        return scores
+    }
+
+    private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
+
+    // Returns (count, max) for a key based on the current display mode.
+    // 現在の表示モードに応じてキーの（カウント, 最大値）ペアを返す。
+    private func keyDisplayValues(for keyName: String) -> (Int, Int) {
+        switch mode {
+        case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
+        case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        }
+    }
+
     // マウスボタン一覧（データ準備を View から分離）
     private var mouseButtons: [KeyDef] {
         let fixed: [KeyDef] = [
@@ -105,11 +140,38 @@ struct KeyboardHeatmapView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 接続中キーボード名
-            if !deviceNames.isEmpty {
-                Text(deviceNames.joined(separator: "  /  "))
+            // Mode toggle + connected keyboard names
+            HStack {
+                Picker("", selection: $mode) {
+                    ForEach(HeatmapMode.allCases, id: \.self) { m in
+                        Text(m.rawValue).tag(m)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 180)
+
+                Image(systemName: "info.circle")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(showModeHelp ? .primary : .secondary)
+                    .onHover { showModeHelp = $0 }
+                    .popover(isPresented: $showModeHelp, arrowEdge: .bottom) {
+                        Text(mode == .strain
+                            ? L10n.shared.helpHeatmapStrain
+                            : L10n.shared.helpHeatmapFrequency
+                        )
+                        .font(.callout)
+                        .padding(10)
+                        .frame(width: 280)
+                        .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                Spacer()
+
+                if !deviceNames.isEmpty {
+                    Text(deviceNames.joined(separator: "  /  "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             GeometryReader { geo in
@@ -139,10 +201,11 @@ struct KeyboardHeatmapView: View {
 
         HStack(spacing: keySpacing) {
             ForEach(Array(row.enumerated()), id: \.offset) { _, key in
+                let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
                 heatCell(
                     label: key.label,
-                    count: counts[key.keyName] ?? 0,
-                    max: maxKeyCount,
+                    count: displayCount,
+                    max: displayMax,
                     width: unitWidth * key.widthRatio
                 )
             }
@@ -193,8 +256,10 @@ struct KeyboardHeatmapView: View {
 
     private var legend: some View {
         let l = L10n.shared
+        let lowLabel  = mode == .strain ? "Low strain"  : l.heatmapLow
+        let highLabel = mode == .strain ? "High strain" : l.heatmapHigh
         return HStack(spacing: 6) {
-            Text(l.heatmapLow)
+            Text(lowLabel)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             LinearGradient(
@@ -210,9 +275,22 @@ struct KeyboardHeatmapView: View {
             )
             .frame(width: 120, height: 10)
             .clipShape(RoundedRectangle(cornerRadius: 3))
-            Text(l.heatmapHigh)
+            Text(highLabel)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+            if mode == .strain {
+                Image(systemName: "info.circle")
+                    .font(.caption2)
+                    .foregroundStyle(showStrainLegendHelp ? .primary : .secondary)
+                    .onHover { showStrainLegendHelp = $0 }
+                    .popover(isPresented: $showStrainLegendHelp, arrowEdge: .top) {
+                        Text(L10n.shared.helpHeatmapStrainLegend)
+                            .font(.callout)
+                            .padding(10)
+                            .frame(width: 280)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+            }
         }
     }
 

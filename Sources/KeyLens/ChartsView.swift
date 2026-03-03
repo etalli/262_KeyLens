@@ -46,6 +46,55 @@ struct BigramEntry: Identifiable {
     init(_ t: (pair: String, count: Int)) { id = t.pair; pair = t.pair; count = t.count }
 }
 
+// MARK: - Phase 3 data types
+
+/// One data point in the Learning Curve chart: a rate value for a given date and metric series.
+/// 学習曲線チャートの1点：指定日・指標系列の比率値。
+struct DailyErgonomicEntry: Identifiable {
+    let id = UUID()
+    let date: String
+    let series: String   // "Same-finger" | "Alternation" | "High-strain"
+    let rate: Double
+}
+
+/// One row in the Weekly Delta table: a metric compared across two consecutive 7-day windows.
+/// 週次デルタ表の1行：連続する2つの7日間ウィンドウで比較した指標。
+struct WeeklyDeltaRow: Identifiable {
+    let id = UUID()
+    let metric: String
+    let thisWeek: Double
+    let lastWeek: Double
+    let lowerIsBetter: Bool
+    var delta: Double { thisWeek - lastWeek }
+}
+
+// MARK: - SectionHeader
+
+/// Section title with an optional hover-triggered help popover.
+/// セクションタイトル + ホバーで表示されるヘルプポップオーバー（任意）。
+private struct SectionHeader: View {
+    let title: String
+    let helpText: String
+    @State private var showHelp = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(title).font(.headline)
+            Image(systemName: "info.circle")
+                .font(.caption)
+                .foregroundStyle(showHelp ? .primary : .secondary)
+                .onHover { showHelp = $0 }
+                .popover(isPresented: $showHelp, arrowEdge: .bottom) {
+                    Text(helpText)
+                        .font(.callout)
+                        .padding(10)
+                        .frame(width: 280)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+        }
+    }
+}
+
 // MARK: - ChartsView
 
 struct ChartsView: View {
@@ -56,8 +105,10 @@ struct ChartsView: View {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection("Keyboard Heatmap") { KeyboardHeatmapView(counts: model.keyCounts) }
                 chartSection("Top 20 Keys — All Time") { topKeysChart }
-                chartSection("Top 20 Bigrams") { bigramChart }
+                chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams) { bigramChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
+                chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
+                chartSection("Weekly Report") { weeklyDeltaSection }
                 chartSection("Key Categories") { categoryChart }
                 chartSection("Top 10 Keys per Day") { perDayChart }
                 chartSection("⌘ Keyboard Shortcuts") { shortcutsChart }
@@ -72,9 +123,13 @@ struct ChartsView: View {
     // MARK: - Section wrapper
 
     @ViewBuilder
-    private func chartSection<C: View>(_ title: String, @ViewBuilder content: () -> C) -> some View {
+    private func chartSection<C: View>(_ title: String, helpText: String? = nil, @ViewBuilder content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.headline)
+            if let helpText {
+                SectionHeader(title: title, helpText: helpText)
+            } else {
+                Text(title).font(.headline)
+            }
             content()
         }
     }
@@ -399,6 +454,136 @@ struct ChartsView: View {
         case "⇧": return .green
         default:   return .gray
         }
+    }
+
+    // MARK: - Phase 3: Learning Curve (daily ergonomic trend)
+
+    @ViewBuilder
+    private var learningCurveChart: some View {
+        if model.dailyErgonomics.isEmpty {
+            emptyState
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Chart(model.dailyErgonomics) { item in
+                    LineMark(
+                        x: .value("Date", item.date),
+                        y: .value("Rate", item.rate)
+                    )
+                    .foregroundStyle(by: .value("Metric", item.series))
+                    .interpolationMethod(.catmullRom)
+                    PointMark(
+                        x: .value("Date", item.date),
+                        y: .value("Rate", item.rate)
+                    )
+                    .foregroundStyle(by: .value("Metric", item.series))
+                }
+                .chartForegroundStyleScale([
+                    "Same-finger": Color.orange,
+                    "Alternation": Color.teal,
+                    "High-strain": Color.red
+                ])
+                .chartYScale(domain: 0...1)
+                .chartYAxis {
+                    AxisMarks(values: [0, 0.25, 0.5, 0.75, 1.0]) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let v = value.as(Double.self) {
+                                Text("\(Int(v * 100))%")
+                                    .font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .frame(height: 200)
+
+                // Legend
+                HStack(spacing: 16) {
+                    ForEach([("Same-finger", Color.orange), ("Alternation", Color.teal), ("High-strain", Color.red)], id: \.0) { label, color in
+                        HStack(spacing: 4) {
+                            Circle().fill(color).frame(width: 8, height: 8)
+                            Text(label).font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Phase 3: Weekly Delta Report
+
+    @ViewBuilder
+    private var weeklyDeltaSection: some View {
+        if model.weeklyDeltas.isEmpty {
+            Text("Need at least two weeks of data")
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                Grid(alignment: .trailing, horizontalSpacing: 20, verticalSpacing: 0) {
+                    GridRow {
+                        Text("Metric")
+                            .font(.caption).bold().foregroundStyle(.secondary)
+                            .gridColumnAlignment(.leading)
+                        Text("This week")
+                            .font(.caption).bold().foregroundStyle(.secondary)
+                        Text("Last week")
+                            .font(.caption).bold().foregroundStyle(.secondary)
+                        Text("Δ")
+                            .font(.caption).bold().foregroundStyle(.secondary)
+                    }
+                    .padding(.bottom, 6)
+
+                    Divider()
+                        .gridCellUnsizedAxes(.horizontal)
+
+                    ForEach(model.weeklyDeltas) { row in
+                        GridRow {
+                            Text(row.metric)
+                                .font(.callout)
+                                .gridColumnAlignment(.leading)
+                            Text(weeklyFormat(row.thisWeek, metric: row.metric))
+                                .font(.callout.monospacedDigit())
+                            Text(weeklyFormat(row.lastWeek, metric: row.metric))
+                                .font(.callout.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                            deltaLabel(row)
+                        }
+                        .padding(.vertical, 5)
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+        }
+    }
+
+    private func weeklyFormat(_ value: Double, metric: String) -> String {
+        if metric == "Keystrokes" {
+            return Int(value).formatted()
+        } else {
+            return "\(Int(value * 100))%"
+        }
+    }
+
+    @ViewBuilder
+    private func deltaLabel(_ row: WeeklyDeltaRow) -> some View {
+        let threshold = row.metric == "Keystrokes" ? 0.01 : 0.005
+        let isImprovement = row.lowerIsBetter ? row.delta < -threshold : row.delta > threshold
+        let isRegression  = row.lowerIsBetter ? row.delta > threshold  : row.delta < -threshold
+        let color: Color  = isImprovement ? .green : (isRegression ? .red : .secondary)
+
+        let absStr: String = {
+            if row.metric == "Keystrokes" {
+                return abs(Int(row.delta)).formatted()
+            } else {
+                return "\(Int(abs(row.delta) * 100))pp"
+            }
+        }()
+        let arrow = row.delta > threshold ? "↑" : (row.delta < -threshold ? "↓" : "→")
+
+        Text("\(arrow) \(absStr)")
+            .font(.callout.monospacedDigit())
+            .foregroundStyle(color)
     }
 
     // MARK: - Empty state

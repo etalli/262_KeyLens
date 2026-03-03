@@ -342,6 +342,22 @@ final class KeyCountStore {
         }
     }
 
+    /// Per-day ergonomic rates for Learning Curve visualization (Phase 3).
+    /// Returns rows only for dates that have at least one bigram recorded.
+    /// 各日の人間工学指標率。ビグラムが1件以上ある日のみ返す。
+    func dailyErgonomicRates() -> [(date: String, sameFingerRate: Double, handAltRate: Double, highStrainRate: Double)] {
+        queue.sync {
+            store.dailyCounts.keys.sorted().compactMap { date in
+                let bigrams = store.dailyTotalBigramCount[date] ?? 0
+                guard bigrams > 0 else { return nil }
+                let sf = Double(store.dailySameFingerCount[date]       ?? 0) / Double(bigrams)
+                let ha = Double(store.dailyHandAlternationCount[date]  ?? 0) / Double(bigrams)
+                let hs = Double(store.dailyHighStrainBigramCount[date] ?? 0) / Double(bigrams)
+                return (date: date, sameFingerRate: sf, handAltRate: ha, highStrainRate: hs)
+            }
+        }
+    }
+
     /// Cumulative high-strain bigram count (Issue #28).
     /// 累積高負荷ビグラム数。
     var highStrainBigramCount: Int {

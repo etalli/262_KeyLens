@@ -207,7 +207,16 @@ JSON is written with `.atomic` to prevent file corruption. Consecutive writes wi
 | `bigramCounts` | `[String: Int]` | Raw pair frequency, e.g. `"Space→t": 42` |
 | `dailyBigramCounts` | `[String: [String: Int]]` | Per-day raw pair frequency |
 
-Accessors: `sameFingerRate`, `todaySameFingerRate`, `handAlternationRate`, `todayHandAlternationRate`, `topBigrams(limit:)`, `todayTopBigrams(limit:)`.
+**Ergonomic data (Phase 1 — unified ergonomic model):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `highStrainBigramCount` / `dailyHighStrainBigramCount` | `Int` / `[String: Int]` | Same-finger bigrams spanning ≥1 keyboard row |
+| `alternationRewardScore` | `Double` | Running alternation reward (AlternationReward model) |
+| `thumbImbalanceRatio` | `Double` | Left/right thumb usage imbalance (0 = balanced) |
+| `thumbEfficiencyCoefficient` | `Double` | How effectively thumb keys reduce load on other fingers |
+
+Accessors: `sameFingerRate`, `todaySameFingerRate`, `handAlternationRate`, `todayHandAlternationRate`, `topBigrams(limit:)`, `todayTopBigrams(limit:)`, `topHighStrainBigrams(limit:)`, `dailyErgonomicRates()`.
 
 ---
 
@@ -236,14 +245,18 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
 Chart sections (in display order):
-- **Keyboard Heatmap** — physical key layout coloured by frequency
+- **Keyboard Heatmap** — physical key layout coloured by frequency or strain (Frequency / Strain mode toggle; hover ⓘ for explanation)
 - **Top 20 Keys** — horizontal bar coloured by `KeyType`
 - **Top 20 Bigrams** — horizontal bar of most frequent consecutive pairs; same-finger rate and hand alternation rate summary below (Phase 0 ergonomic metrics)
 - **Daily Totals** — line chart of per-day keystroke counts
+- **Ergonomic Learning Curve** — multi-series line chart (same-finger rate, hand alternation rate, high-strain rate) across all recorded days
+- **Weekly Delta Report** — table comparing the last 7 days against the prior 7 days for keystrokes and the three ergonomic rates; delta arrows coloured green/red by direction
 - **Key Categories** — donut chart of `KeyType` distribution
 - **Top 10 per Day** — grouped bar chart of the top keys across recent days
 - **⌘ Keyboard Shortcuts** — top modifier+key combos
 - **All Keyboard Combos** — all modifier combinations
+
+`ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`. Phase 3 additions: `dailyErgonomics: [DailyErgonomicEntry]` and `weeklyDeltas: [WeeklyDeltaRow]`.
 
 ---
 
@@ -287,7 +300,12 @@ A separate Swift library target (`KeyLensCore`) that exposes keyboard ergonomic 
 
 ### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
 
-SwiftUI view that renders a visual representation of the physical ANSI keyboard, with each key coloured by its relative keystroke frequency. Used inside `ChartsView` as the first chart section.
+SwiftUI view that renders a visual representation of the physical ANSI keyboard. Supports two display modes via a segmented `Picker`:
+
+- **Frequency** — each key coloured by total keystroke count (red = most pressed)
+- **Strain** — each key coloured by its cumulative high-strain bigram involvement score (red = frequent culprit)
+
+A hover-triggered popover (ⓘ icon) explains the active mode. Strain scores are computed from `KeyCountStore.shared.topHighStrainBigrams(limit: 1000)` by summing bigram counts for each participating key. Used inside `ChartsView` as the first chart section.
 
 ---
 
@@ -325,6 +343,11 @@ Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
 | `dailyHandAlternationCount` | `{date: Int}` | Hand-alternating pairs per day |
 | `bigramCounts` | `{String: Int}` | Cumulative bigram frequency; key `"prev→cur"` |
 | `dailyBigramCounts` | `{date: {String: Int}}` | Per-day bigram frequency |
+| `highStrainBigramCount` | `Int` | Cumulative high-strain (same-finger, ≥1-row span) bigram count |
+| `dailyHighStrainBigramCount` | `{date: Int}` | High-strain bigram count per day |
+| `alternationRewardScore` | `Double` | Running alternation reward score |
+| `thumbImbalanceRatio` | `Double` | Left/right thumb imbalance ratio |
+| `thumbEfficiencyCoefficient` | `Double` | Thumb key efficiency coefficient |
 
 All fields except `startedAt` and `counts` use optional decoding with safe defaults,
 ensuring forward/backward compatibility when new fields are added.

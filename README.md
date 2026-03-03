@@ -32,7 +32,7 @@ English | [日本語](docs/README.ja.md)
 - **Global monitoring** — Counts all keystrokes regardless of the active application
 - **Menu bar statistics** — Today's count, total count, average keystroke interval
 - **Show All** — Full ranked list of every key with total and today's counts
-- **Charts** — Four interactive views: Top 20 Keys, Daily Totals, Key Categories, Top 10 per Day
+- **Charts** — Interactive views: Keyboard Heatmap (Frequency / Strain mode), Top Keys, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
 ---
