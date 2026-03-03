@@ -56,10 +56,29 @@ graph TD
 │   │   ├── AIPromptStore.swift
 │   │   └── L10n.swift
 │   └── KeyLensCore/                      # Research library (Phase 0+)
-│       └── KeyboardLayout.swift
+│       ├── KeyboardLayout.swift
+│       ├── FingerLoadWeight.swift
+│       ├── SameFingerPenalty.swift
+│       ├── AlternationReward.swift
+│       ├── ThumbImbalanceDetector.swift
+│       ├── ThumbEfficiencyCalculator.swift
+│       ├── HighStrainDetector.swift
+│       ├── LayoutConstraints.swift       # Phase 2: fixed-key constraints (#39)
+│       ├── RemappedLayout.swift          # Phase 2: key-swap simulation (#38)
+│       ├── SFBScoreEngine.swift          # Phase 2: SFB penalty scorer (#29)
+│       └── SameFingerOptimizer.swift     # Phase 2: greedy hill-climb optimizer (#41)
 └── Tests/
     └── KeyLensTests/
-        └── KeyboardLayoutTests.swift
+        ├── KeyboardLayoutTests.swift
+        ├── KeyboardLayoutSanityTests.swift
+        ├── SameFingerPenaltyTests.swift
+        ├── FingerLoadWeightTests.swift
+        ├── AlternationRewardTests.swift
+        ├── ThumbImbalanceDetectorTests.swift
+        ├── ThumbEfficiencyCalculatorTests.swift
+        ├── HighStrainDetectorTests.swift
+        ├── TrigramCountsTests.swift
+        └── SameFingerOptimizerTests.swift
 ```
 
 ---
@@ -278,23 +297,38 @@ Centralised localisation singleton. Supports English, Japanese, and system auto-
 
 ---
 
-### [KeyLensCore / KeyboardLayout.swift](Sources/KeyLensCore/KeyboardLayout.swift)
+### [KeyLensCore](Sources/KeyLensCore/)
 
-A separate Swift library target (`KeyLensCore`) that exposes keyboard ergonomic abstractions decoupled from the app executable. Consumed by `KeyLens` and `KeyLensTests`.
+A separate Swift library target that exposes keyboard ergonomic abstractions decoupled from the app executable. Consumed by `KeyLens` and `KeyLensTests`.
 
-**Public types:**
+#### Phase 0–1: Layout abstraction and scoring models
 
-| Type | Kind | Description |
+| Type | File | Description |
 |------|------|-------------|
-| `Hand` | `enum` | `.left`, `.right` |
-| `Finger` | `enum` | `.pinky`, `.ring`, `.middle`, `.index`, `.thumb` |
-| `KeyPosition` | `struct` | `row`, `column`, `hand`, `finger` for a single key |
-| `KeyboardLayout` | `protocol` | Layout abstraction — `name`, `position(for:)`, `finger(for:)` |
-| `ANSILayout` | `struct` | Standard US ANSI implementation (62 `CGKeyCode` entries) |
-| `SplitKeyboardConfig` | `struct` | User-overridable hand assignments for split keyboards |
-| `LayoutRegistry` | `class` (singleton) | Active layout + optional `SplitKeyboardConfig` override; `hand(for:)` respects split config |
+| `Hand` / `Finger` / `KeyPosition` | `KeyboardLayout.swift` | Physical position and ergonomic metadata for a key |
+| `KeyboardLayout` | `KeyboardLayout.swift` | Protocol — `name`, `position(for:)`, `finger(for:)`, `hand(for:)` |
+| `ANSILayout` | `KeyboardLayout.swift` | Standard US ANSI implementation (62 `CGKeyCode` entries) |
+| `SplitKeyboardConfig` | `KeyboardLayout.swift` | User-overridable hand assignments for split keyboards |
+| `LayoutRegistry` | `KeyboardLayout.swift` | Singleton: active layout + scoring model instances |
+| `FingerLoadWeight` | `FingerLoadWeight.swift` | Per-finger capability weights (index=1.0 … pinky=0.5) |
+| `SameFingerPenalty` | `SameFingerPenalty.swift` | Non-linear distance-tier penalty for same-finger bigrams |
+| `AlternationReward` | `AlternationReward.swift` | Reward coefficient for hand-alternating sequences |
+| `ThumbImbalanceDetector` | `ThumbImbalanceDetector.swift` | Left/right thumb usage imbalance ratio |
+| `ThumbEfficiencyCalculator` | `ThumbEfficiencyCalculator.swift` | Thumb key efficiency vs expected usage ratio |
+| `HighStrainDetector` | `HighStrainDetector.swift` | High-strain bigram/trigram detection (same-finger, ≥1 row) |
 
 `KeyCountStore.increment()` calls `LayoutRegistry.shared` to resolve finger/hand for every keystroke, enabling same-finger and alternation detection without coupling the store to physical key codes.
+
+#### Phase 2: Optimization engine
+
+| Type | File | Description |
+|------|------|-------------|
+| `LayoutConstraints` | `LayoutConstraints.swift` | Fixed-key set; `macOSDefaults` preset locks system shortcut keys |
+| `RemappedLayout` | `RemappedLayout.swift` | `KeyboardLayout` wrapper that applies a `[String: String]` swap map; delegates `finger/hand/position` lookups through the relocation map |
+| `KeyRelocationSimulator` | `RemappedLayout.swift` | Builds `RemappedLayout` instances; `applySwap(key1:key2:to:)` composes multiple swaps into one accumulated map |
+| `SFBScoreEngine` | `SFBScoreEngine.swift` | Computes `Σ(count × penalty)` for same-hand/same-finger bigrams; used by optimizer for scoring candidate layouts |
+| `KeySwap` | `SameFingerOptimizer.swift` | Value type: `(from, to, projectedSFBReduction)` |
+| `SameFingerOptimizer` | `SameFingerOptimizer.swift` | Greedy hill-climb: identifies top-K SFB bigrams, tries all (candidate, swappable) swaps, accepts the best per iteration; respects `LayoutConstraints` |
 
 ---
 
