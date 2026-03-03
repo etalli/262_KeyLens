@@ -22,7 +22,6 @@ English | [日本語](docs/README.ja.md)
   </tr>
 </table>
 
-
 </div>
 
 ---
@@ -32,7 +31,7 @@ English | [日本語](docs/README.ja.md)
 - **Global monitoring** — Counts all keystrokes regardless of the active application
 - **Menu bar statistics** — Today's count, total count, average keystroke interval
 - **Show All** — Full ranked list of every key with total and today's counts
-- **Charts** — Interactive views: Keyboard Heatmap (Frequency / Strain mode), Top Keys, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
+- **Charts** — Keyboard Heatmap, Top Keys, Bigrams, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
 ---
@@ -41,22 +40,52 @@ English | [日本語](docs/README.ja.md)
 
 1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
-3. Launch the app — grant **Accessibility** permission when prompted
+3. Launch the app — an alert will appear asking for **Accessibility** permission
+4. Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**
+5. Switch back to any app — the keyboard icon appears in your menu bar and monitoring starts
 
 > **Note:** The app uses an ad-hoc signature and is intended for personal use. Gatekeeper may warn on first launch — right-click the app and choose **Open** to bypass.
 
 ---
 
-## Requirements
+## How to Use
 
-| Item | Requirement |
+### Menu bar
+
+Click the keyboard icon (⌨) in the menu bar to open the panel.
+
+| Item | Description |
 |------|-------------|
-| macOS | 13 Ventura or later |
-| Swift | 5.9 or later (bundled with Xcode 15) |
-| Permission | Accessibility (prompted on first launch) |
+| **Today / Total** | Keystroke count for today and all time |
+| **Avg interval** | Running average time between keystrokes (ms) |
+| **Top keys** | Most-pressed keys with counts |
+| **Show All** | Opens a ranked table of every key and mouse button |
+| **Charts** | Opens the full analytics window |
+| **Overlay** | Toggles the real-time keystroke overlay |
+| **Settings…** | Language, notifications, reset, export CSV, open log folder |
+
+### Charts window
+
+Open via **Charts** in the menu. Sections (scroll down):
+
+| Section | What it shows |
+|---------|---------------|
+| **Keyboard Heatmap** | Physical key layout coloured by frequency or ergonomic strain; toggle layout template (ANSI / Pangaea / Ortho) |
+| **Top 20 Keys** | Horizontal bar chart coloured by key type |
+| **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
+| **Daily Totals** | Line chart of per-day keystroke counts |
+| **Ergonomic Learning Curve** | Same-finger rate, hand alternation rate, high-strain rate over time |
+| **Weekly Delta Report** | Last 7 days vs prior 7 days — keystrokes and ergonomic rates with trend arrows |
+| **Key Categories** | Donut chart of key-type distribution |
+| **Keyboard Shortcuts** | Top modifier+key combinations |
+
+### Keystroke Overlay
+
+<img src="images/keystroke_overlay_settings.png" width="340"/>
+
+Toggle via **Overlay** in the menu. Shows recent keystrokes in a floating window that fades after 3 seconds of inactivity. Position and size are configurable via the gear icon (⚙).
 
 ---
-
 
 ## Security
 
@@ -98,28 +127,7 @@ See [Architecture — Build & Test](docs/Architecture.md#build--test).
 
 ---
 
-## Accessibility Permission
-
-An alert is shown on first launch if the permission is missing.
-
-1. Click **Open System Settings**
-2. Go to **Privacy & Security > Accessibility**
-3. Enable **KeyLens**
-4. Switch back to any app — monitoring resumes instantly
-
-**Recovery mechanism (layered):**
-
-| Trigger | Latency |
-|---------|---------|
-| App becomes active (`didBecomeActiveNotification`) | ~instant |
-| Permission retry timer | every 3 s |
-| Health check timer | every 5 s |
-
----
-
 For internal design details, see [Architecture](docs/Architecture.md).
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
 
-
-Feedback Welcome!
-Feel free to open an issue for anything — bug reports, feature requests, or just a simple question. We’d love to hear from you.
+Feedback welcome! Feel free to open an [issue](https://github.com/etalli/262_KeyLens/issues) for bug reports, feature requests, or questions.
