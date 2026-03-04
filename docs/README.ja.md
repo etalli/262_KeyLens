@@ -4,16 +4,17 @@
 
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 ![macOS](https://img.shields.io/badge/macOS-13%2B-brightgreen?style=flat-square&logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat-square&logo=swift)
 [![DMG をダウンロード](https://img.shields.io/badge/⬇_ダウンロード-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
+[![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 
 **macOS メニューバー常駐型のキーストローク・マウスクリック記録、分析**
 
 <table>
   <tr>
-    <td><img src="images/menu_v037.png" width="280"/></td>
-    <td><img src="images/Heatmap.png" width="400"/></td>
+    <td><img src="../images/menu_v037.png" width="280"/></td>
+    <td><img src="../images/Heatmap.png" width="400"/></td>
   </tr>
   <tr>
     <td align="center">メニュー</td>
@@ -27,18 +28,11 @@
 
 ## 機能
 
-- **グローバル監視** — アクティブなアプリに関係なく、すべてのキー入力とマウスクリックをカウント
-- **マウスクリック計測** — 左・右・中ボタンおよびサイドボタンを個別にカウント
-- **メニューバー統計** — 本日のカウント・累計・平均入力間隔・最小入力間隔（最速バースト）・Top 10 を表示
+- **グローバル監視** — アクティブなアプリに関係なく、すべてのキー入力をカウント
+- **メニューバー統計** — 本日のカウント・累計・平均入力間隔を表示
 - **全件表示** — すべてのキー・マウスボタンを累計／本日別にランキング表示するウィンドウ
-- **グラフ表示** — 4 種類のインタラクティブなグラフ：Top 20 キー（横棒）、日別合計（折れ線）、キー分類（ドーナツ）、日別 Top 10（グループ棒グラフ）
-- **CSV 書き出し** — サマリーと日別明細を 2 ファイルに書き出し、保存先フォルダを指定
-- **データをコピー** — `counts.json` をカスタマイズ可能な AI プロンプト付きでクリップボードにコピー、そのまま AI に貼り付けて分析
-- **AI プロンプト編集** — **データ… > AI プロンプトを編集…** でプロンプトを編集、言語ごとに保存
-- **キーオーバーレイ** — ⌘C / ⇧A 形式で最近のキー入力をリアルタイム表示、3 秒で自動フェードアウト
-- **マイルストーン通知** — キー／ボタンごとに 1,000 回ごとにネイティブ通知
-- **多言語 UI** — English / 日本語 / システム自動検出
-- **権限復帰の即時対応** — アクセシビリティ権限付与後、自動でモニタリングを再開
+- **グラフ表示** — キーボードヒートマップ、Top キー、バイグラム、日別合計、エルゴノミクス学習曲線、週次デルタレポートなど
+- **キーストロークオーバーレイ** — ⌘C / ⇧A 形式で最近のキー入力をリアルタイム表示するフローティングウィンドウ
 
 ---
 
@@ -46,93 +40,59 @@
 
 1. **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** をダウンロード
 2. DMG を開き、**KeyLens.app** を `/Applications` にドラッグ
-3. アプリを起動 — プロンプトが表示されたら **アクセシビリティ** 権限を許可
+3. アプリを起動 — **アクセシビリティ** 権限を求めるアラートが表示される
+4. **「システム設定を開く」** をクリック → **プライバシーとセキュリティ > アクセシビリティ** → **KeyLens** を有効化
+5. 任意のアプリに戻る — メニューバーにキーボードアイコンが表示され、モニタリング開始
 
 > **注意:** アプリは ad-hoc 署名を使用しており、個人利用を想定しています。初回起動時に Gatekeeper の警告が出る場合は、アプリを右クリックして **「開く」** を選択してください。
 
 ---
 
-## 動作環境
+## 使い方
 
-| 項目 | 要件 |
+### メニューバー
+
+メニューバーのキーボードアイコン（⌨）をクリックしてパネルを開きます。
+
+| 項目 | 説明 |
 |------|------|
-| macOS | 13 Ventura 以降 |
-| Swift | 5.9 以降（Xcode 15 付属） |
-| 権限 | アクセシビリティ（初回起動時にプロンプト表示） |
+| **本日 / 累計** | 本日および全期間のキーストローク数 |
+| **平均間隔** | キーストローク間の平均時間（ms） |
+| **Top キー** | 最もよく押されたキーとカウント |
+| **全件表示** | すべてのキー・マウスボタンのランキングテーブルを開く |
+| **グラフ** | フル分析ウィンドウを開く |
+| **オーバーレイ** | リアルタイムキーストロークオーバーレイの切り替え |
+| **設定…** | 言語・通知・リセット・CSV 書き出し・ログフォルダを開く |
 
----
+### グラフウィンドウ
 
-## ソースからビルド
+メニューの **グラフ** から開きます。スクロールしてセクションを確認：
 
-```bash
-./build.sh            # App Bundle のみ作成
-./build.sh --run      # ビルド後にそのまま起動
-./build.sh --install  # ビルド → インストール → codesign → TCC リセット → 起動  ← 推奨
-./build.sh --dmg      # 配布用 DMG を作成
-```
+| セクション | 表示内容 |
+|-----------|---------|
+| **キーボードヒートマップ** | 頻度またはエルゴノミクス負荷で色分けされた物理キーレイアウト。レイアウトテンプレート（ANSI / Pangaea / Ortho）を切り替え可能 |
+| **Top 20 キー** | キー種別で色分けされた横棒グラフ |
+| **Top 20 バイグラム** | 最頻出の連続キーペア。同一指率・交互打鍵率サマリー |
+| **日別合計** | 日ごとのキーストローク数の折れ線グラフ |
+| **エルゴノミクス学習曲線** | 時系列での同一指率・交互打鍵率・高負荷率 |
+| **週次デルタレポート** | 直近7日間と前7日間の比較 — キーストロークとエルゴノミクス率をトレンド矢印で表示 |
+| **キー分類** | キー種別分布のドーナツグラフ |
+| **キーボードショートカット** | よく使われる修飾キー＋キーの組み合わせ |
 
-> 必ず `build.sh` を使用してください — `swift build` 単体では通知機能が動作しません。
+### キーストロークオーバーレイ
 
-### ツールチェーンを固定してテストする
+<table>
+  <tr>
+    <td><img src="../images/keystroke_overlay_settings.png" width="280"/></td>
+    <td><img src="../images/KeyStorokeOverlay-screenshot.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center">設定</td>
+    <td align="center">表示例</td>
+  </tr>
+</table>
 
-`swift test` がツールチェーン不一致（例: `no such module 'XCTest'`）で失敗する場合は、まず Command Line Tools の参照先を確認してください。
-
-```bash
-xcode-select -p
-xcrun --find swift
-swift --version
-```
-
-必要であれば、Xcode の Developer ディレクトリを明示的に設定します。
-
-```bash
-sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-```
-
-このリポジトリの CI でも Xcode バージョンを固定し、`xcode-select -p` を検証してから `swift test` を実行します。
-
-<details>
-<summary><code>--install</code> の手順</summary>
-
-| ステップ | 内容 |
-|----------|------|
-| `cp -r KeyLens.app /Applications/` | `/Applications` にインストール |
-| `codesign --force --deep --sign -` | ad-hoc 署名（アクセシビリティ権限を安定化） |
-| `pkill -x KeyLens` | 旧プロセスを停止してからバイナリを差し替え |
-| `tccutil reset Accessibility <bundle-id>` | 古いバイナリハッシュの TCC エントリを削除 |
-| `open /Applications/KeyLens.app` | 新しいビルドを起動 |
-
-**TCC リセットが必要な理由:** macOS はアクセシビリティ権限をバイナリのハッシュ単位で管理しています。`swift build` のたびに新しいバイナリが生成されるため、古い TCC エントリが陳腐化します。リセットしないと、システム設定でトグルが ON になっていても `AXIsProcessTrusted()` が `false` を返し続けます。
-
-</details>
-
-<details>
-<summary>ログ確認</summary>
-
-```bash
-tail -f ~/Library/Logs/KeyLens/app.log
-```
-
-</details>
-
----
-
-## アクセシビリティ権限
-
-権限がない場合、初回起動時にアラートが表示されます。
-
-1. **「システム設定を開く」** をクリック
-2. **プライバシーとセキュリティ → アクセシビリティ** に移動
-3. **KeyLens** を有効化
-4. 任意のアプリに戻る — モニタリングが即座に再開
-
-**権限復帰の仕組み（多段構成）:**
-
-| トリガー | 復帰までの時間 |
-|----------|---------------|
-| アプリがアクティブになる（`didBecomeActiveNotification`） | ほぼ即時 |
-| 権限リトライタイマー | 3 秒ごと |
-| ヘルスチェックタイマー | 5 秒ごと |
+メニューの **オーバーレイ** で切り替え。3 秒間操作がないと自動フェードアウトするフローティングウィンドウに最近のキー入力をリアルタイム表示します。歯車アイコン（⚙）から位置とサイズを設定できます。
 
 ---
 
@@ -166,11 +126,17 @@ tail -f ~/Library/Logs/KeyLens/app.log
 ~/Library/Application Support/KeyLens/counts.json
 ```
 
-メニューの **設定… → 保存先を開く** でフォルダを Finder で開けます。
+**設定… > ログフォルダを開く** でフォルダを Finder で開けます。スキーマの詳細は [Architecture.md](Architecture.md) を参照。
 
 ---
 
-内部設計の詳細は [Architecture.md](docs/Architecture.md) を参照してください。
+## ソースからビルド
 
+[Architecture — Build & Test](Architecture.md#build--test) を参照してください。
 
-フィードバック歓迎! バグ報告、機能要望、あるいは単純な質問など、何でも気軽に Issue を立ててください。あなたからの投稿をお待ちしています!!
+---
+
+内部設計の詳細は [Architecture.md](Architecture.md) を参照してください。
+開発ロードマップは [Roadmap.md](Roadmap.md) を参照してください。
+
+フィードバック歓迎! バグ報告、機能要望、あるいは単純な質問など、何でも気軽に [Issue](https://github.com/etalli/262_KeyLens/issues) を立ててください。
