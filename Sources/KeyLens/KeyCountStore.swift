@@ -440,6 +440,80 @@ final class KeyCountStore {
         }
     }
 
+    /// Unified ergonomic score (0–100) computed from cumulative keystroke data (Issue #29).
+    /// Higher is better. Returns 100.0 when no bigram data is available.
+    ///
+    /// Formula (all sub-scores normalised to [0, 100]):
+    ///   score = 100
+    ///     - 0.30 × sameFingerRate×100
+    ///     - 0.25 × highStrainRate×100
+    ///     - 0.15 × thumbImbalanceRatio×100
+    ///     + 0.20 × handAlternationRate×100
+    ///     + 0.10 × min(thumbEfficiency/2, 1)×100
+    ///
+    /// 累積打鍵データから算出した統合エルゴノミクススコア (0–100)。高いほど良好。
+    var currentErgonomicScore: Double {
+        queue.sync {
+            let engine = LayoutRegistry.shared.ergonomicScoreEngine
+            let layout = LayoutRegistry.shared
+            let bigrams = store.totalBigramCount
+
+            let sfbRate = bigrams > 0
+                ? Double(store.sameFingerCount) / Double(bigrams) : 0.0
+            let hsRate  = bigrams > 0
+                ? Double(store.highStrainBigramCount) / Double(bigrams) : 0.0
+            let altRate = bigrams > 0
+                ? Double(store.handAlternationCount) / Double(bigrams) : 0.0
+            let tiRatio = layout.thumbImbalanceDetector
+                .imbalanceRatio(counts: store.counts, layout: layout) ?? 0.0
+            let teCoeff = layout.thumbEfficiencyCalculator
+                .coefficient(counts: store.counts, layout: layout) ?? 0.0
+
+            return engine.score(
+                sameFingerRate:             sfbRate,
+                highStrainRate:             hsRate,
+                thumbImbalanceRatio:        tiRatio,
+                handAlternationRate:        altRate,
+                thumbEfficiencyCoefficient: teCoeff
+            )
+        }
+    }
+
+    /// Per-day ergonomic scores for trend tracking (Issue #29).
+    /// Keys are "yyyy-MM-dd" strings. Only dates with at least one bigram are included.
+    ///
+    /// 日別エルゴノミクススコア。ビグラムが1件以上ある日のみ含む。
+    var dailyErgonomicScore: [String: Double] {
+        queue.sync {
+            let engine = LayoutRegistry.shared.ergonomicScoreEngine
+            let layout = LayoutRegistry.shared
+            var result: [String: Double] = [:]
+
+            for date in store.dailyCounts.keys {
+                let bigrams = store.dailyTotalBigramCount[date] ?? 0
+                guard bigrams > 0 else { continue }
+
+                let sfbRate = Double(store.dailySameFingerCount[date]       ?? 0) / Double(bigrams)
+                let hsRate  = Double(store.dailyHighStrainBigramCount[date] ?? 0) / Double(bigrams)
+                let altRate = Double(store.dailyHandAlternationCount[date]  ?? 0) / Double(bigrams)
+                let dayCounts = store.dailyCounts[date] ?? [:]
+                let tiRatio = layout.thumbImbalanceDetector
+                    .imbalanceRatio(counts: dayCounts, layout: layout) ?? 0.0
+                let teCoeff = layout.thumbEfficiencyCalculator
+                    .coefficient(counts: dayCounts, layout: layout) ?? 0.0
+
+                result[date] = engine.score(
+                    sameFingerRate:             sfbRate,
+                    highStrainRate:             hsRate,
+                    thumbImbalanceRatio:        tiRatio,
+                    handAlternationRate:        altRate,
+                    thumbEfficiencyCoefficient: teCoeff
+                )
+            }
+            return result
+        }
+    }
+
     /// 指定日の時間帯別打鍵数を返す（24要素、hour 0〜23）
     /// date は "yyyy-MM-dd" 形式。データがない時間帯は 0
     func hourlyCounts(for date: String) -> [Int] {
@@ -495,6 +569,18 @@ final class KeyCountStore {
                         .prefix(limit)
                         .map { ($0.key, $0.value) }
         }
+    }
+
+    /// Full cumulative bigram frequency table ("k1→k2" format). Used by ErgonomicSnapshot / LayoutComparison.
+    /// 累積ビグラム頻度テーブル全件。ErgonomicSnapshot / LayoutComparison で使用。
+    var allBigramCounts: [String: Int] {
+        queue.sync { store.bigramCounts }
+    }
+
+    /// Full cumulative per-key keystroke counts. Used for thumb imbalance and efficiency metrics.
+    /// 累積キー別打鍵数テーブル全件。親指偏り・効率指標の計算に使用。
+    var allKeyCounts: [String: Int] {
+        queue.sync { store.counts }
     }
 
     /// 累計ビグラム上位 limit 件を降順で返す (Issue #12)
@@ -581,6 +667,39 @@ final class KeyCountStore {
             store.dailyCounts
                 .map { (date: $0.key, total: $0.value.values.reduce(0, +)) }
                 .sorted { $0.date < $1.date }
+        }
+    }
+
+    /// Aggregate hourly keystroke counts across all recorded dates.
+    /// Returns a 24-element array where index = hour of day (0–23).
+    /// 全日付にわたる時間帯別打鍵数の集計。インデックスが時刻（0〜23）。
+    func hourlyDistribution() -> [Int] {
+        queue.sync {
+            var result = [Int](repeating: 0, count: 24)
+            for (key, count) in store.hourlyCounts {
+                // key format: "yyyy-MM-dd-HH"
+                let parts = key.split(separator: "-")
+                guard parts.count == 4, let hour = Int(parts[3]), hour < 24 else { continue }
+                result[hour] += count
+            }
+            return result
+        }
+    }
+
+    /// Aggregate total keystrokes by calendar month ("yyyy-MM"), sorted ascending.
+    /// 月別（yyyy-MM）打鍵数合計。昇順ソート済み。
+    func monthlyTotals() -> [(month: String, total: Int)] {
+        queue.sync {
+            var monthMap: [String: Int] = [:]
+            for (date, keyCounts) in store.dailyCounts {
+                // date format: "yyyy-MM-dd" → month prefix = first 7 chars
+                guard date.count >= 7 else { continue }
+                let month = String(date.prefix(7))
+                monthMap[month, default: 0] += keyCounts.values.reduce(0, +)
+            }
+            return monthMap
+                .map { (month: $0.key, total: $0.value) }
+                .sorted { $0.month < $1.month }
         }
     }
 
