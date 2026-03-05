@@ -17,6 +17,8 @@ Using the provided key input log:
    - Same-finger repetition rate
    - Hand alternation rate
    - Temporal change of frequency (learning/adaptation trend)
+   - Inferred typing style (code/prose/chat)
+   - Detected fatigue risk level
 
 2. Identify:
    - Keys that cause high ergonomic load
@@ -45,6 +47,8 @@ Output:
    - 同指連続入力率
    - 左右交互打鍵率
    - 頻度の時系列変化（学習・適応トレンド）
+   - 推定タイピングスタイル（開発/執筆/チャット）
+   - 推定される疲労リスクレベル
 
 2. 特定してください：
    - 人間工学的負荷が高いキー

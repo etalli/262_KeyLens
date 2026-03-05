@@ -1,4 +1,5 @@
 import Foundation
+import KeyLensCore
 
 // MARK: - Language
 
@@ -216,6 +217,18 @@ final class L10n {
         ja("背景の不透明度", en: "Background Opacity")
     }
 
+    var overlaySettingsFontColor: String {
+        ja("文字の色", en: "Font Color")
+    }
+
+    var overlaySettingsBackgroundColor: String {
+        ja("背景の色", en: "Background Color")
+    }
+
+    var overlaySettingsCornerRadius: String {
+        ja("角の丸み", en: "Corner Radius")
+    }
+
     var overlaySettingsFontSize: String {
         ja("フォントサイズ", en: "Font Size")
     }
@@ -230,6 +243,10 @@ final class L10n {
 
     var overlaySizeLarge: String {
         ja("大", en: "Large")
+    }
+
+    var overlaySizeExtraLarge: String {
+        ja("特大", en: "Extra Large")
     }
 
     var overlaySettingsPreview: String {
@@ -250,6 +267,18 @@ final class L10n {
 
     var exportCSVMenuItem: String {
         ja("CSV 書き出し…", en: "Export CSV…")
+    }
+
+    var exportHeatmap: String {
+        ja("ヒートマップを保存", en: "Save Heatmap")
+    }
+
+    var exportSuccess: String {
+        ja("保存しました", en: "Saved successfully")
+    }
+
+    var exportError: String {
+        ja("保存に失敗しました", en: "Failed to save")
     }
 
     var exportCSVSaveButton: String {
@@ -364,6 +393,35 @@ final class L10n {
             "ビグラムとは、連続する2回の打鍵のペアです。グラフは最も頻度の高い20ペアを表示します。\n\n同指率：同じ指で連続して打鍵されるペアの割合。低いほど人間工学的に優れています。同指連打は生体力学的に最も負荷が高い動作です。\n\n交互打鍵率：左右の手が交互に打鍵するペアの割合。高いほど優れています。交互打鍵は速度と持久性を同時に高めます。",
             en: "A bigram is any two consecutive keystrokes. The chart shows your 20 most frequent pairs.\n\nSame-finger rate: how often both keys in a pair are pressed by the same finger. Lower is better — same-finger repetition is biomechanically taxing.\n\nAlternation rate: how often keystrokes alternate between left and right hands. Higher is better — alternation allows one hand to prepare while the other types."
         )
+    }
+
+    var intelligenceSection: String {
+        ja("インテリジェンス", en: "Intelligence")
+    }
+
+    var inferredStyle: String {
+        ja("推定スタイル", en: "Inferred Style")
+    }
+
+    var fatigueRisk: String {
+        ja("疲労リスク", en: "Fatigue Risk")
+    }
+
+    func typingStyleLabel(_ style: TypingStyle) -> String {
+        switch style {
+        case .prose:   return ja("執筆", en: "Prose")
+        case .code:    return ja("開発", en: "Code")
+        case .chat:    return ja("チャット", en: "Chat")
+        case .unknown: return ja("不明", en: "Unknown")
+        }
+    }
+
+    func fatigueLevelLabel(_ level: FatigueLevel) -> String {
+        switch level {
+        case .low:      return ja("低", en: "Low")
+        case .moderate: return ja("中", en: "Moderate")
+        case .high:     return ja("高", en: "High")
+        }
     }
 
     // MARK: - Helper

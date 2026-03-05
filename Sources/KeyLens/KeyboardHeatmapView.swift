@@ -17,7 +17,7 @@ enum HeatmapTemplate: String, CaseIterable {
 
 // MARK: - KeyDef
 
-private struct KeyDef {
+struct KeyDef {
     let label: String       // 表示ラベル
     let keyName: String     // KeyCountStore の counts キー名
     let widthRatio: Double  // 標準キー(1.0) に対する相対幅
@@ -43,7 +43,7 @@ struct KeyboardHeatmapView: View {
     private let keySpacing: CGFloat = 4
 
     // US 配列レイアウト（各行の幅比合計 = 15U）
-    private static let ansiRows: [[KeyDef]] = [
+    static let ansiRows: [[KeyDef]] = [
         // Number row (15U)
         [
             .init("~\n`",  "`",      1.0),
@@ -98,7 +98,7 @@ struct KeyboardHeatmapView: View {
     // Pangaea スプリットエルゴノミクスレイアウト。各サイド 4 行 + サムロー（6U）。
     // "_spacer_" は不可視パディングセル。
 
-    private static let pangaeaLeftRows: [[KeyDef]] = [
+    static let pangaeaLeftRows: [[KeyDef]] = [
         // Row 0: Number row (6U)
         [.init("~\nEsc", "Escape", 1), .init("1", "1", 1), .init("2", "2", 1),
          .init("3", "3", 1),           .init("4", "4", 1), .init("5", "5", 1)],
@@ -116,7 +116,7 @@ struct KeyboardHeatmapView: View {
          .init("⌫", "Delete", 1), .init("DEL", "Del",    1), .init("", "_spacer_", 1)],
     ]
 
-    private static let pangaeaRightRows: [[KeyDef]] = [
+    static let pangaeaRightRows: [[KeyDef]] = [
         // Row 0: Number row (6U)
         [.init("6", "6", 1), .init("7", "7", 1), .init("8", "8", 1),
          .init("9", "9", 1), .init("0", "0", 1), .init("-", "-", 1)],
@@ -137,7 +137,7 @@ struct KeyboardHeatmapView: View {
     // MARK: Ortholinear layout (generic 60% grid — all keys 1U except Space 6U)
     // Row width = 12U. Keys missing from standard ANSI ([ ] \ ' - =) are omitted.
     // オーソリニア（60%グリッド）レイアウト。Space 以外はすべて 1U。
-    private static let ortholinearRows: [[KeyDef]] = [
+    static let ortholinearRows: [[KeyDef]] = [
         // Row 0: Number row (12U)
         [.init("~\n`", "`",      1), .init("1", "1", 1), .init("2", "2", 1),
          .init("3",    "3",      1), .init("4", "4", 1), .init("5", "5", 1),
@@ -256,47 +256,141 @@ struct KeyboardHeatmapView: View {
                     .pickerStyle(.segmented)
                     .frame(maxWidth: 180)
 
-                Image(systemName: "info.circle")
-                    .font(.caption)
-                    .foregroundStyle(showModeHelp ? .primary : .secondary)
-                    .onHover { showModeHelp = $0 }
-                    .popover(isPresented: $showModeHelp, arrowEdge: .bottom) {
-                        Text(mode == .strain
-                            ? L10n.shared.helpHeatmapStrain
-                            : L10n.shared.helpHeatmapFrequency
-                        )
-                        .font(.callout)
-                        .padding(10)
-                        .frame(width: 280)
-                        .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                Spacer()
-
-                if !deviceNames.isEmpty {
-                    Text(deviceNames.joined(separator: "  /  "))
+                    Image(systemName: "info.circle")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                        .foregroundStyle(showModeHelp ? .primary : .secondary)
+                        .onHover { showModeHelp = $0 }
+                        .popover(isPresented: $showModeHelp, arrowEdge: .bottom) {
+                            Text(mode == .strain
+                                ? L10n.shared.helpHeatmapStrain
+                                : L10n.shared.helpHeatmapFrequency
+                            )
+                            .font(.callout)
+                            .padding(10)
+                            .frame(width: 280)
+                            .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                    Button(action: exportAsPNG) {
+                        Label(L10n.shared.exportHeatmap, systemImage: "square.and.arrow.down")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+
+                    Spacer()
+
+                    if !deviceNames.isEmpty {
+                        Text(deviceNames.joined(separator: "  /  "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }  // end mode HStack
             }  // end controls VStack
 
+            HeatmapExportView(
+                counts: counts,
+                mode: mode,
+                template: template,
+                keyboardKeyNames: keyboardKeyNames,
+                strainScores: strainScores
+            )
+        }
+    }
+
+    // MARK: - Export Logic
+
+    @MainActor
+    private func exportAsPNG() {
+        let view = HeatmapExportView(
+            counts: counts,
+            mode: mode,
+            template: template,
+            keyboardKeyNames: keyboardKeyNames,
+            strainScores: strainScores
+        )
+        .frame(width: 800) // Base width for export
+        .background(Color(NSColor.windowBackgroundColor))
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 2.0 // Retain scale
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.png]
+        panel.nameFieldStringValue = "KeyLens_Heatmap_\(mode.rawValue).png"
+
+        if panel.runModal() == .OK, let url = panel.url {
+            if let image = renderer.nsImage {
+                if let tiffData = image.tiffRepresentation,
+                   let bitmap = NSBitmapImageRep(data: tiffData),
+                   let pngData = bitmap.representation(using: .png, properties: [:]) {
+                    try? pngData.write(to: url)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - HeatmapExportView
+
+struct HeatmapExportView: View {
+    let counts: [String: Int]
+    let mode: HeatmapMode
+    let template: HeatmapTemplate
+    let keyboardKeyNames: Set<String>
+    let strainScores: [String: Int]
+
+    private let keyHeight: CGFloat = 40
+    private let keySpacing: CGFloat = 4
+
+    private var maxKeyCount: Int {
+        counts.filter { keyboardKeyNames.contains($0.key) }.values.max() ?? 1
+    }
+
+    private var maxMouseCount: Int {
+        counts.filter { $0.key.hasPrefix("🖱") }.values.max() ?? 1
+    }
+
+    private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
+
+    private func keyDisplayValues(for keyName: String) -> (Int, Int) {
+        switch mode {
+        case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
+        case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        }
+    }
+
+    private var mouseButtons: [KeyDef] {
+        let fixed: [KeyDef] = [
+            .init("🖱 Left",   "🖱Left",   1.0),
+            .init("🖱 Middle", "🖱Middle", 1.0),
+            .init("🖱 Right",  "🖱Right",  1.0),
+        ]
+        let knownKeys: Set<String> = ["🖱Left", "🖱Right", "🖱Middle"]
+        let extra = counts.keys
+            .filter { $0.hasPrefix("🖱") && !knownKeys.contains($0) }
+            .sorted()
+            .map { KeyDef($0, $0, 1.0) }
+        return fixed + extra
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
             GeometryReader { geo in
-                let availableWidth = geo.size.width - 16  // padding 8pt × 2
+                let availableWidth = geo.size.width - 16
                 VStack(alignment: .leading, spacing: keySpacing) {
                     switch template {
                     case .ansi, .ortholinear:
-                        let activeRows = template == .ansi ? Self.ansiRows : Self.ortholinearRows
+                        let activeRows = template == .ansi ? KeyboardHeatmapView.ansiRows : KeyboardHeatmapView.ortholinearRows
                         ForEach(Array(activeRows.enumerated()), id: \.offset) { _, row in
                             rowView(row, availableWidth: availableWidth)
                         }
                     case .pangaea:
                         let splitGap: CGFloat = 20
                         let halfWidth = (availableWidth - splitGap) / 2
-                        ForEach(Self.pangaeaLeftRows.indices, id: \.self) { i in
+                        ForEach(KeyboardHeatmapView.pangaeaLeftRows.indices, id: \.self) { i in
                             HStack(spacing: splitGap) {
-                                rowView(Self.pangaeaLeftRows[i],  availableWidth: halfWidth)
-                                rowView(Self.pangaeaRightRows[i], availableWidth: halfWidth)
+                                rowView(KeyboardHeatmapView.pangaeaLeftRows[i],  availableWidth: halfWidth)
+                                rowView(KeyboardHeatmapView.pangaeaRightRows[i], availableWidth: halfWidth)
                             }
                         }
                     }
@@ -304,14 +398,12 @@ struct KeyboardHeatmapView: View {
                 .padding(8)
             }
             .frame(height: CGFloat(5) * (keyHeight + keySpacing) - keySpacing + 16)
-            .background(Color(NSColor.windowBackgroundColor).opacity(0.01))
 
             mouseSection
             legend
         }
+        .padding(10)
     }
-
-    // MARK: - Keyboard row
 
     @ViewBuilder
     private func rowView(_ row: [KeyDef], availableWidth: CGFloat) -> some View {
@@ -322,10 +414,7 @@ struct KeyboardHeatmapView: View {
         HStack(spacing: keySpacing) {
             ForEach(Array(row.enumerated()), id: \.offset) { _, key in
                 if key.keyName == "_spacer_" {
-                    // Invisible padding cell for Pangaea thumb row alignment.
-                    // Pangaea サムロー位置合わせ用の不可視パディング。
-                    Color.clear
-                        .frame(width: unitWidth * CGFloat(key.widthRatio), height: keyHeight)
+                    Color.clear.frame(width: unitWidth * CGFloat(key.widthRatio), height: keyHeight)
                 } else {
                     let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
                     heatCell(
@@ -338,8 +427,6 @@ struct KeyboardHeatmapView: View {
             }
         }
     }
-
-    // MARK: - Mouse section
 
     private var mouseSection: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -359,15 +446,14 @@ struct KeyboardHeatmapView: View {
         }
     }
 
-    // MARK: - Shared cell view
-
     private func heatCell(label: String, count: Int, max: Int, width: CGFloat) -> some View {
-        let bgColor = heatColor(count: count, max: max)
+        let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
+        let hue = (1.0 - t) * 0.67
+        let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : Color(white: 0.25)
         let fgColor: Color = count > 0 ? .white : Color(white: 0.5)
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 5)
-                .fill(bgColor)
+            RoundedRectangle(cornerRadius: 5).fill(bgColor)
             Text(label)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(fgColor)
@@ -379,19 +465,15 @@ struct KeyboardHeatmapView: View {
         .frame(width: width, height: keyHeight)
     }
 
-    // MARK: - Legend
-
     private var legend: some View {
         let l = L10n.shared
         let lowLabel  = mode == .strain ? "Low strain"  : l.heatmapLow
         let highLabel = mode == .strain ? "High strain" : l.heatmapHigh
         return HStack(spacing: 6) {
-            Text(lowLabel)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            Text(lowLabel).font(.caption2).foregroundStyle(.secondary)
             LinearGradient(
                 stops: [
-                    .init(color: Color(white: 0.25),                                   location: 0.00),
+                    .init(color: Color(white: 0.25), location: 0.00),
                     .init(color: Color(hue: 0.67, saturation: 0.75, brightness: 0.82), location: 0.15),
                     .init(color: Color(hue: 0.40, saturation: 0.75, brightness: 0.82), location: 0.45),
                     .init(color: Color(hue: 0.15, saturation: 0.75, brightness: 0.82), location: 0.75),
@@ -402,32 +484,7 @@ struct KeyboardHeatmapView: View {
             )
             .frame(width: 120, height: 10)
             .clipShape(RoundedRectangle(cornerRadius: 3))
-            Text(highLabel)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            if mode == .strain {
-                Image(systemName: "info.circle")
-                    .font(.caption2)
-                    .foregroundStyle(showStrainLegendHelp ? .primary : .secondary)
-                    .onHover { showStrainLegendHelp = $0 }
-                    .popover(isPresented: $showStrainLegendHelp, arrowEdge: .top) {
-                        Text(L10n.shared.helpHeatmapStrainLegend)
-                            .font(.callout)
-                            .padding(10)
-                            .frame(width: 280)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-            }
+            Text(highLabel).font(.caption2).foregroundStyle(.secondary)
         }
-    }
-
-    // MARK: - Color
-
-    // 青(低) → 緑 → 黄 → 赤(高)
-    private func heatColor(count: Int, max: Int) -> Color {
-        guard max > 0, count > 0 else { return Color(white: 0.25) }
-        let t = Double(count) / Double(max)
-        let hue = (1.0 - t) * 0.67  // 0.67(青) → 0.0(赤)
-        return Color(hue: hue, saturation: 0.75, brightness: 0.82)
     }
 }

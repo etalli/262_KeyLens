@@ -146,7 +146,21 @@ extension AppDelegate {
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("KeyLens/counts.json")
         guard let data = try? Data(contentsOf: url),
-              let json = String(data: data, encoding: .utf8) else { return }
+              var json = String(data: data, encoding: .utf8) else { return }
+        
+        // Inject current intelligence insights into the JSON (simplified)
+        let style = KeyCountStore.shared.currentTypingStyle.rawValue
+        let fatigue = KeyCountStore.shared.currentFatigueLevel.rawValue
+        let insights = """
+          "intelligence": {
+            "typingStyle": "\(style)",
+            "fatigueLevel": "\(fatigue)"
+          },
+        """
+        if let range = json.range(of: "{") {
+            json.insert(contentsOf: insights, at: range.upperBound)
+        }
+
         let content = "\(AIPromptStore.shared.currentPrompt)\n\n\(json)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(content, forType: .string)

@@ -14,7 +14,7 @@ final class StatsWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: 600, height: 700),
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -68,10 +68,10 @@ final class StatsWindowController: NSWindowController {
 
         // テーブル列定義
         let columns: [(id: String, title: String, width: CGFloat)] = [
-            ("rank",  "#",     36),
-            ("key",   "Key",  200),
-            ("total", "Total", 90),
-            ("today", "Today", 90),
+            ("rank",  "#",     20),
+            ("key",   "Key",  50),
+            ("total", "Total", 50),
+            ("today", "Today", 40),
         ]
         for col in columns {
             let c = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(col.id))
@@ -85,7 +85,7 @@ final class StatsWindowController: NSWindowController {
         tableView.delegate = self
         tableView.usesAlternatingRowBackgroundColors = true
         tableView.allowsColumnResizing = true
-        tableView.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
+        tableView.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
 
         scrollView.documentView = tableView
         scrollView.hasVerticalScroller = true

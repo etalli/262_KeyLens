@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import KeyLensCore
 
 // MARK: - OverlayPosition
 
@@ -26,12 +27,14 @@ enum OverlayFontSize: String, CaseIterable, Codable {
     case small  = "small"
     case medium = "medium"
     case large  = "large"
+    case extraLarge = "extraLarge"
 
     var pointSize: CGFloat {
         switch self {
-        case .small:  return 16
-        case .medium: return 22
-        case .large:  return 30
+        case .small:  return 24
+        case .medium: return 36
+        case .large:  return 52
+        case .extraLarge: return 72
         }
     }
 
@@ -41,6 +44,7 @@ enum OverlayFontSize: String, CaseIterable, Codable {
         case .small:  return l.overlaySizeSmall
         case .medium: return l.overlaySizeMedium
         case .large:  return l.overlaySizeLarge
+        case .extraLarge: return l.overlaySizeExtraLarge
         }
     }
 }
@@ -53,6 +57,9 @@ struct OverlayConfig: Codable, Equatable {
     var backgroundOpacity: Double          = 0.55
     var fontSize:          OverlayFontSize = .medium
     var showKeyCode:       Bool            = false
+    var fontColor:         String          = "#FFFFFF"
+    var backgroundColor:   String          = "#000000"
+    var cornerRadius:      Double          = 10.0
 
     static let userDefaultsKey = "overlayConfig"
 
@@ -93,16 +100,17 @@ struct OverlaySettingsView: View {
     private let fadeDelayOptions: [Double] = [1, 2, 3, 5, 10]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            positionSection
-            fadeDelaySection
-            opacitySection
-            fontSizeSection
-            showKeyCodeSection
-            previewSection
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                positionSection
+                fadeDelaySection
+                sizeAndCodeSection
+                appearanceSection
+                previewSection
+            }
+            .padding(20)
         }
-        .padding(20)
-        .frame(width: 380)
+        .frame(width: 380, height: 500)
         .onChange(of: config) { newConfig in
             newConfig.save()
             previewVM.config = newConfig
@@ -110,6 +118,63 @@ struct OverlaySettingsView: View {
     }
 
     // MARK: - Sections
+
+    private var sizeAndCodeSection: some View {
+        HStack(spacing: 12) {
+            fontSizeSection
+            showKeyCodeSection
+        }
+    }
+
+    private var appearanceSection: some View {
+        let l = L10n.shared
+        return GroupBox(label: Text(ja("外観", en: "Appearance")).fontWeight(.medium)) {
+            VStack(spacing: 12) {
+                HStack {
+                    Text(l.overlaySettingsFontColor).font(.subheadline)
+                    Spacer()
+                    ColorPicker("", selection: Binding(
+                        get: { Color(hex: config.fontColor) ?? .white },
+                        set: { config.fontColor = $0.toHex() ?? "#FFFFFF" }
+                    ))
+                    .labelsHidden()
+                }
+
+                HStack {
+                    Text(l.overlaySettingsBackgroundColor).font(.subheadline)
+                    Spacer()
+                    ColorPicker("", selection: Binding(
+                        get: { Color(hex: config.backgroundColor) ?? .black },
+                        set: { config.backgroundColor = $0.toHex() ?? "#000000" }
+                    ))
+                    .labelsHidden()
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(l.overlaySettingsOpacity).font(.subheadline)
+                        Spacer()
+                        Text("\(Int(config.backgroundOpacity * 100))%").foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    Slider(value: $config.backgroundOpacity, in: 0.1...1.0)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(l.overlaySettingsCornerRadius).font(.subheadline)
+                        Spacer()
+                        Text("\(Int(config.cornerRadius))px").foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    Slider(value: $config.cornerRadius, in: 0...30)
+                }
+            }
+            .padding(.vertical, 8)
+        }
+    }
+
+    private func ja(_ japanese: String, en english: String) -> String {
+        L10n.shared.resolved == .japanese ? japanese : english
+    }
 
     private var positionSection: some View {
         let l = L10n.shared
@@ -156,19 +221,6 @@ struct OverlaySettingsView: View {
         }
     }
 
-    private var opacitySection: some View {
-        let l = L10n.shared
-        return GroupBox(label: Text(l.overlaySettingsOpacity).fontWeight(.medium)) {
-            HStack {
-                Slider(value: $config.backgroundOpacity, in: 0.1...1.0)
-                Text("\(Int(config.backgroundOpacity * 100))%")
-                    .frame(width: 38, alignment: .trailing)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 4)
-        }
-    }
 
     private var fontSizeSection: some View {
         let l = L10n.shared
@@ -234,5 +286,53 @@ final class OverlaySettingsController: NSWindowController {
         if !(window?.isVisible ?? false) { window?.center() }
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
+// MARK: - Color Hex Extension
+
+extension Color {
+    init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
+
+        let r, g, b, a: Double
+        if hexSanitized.count == 6 {
+            r = Double((rgb & 0xFF0000) >> 16) / 255.0
+            g = Double((rgb & 0x00FF00) >> 8) / 255.0
+            b = Double(rgb & 0x0000FF) / 255.0
+            a = 1.0
+        } else if hexSanitized.count == 8 {
+            r = Double((rgb & 0xFF000000) >> 24) / 255.0
+            g = Double((rgb & 0x00FF0000) >> 16) / 255.0
+            b = Double((rgb & 0x0000FF00) >> 8) / 255.0
+            a = Double(rgb & 0x000000FF) / 255.0
+        } else {
+            return nil
+        }
+
+        self.init(.sRGB, red: r, green: g, blue: b, opacity: a)
+    }
+
+    func toHex() -> String? {
+        guard let components = NSColor(self).usingColorSpace(.sRGB)?.cgColor.components, components.count >= 3 else {
+            return nil
+        }
+
+        let r = Float(components[0])
+        let g = Float(components[1])
+        let b = Float(components[2])
+        let a = components.count >= 4 ? Float(components[3]) : 1.0
+
+        if a != 1.0 {
+            return String(format: "%02lX%02lX%02lX%02lX",
+                          lroundf(r * 255), lroundf(g * 255), lroundf(b * 255), lroundf(a * 255))
+        } else {
+            return String(format: "%02lX%02lX%02lX",
+                          lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
+        }
     }
 }

@@ -479,6 +479,30 @@ final class KeyCountStore {
         }
     }
 
+    /// Inferred typing style based on cumulative data.
+    /// 累積データから推定された現在のタイピングスタイル。
+    public var currentTypingStyle: TypingStyle {
+        queue.sync {
+            TypingStyleAnalyzer().analyze(keyCounts: store.counts)
+        }
+    }
+
+    /// Detected fatigue risk level.
+    /// 判定された疲労リスク。
+    public var currentFatigueLevel: FatigueLevel {
+        queue.sync {
+            let bigrams = store.totalBigramCount
+            let hsRate = bigrams > 0 ? Double(store.highStrainBigramCount) / Double(bigrams) : 0.0
+            
+            return FatigueRiskModel().analyze(
+                currentAvgIntervalMs:   nil, // TODO: Implement windowed speed check
+                baselineAvgIntervalMs:  nil,
+                currentHighStrainRate:  hsRate,
+                baselineHighStrainRate: 0.02
+            )
+        }
+    }
+
     /// Per-day ergonomic scores for trend tracking (Issue #29).
     /// Keys are "yyyy-MM-dd" strings. Only dates with at least one bigram are included.
     ///

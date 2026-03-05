@@ -116,33 +116,103 @@ private struct SectionHeader: View {
     }
 }
 
+// MARK: - ChartTab
+
+enum ChartTab: String, CaseIterable, Identifiable {
+    case overview    = "Overview"
+    case heatmap     = "Heatmap"
+    case ergonomics  = "Ergonomics"
+    case shortcuts   = "Shortcuts"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .overview:   return "info.circle"
+        case .heatmap:    return "square.grid.3x3"
+        case .ergonomics: return "figure.walk"
+        case .shortcuts:  return "command"
+        }
+    }
+}
+
 // MARK: - ChartsView
 
 struct ChartsView: View {
     @ObservedObject var model: ChartDataModel
 
+    @AppStorage("selectedChartTab") private var selectedTab: ChartTab = .overview
+
     var body: some View {
+        TabView(selection: $selectedTab) {
+            overviewTab
+                .tabItem { Label(ChartTab.overview.rawValue, systemImage: ChartTab.overview.icon) }
+                .tag(ChartTab.overview)
+
+            heatmapTab
+                .tabItem { Label(ChartTab.heatmap.rawValue, systemImage: ChartTab.heatmap.icon) }
+                .tag(ChartTab.heatmap)
+
+            ergonomicsTab
+                .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
+                .tag(ChartTab.ergonomics)
+
+            shortcutsTab
+                .tabItem { Label(ChartTab.shortcuts.rawValue, systemImage: ChartTab.shortcuts.icon) }
+                .tag(ChartTab.shortcuts)
+        }
+        .padding(.top, 8)
+        .frame(minWidth: 680, minHeight: 480)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+
+    // MARK: - Tabs
+
+    private var overviewTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection("Keyboard Heatmap") { KeyboardHeatmapView(counts: model.keyCounts) }
+                chartSection(L10n.shared.intelligenceSection) { intelligenceGroup }
                 chartSection("Top 20 Keys — All Time") { topKeysChart }
-                chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams) { bigramChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                 chartSection("Monthly Totals") { monthlyTotalsChart }
+                chartSection("Top 10 Keys per Day") { perDayChart }
+            }
+            .padding(24)
+        }
+    }
+
+    private var heatmapTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
+                chartSection("Keyboard Heatmap") { KeyboardHeatmapView(counts: model.keyCounts) }
+                chartSection("Key Categories") { categoryChart }
+            }
+            .padding(24)
+        }
+    }
+
+    private var ergonomicsTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
+                chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams) { bigramChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection("Weekly Report") { weeklyDeltaSection }
-                chartSection("Key Categories") { categoryChart }
-                chartSection("Top 10 Keys per Day") { perDayChart }
+            }
+            .padding(24)
+        }
+    }
+
+    private var shortcutsTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
                 chartSection("⌘ Keyboard Shortcuts") { shortcutsChart }
                 chartSection("All Keyboard Combos") { allCombosChart }
             }
             .padding(24)
         }
-        .frame(minWidth: 640, minHeight: 420)
-        .background(Color(NSColor.windowBackgroundColor))
     }
 
     // MARK: - Section wrapper
@@ -156,6 +226,71 @@ struct ChartsView: View {
                 Text(title).font(.headline)
             }
             content()
+        }
+    }
+
+    // MARK: - Phase 4: Intelligence Insights
+
+    @ViewBuilder
+    private var intelligenceGroup: some View {
+        HStack(spacing: 40) {
+            intelligenceCard(
+                title: L10n.shared.inferredStyle,
+                value: L10n.shared.typingStyleLabel(KeyCountStore.shared.currentTypingStyle),
+                icon: styleIcon(KeyCountStore.shared.currentTypingStyle),
+                color: .blue
+            )
+
+            intelligenceCard(
+                title: L10n.shared.fatigueRisk,
+                value: L10n.shared.fatigueLevelLabel(KeyCountStore.shared.currentFatigueLevel),
+                icon: fatigueIcon(KeyCountStore.shared.currentFatigueLevel),
+                color: fatigueColor(KeyCountStore.shared.currentFatigueLevel)
+            )
+        }
+        .padding(.top, 4)
+    }
+
+    @ViewBuilder
+    private func intelligenceCard(title: String, value: String, icon: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(color)
+                Text(value)
+                    .font(.title3.bold())
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(color.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+
+    private func styleIcon(_ style: TypingStyle) -> String {
+        switch style {
+        case .prose:   return "doc.text"
+        case .code:    return "terminal"
+        case .chat:    return "message"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    private func fatigueIcon(_ level: FatigueLevel) -> String {
+        switch level {
+        case .low:      return "checkmark.circle.fill"
+        case .moderate: return "exclamationmark.triangle.fill"
+        case .high:     return "exclamationmark.octagon.fill"
+        }
+    }
+
+    private func fatigueColor(_ level: FatigueLevel) -> Color {
+        switch level {
+        case .low:      return .green
+        case .moderate: return .orange
+        case .high:     return .red
         }
     }
 

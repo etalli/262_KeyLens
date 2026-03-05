@@ -64,13 +64,13 @@ struct OverlayView: View {
                 VStack(spacing: 1) {
                     Text(entry.symbol)
                         .font(.system(size: viewModel.config.fontSize.pointSize, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: viewModel.config.fontColor) ?? .white)
                         .frame(minWidth: 28)
                         .fixedSize()  // 省略記号（...）を防ぐ
                     if viewModel.config.showKeyCode, let code = entry.keyCode {
                         Text("\(code)")
                             .font(.system(size: viewModel.config.fontSize.pointSize * 0.45, weight: .regular, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle((Color(hex: viewModel.config.fontColor) ?? .white).opacity(0.7))
                     }
                 }
             }
@@ -78,8 +78,8 @@ struct OverlayView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.black.opacity(viewModel.config.backgroundOpacity))
+            RoundedRectangle(cornerRadius: viewModel.config.cornerRadius, style: .continuous)
+                .fill((Color(hex: viewModel.config.backgroundColor) ?? .black).opacity(viewModel.config.backgroundOpacity))
         )
         .fixedSize()  // コンテンツの理想サイズで表示
         .opacity(viewModel.opacity)

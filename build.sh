@@ -20,11 +20,11 @@ else
 fi
 msg() { [[ $USE_JA -eq 1 ]] && echo "$2" || echo "$1"; }
 
-echo "=== KeyLens Build ==="
+# echo "=== KeyLens Build ==="
 swift build -c release 2>&1
 
-echo ""
-echo "=== Building App Bundle ==="
+# echo ""
+# echo "=== Building App Bundle ==="
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
@@ -67,7 +67,7 @@ elif [[ "$1" == "--install" ]]; then
     INSTALL_DIR="/Applications"
     INSTALL_PATH="$INSTALL_DIR/KeyLens.app"
 
-    msg "=== Installing to /Applications ===" "=== /Applications にインストール ==="
+#   msg "=== Installing to /Applications ===" "=== /Applications にインストール ==="
 
     # /Applications requires root; chown back to current user afterwards
     sudo mkdir -p "$INSTALL_DIR"

@@ -16,6 +16,8 @@
 //   - thumbImbalanceRatio        [0, 1]    normalised left/right thumb usage imbalance
 //   - thumbEfficiencyCoefficient [0, ∞]   thumb keystrokes / (total × expectedRatio)
 //   - estimatedTravelDistance    [0, ∞]   total finger travel in grid units (lower = better)
+//   - typingStyle                TypingStyle detected typing context
+//   - fatigueLevel               FatigueLevel detected typing fatigue
 //
 // The snapshot is immutable; create a new instance after each key relocation simulation.
 // スナップショットは不変。キー移動シミュレーションのたびに新しいインスタンスを生成する。
@@ -70,6 +72,14 @@ public struct ErgonomicSnapshot: Equatable {
     /// 総指移動距離の推定値（グリッド単位）。低いほど良好。
     public let estimatedTravelDistance: Double
 
+    /// Inferred typing style (e.g. .code, .prose).
+    /// 推定されたタイピングスタイル。
+    public let typingStyle: TypingStyle
+
+    /// Detected fatigue risk level.
+    /// 判定された疲労リスク。
+    public let fatigueLevel: FatigueLevel
+
     public init(
         ergonomicScore: Double,
         sameFingerRate: Double,
@@ -77,7 +87,9 @@ public struct ErgonomicSnapshot: Equatable {
         handAlternationRate: Double,
         thumbImbalanceRatio: Double,
         thumbEfficiencyCoefficient: Double,
-        estimatedTravelDistance: Double
+        estimatedTravelDistance: Double,
+        typingStyle: TypingStyle = .unknown,
+        fatigueLevel: FatigueLevel = .low
     ) {
         self.ergonomicScore             = ergonomicScore
         self.sameFingerRate             = sameFingerRate
@@ -86,6 +98,8 @@ public struct ErgonomicSnapshot: Equatable {
         self.thumbImbalanceRatio        = thumbImbalanceRatio
         self.thumbEfficiencyCoefficient = thumbEfficiencyCoefficient
         self.estimatedTravelDistance    = estimatedTravelDistance
+        self.typingStyle                = typingStyle
+        self.fatigueLevel               = fatigueLevel
     }
 
     // MARK: - Factory
@@ -117,7 +131,8 @@ public struct ErgonomicSnapshot: Equatable {
                 sameFingerRate: 0, highStrainRate: 0,
                 handAlternationRate: 0,
                 thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0,
-                estimatedTravelDistance: 0
+                estimatedTravelDistance: 0,
+                typingStyle: .unknown, fatigueLevel: .low
             )
         }
 
@@ -180,6 +195,19 @@ public struct ErgonomicSnapshot: Equatable {
             thumbEfficiencyCoefficient: teCoeff
         )
 
+        // --- Intelligence engines ---------------------------------------------------
+        let style = TypingStyleAnalyzer().analyze(keyCounts: keyCounts)
+        
+        // For fatigue, we ideally compare current (window) vs baseline.
+        // For capture(), we'll use a simplified baseline comparison if available,
+        // or just absolute thresholds via the model.
+        let fatigue = FatigueRiskModel().analyze(
+            currentAvgIntervalMs:   nil, // Needs windowed data to be effective
+            baselineAvgIntervalMs:  nil,
+            currentHighStrainRate:  hsRate,
+            baselineHighStrainRate: 0.02 // Assumed baseline if unknown
+        )
+
         return ErgonomicSnapshot(
             ergonomicScore:             score,
             sameFingerRate:             sfbRate,
@@ -187,7 +215,9 @@ public struct ErgonomicSnapshot: Equatable {
             handAlternationRate:        altRate,
             thumbImbalanceRatio:        tiRatio,
             thumbEfficiencyCoefficient: teCoeff,
-            estimatedTravelDistance:    travel
+            estimatedTravelDistance:    travel,
+            typingStyle:                style,
+            fatigueLevel:               fatigue
         )
     }
 }
