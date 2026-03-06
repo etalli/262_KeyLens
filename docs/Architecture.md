@@ -69,7 +69,8 @@ graph TD
 │       ├── SameFingerOptimizer.swift     # Phase 2: greedy hill-climb optimizer (#41)
 │       ├── ErgonomicScoreEngine.swift    # Phase 1: unified ergonomic score formula (#29)
 │       ├── ErgonomicSnapshot.swift       # Phase 2: all-metric snapshot for one layout (#3, #40)
-│       └── LayoutComparison.swift        # Phase 2: before/after layout comparison (#3)
+│       ├── LayoutComparison.swift        # Phase 2: before/after layout comparison (#3)
+│       └── ErgonomicProfile.swift        # Keyboard profile: layout + fingerWeights + splitConfig
 └── Tests/
     └── KeyLensTests/
         ├── KeyboardLayoutTests.swift
@@ -83,7 +84,8 @@ graph TD
         ├── TrigramCountsTests.swift
         ├── SameFingerOptimizerTests.swift
         ├── ErgonomicScoreEngineTests.swift
-        └── LayoutComparisonTests.swift
+        ├── LayoutComparisonTests.swift
+        └── ErgonomicProfileTests.swift
 ```
 
 ---
@@ -152,6 +154,8 @@ struct KeyLensApp: App {
 ### [AppDelegate.swift](Sources/KeyLens/AppDelegate.swift)
 
 Manages the `KeyboardMonitor` lifecycle and Accessibility permission recovery. Conforms to `ObservableObject` so `MenuView` can react to state changes (e.g. `isMonitoring`, `copyConfirmed`).
+
+On launch, calls `detectHardware()` which reads connected keyboard device names via `KeyboardDeviceInfo` and applies the matching `ErgonomicProfile` to `LayoutRegistry.shared`.
 
 **Permission recovery (layered):**
 1. `appDidBecomeActive` — fires when the user switches back to any app; attempts `monitor.start()` immediately
@@ -279,6 +283,7 @@ Chart sections (in display order):
 - **Top 10 per Day** — grouped bar chart of the top keys across recent days
 - **⌘ Keyboard Shortcuts** — top modifier+key combos
 - **All Keyboard Combos** — all modifier combinations
+- **Apps** — per-application keystroke bar charts (all-time and today) + ergonomic score table (apps with ≥100 keystrokes, colour-coded: green ≥80 / orange 60–79 / red <60)
 
 `ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`. Phase 3 additions: `dailyErgonomics: [DailyErgonomicEntry]` and `weeklyDeltas: [WeeklyDeltaRow]`.
 
@@ -314,7 +319,8 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 | `KeyboardLayout` | `KeyboardLayout.swift` | Protocol — `name`, `position(for:)`, `finger(for:)`, `hand(for:)` |
 | `ANSILayout` | `KeyboardLayout.swift` | Standard US ANSI implementation (62 `CGKeyCode` entries) |
 | `SplitKeyboardConfig` | `KeyboardLayout.swift` | User-overridable hand assignments for split keyboards |
-| `LayoutRegistry` | `KeyboardLayout.swift` | Singleton: active layout + scoring model instances |
+| `ErgonomicProfile` | `ErgonomicProfile.swift` | Bundles `layout`, `fingerWeights`, and `splitConfig` into one named profile; presets: `.standard`, `.splitErgo` |
+| `LayoutRegistry` | `KeyboardLayout.swift` | Singleton: `activeProfile: ErgonomicProfile` + scoring model instances; `applyProfile(forDeviceNames:)` selects profile from connected hardware |
 | `FingerLoadWeight` | `FingerLoadWeight.swift` | Per-finger capability weights (index=1.0 … pinky=0.5) |
 | `SameFingerPenalty` | `SameFingerPenalty.swift` | Non-linear distance-tier penalty for same-finger bigrams |
 | `AlternationReward` | `AlternationReward.swift` | Reward coefficient for hand-alternating sequences |
@@ -395,6 +401,12 @@ Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
 | `highStrainTrigramCount` | `Int` | Cumulative count of two consecutive high-strain bigrams |
 | `dailyHighStrainTrigramCount` | `{date: Int}` | High-strain trigram count per day |
 | `alternationRewardScore` | `Double` | Running alternation reward score (includes streak multiplier bonus) |
+| `appCounts` | `{String: Int}` | Cumulative keystroke count per frontmost application name |
+| `dailyAppCounts` | `{date: {String: Int}}` | Per-day per-application keystroke counts |
+| `appSameFingerCount` | `{String: Int}` | Cumulative same-finger bigrams per app |
+| `appTotalBigramCount` | `{String: Int}` | Cumulative total bigrams per app (denominator) |
+| `appHandAlternationCount` | `{String: Int}` | Cumulative hand-alternating bigrams per app |
+| `appHighStrainBigramCount` | `{String: Int}` | Cumulative high-strain bigrams per app |
 
 All fields except `startedAt` and `counts` use optional decoding with safe defaults,
 ensuring forward/backward compatibility when new fields are added.

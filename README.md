@@ -59,6 +59,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Today / Total** | Keystroke count for today and all time |
 | **Avg interval** | Running average time between keystrokes (ms) |
 | **Top keys** | Most-pressed keys with counts |
+| **Top app today** | Frontmost application with the most keystrokes today |
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay |
@@ -78,6 +79,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Weekly Delta Report** | Last 7 days vs prior 7 days — keystrokes and ergonomic rates with trend arrows |
 | **Key Categories** | Donut chart of key-type distribution |
 | **Keyboard Shortcuts** | Top modifier+key combinations |
+| **Apps** | Per-application keystroke bar charts (all-time and today) and ergonomic score table |
 
 ### Keystroke Overlay
 
