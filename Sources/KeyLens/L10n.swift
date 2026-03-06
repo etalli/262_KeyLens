@@ -395,6 +395,48 @@ final class L10n {
         )
     }
 
+    func topAppTodayFormat(_ app: String, _ count: String) -> String {
+        ja("🖥 \(app)  \(count)", en: "🖥 \(app)  \(count)")
+    }
+
+    var appsAllTime: String {
+        ja("アプリ別打鍵数 — 累計", en: "Top Apps — All Time")
+    }
+
+    var appsToday: String {
+        ja("アプリ別打鍵数 — 本日", en: "Top Apps — Today")
+    }
+
+    var helpApps: String {
+        ja(
+            "フォアグラウンドで動作していたアプリごとの打鍵数を表示します。どのアプリで最も多くタイプしているかを把握できます。",
+            en: "Keystroke counts grouped by the frontmost application. Shows which apps you type in most."
+        )
+    }
+
+    var appErgScoreSection: String {
+        ja("アプリ別エルゴノミクススコア", en: "Ergonomic Score by App")
+    }
+
+    var helpAppErgScore: String {
+        ja(
+            "100打鍵以上のアプリについて、実際の打鍵データから算出したエルゴノミクススコア（0〜100）を表示します。スコアが高いほど、同指率・高負荷率が低く、左右交互打鍵率が高い優れた状態です。",
+            en: "Ergonomic score (0–100) computed from actual typing data for apps with ≥100 keystrokes. Higher is better: lower same-finger and high-strain rates, higher hand alternation."
+        )
+    }
+
+    var appErgScoreAppHeader: String {
+        ja("アプリ", en: "App")
+    }
+
+    var appErgScoreKeysHeader: String {
+        ja("打鍵数", en: "Keystrokes")
+    }
+
+    var appErgScoreScoreHeader: String {
+        ja("スコア", en: "Score")
+    }
+
     var intelligenceSection: String {
         ja("インテリジェンス", en: "Intelligence")
     }

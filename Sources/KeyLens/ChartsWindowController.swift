@@ -26,6 +26,11 @@ final class ChartDataModel: ObservableObject {
     // Issue #5: Activity Trends
     @Published var hourlyDistribution:   [Int]                  = []
     @Published var monthlyTotals:        [MonthlyTotalEntry]    = []
+    // Per-application counts
+    @Published var topApps:              [AppEntry]             = []
+    @Published var todayTopApps:         [AppEntry]             = []
+    // Per-application ergonomic scores
+    @Published var appErgScores:         [AppErgScoreEntry]     = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -67,6 +72,10 @@ final class ChartDataModel: ObservableObject {
         // Issue #5: Activity Trends
         hourlyDistribution = store.hourlyDistribution()
         monthlyTotals      = store.monthlyTotals().map(MonthlyTotalEntry.init)
+        // Per-application counts
+        topApps      = store.topApps(limit: 20).map(AppEntry.init)
+        todayTopApps = store.todayTopApps(limit: 10).map(AppEntry.init)
+        appErgScores = store.appErgonomicScores(minKeystrokes: 100).map(AppErgScoreEntry.init)
     }
 
     // Compare the most recent 7 days against the 7 days before that.

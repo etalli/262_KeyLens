@@ -186,7 +186,8 @@ private func inputTapCallback(
     }
 
     let now = Date()
-    let result = KeyCountStore.shared.increment(key: name, at: now)
+    let appName = NSWorkspace.shared.frontmostApplication?.localizedName
+    let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)
 
     if result.milestone {
         // 通知はメインスレッドで発行

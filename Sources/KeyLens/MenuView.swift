@@ -101,6 +101,12 @@ struct MenuView: View {
             } else {
                 infoRow(l.noInput)
             }
+
+            // 本日のトップアプリ
+            if let topApp = store.todayTopApps(limit: 1).first {
+                infoRow(l.topAppTodayFormat(topApp.app, topApp.count.formatted()))
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.vertical, 6)
     }

@@ -47,6 +47,23 @@ struct BigramEntry: Identifiable {
     init(_ t: (pair: String, count: Int)) { id = t.pair; pair = t.pair; count = t.count }
 }
 
+struct AppEntry: Identifiable {
+    let id: String
+    let app: String
+    let count: Int
+    init(_ t: (app: String, count: Int)) { id = t.app; app = t.app; count = t.count }
+}
+
+struct AppErgScoreEntry: Identifiable {
+    let id: String
+    let app: String
+    let score: Double
+    let keystrokes: Int
+    init(_ t: (app: String, score: Double, keystrokes: Int)) {
+        id = t.app; app = t.app; score = t.score; keystrokes = t.keystrokes
+    }
+}
+
 // Issue #5: Hourly distribution entry (for Chart)
 // 時間帯別打鍵数チャート用エントリ
 struct HourEntry: Identifiable {
@@ -123,6 +140,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
     case heatmap     = "Heatmap"
     case ergonomics  = "Ergonomics"
     case shortcuts   = "Shortcuts"
+    case apps        = "Apps"
 
     var id: String { rawValue }
 
@@ -132,6 +150,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
         case .heatmap:    return "square.grid.3x3"
         case .ergonomics: return "figure.walk"
         case .shortcuts:  return "command"
+        case .apps:       return "app.badge"
         }
     }
 }
@@ -160,6 +179,10 @@ struct ChartsView: View {
             shortcutsTab
                 .tabItem { Label(ChartTab.shortcuts.rawValue, systemImage: ChartTab.shortcuts.icon) }
                 .tag(ChartTab.shortcuts)
+
+            appsTab
+                .tabItem { Label(ChartTab.apps.rawValue, systemImage: ChartTab.apps.icon) }
+                .tag(ChartTab.apps)
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)
@@ -212,6 +235,84 @@ struct ChartsView: View {
                 chartSection("All Keyboard Combos") { allCombosChart }
             }
             .padding(24)
+        }
+    }
+
+    private var appsTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.appsAllTime, helpText: L10n.shared.helpApps) { topAppsChart }
+                chartSection(L10n.shared.appsToday) { todayTopAppsChart }
+                if !model.appErgScores.isEmpty {
+                    chartSection(L10n.shared.appErgScoreSection, helpText: L10n.shared.helpAppErgScore) {
+                        appErgScoreTable
+                    }
+                }
+            }
+            .padding(24)
+        }
+    }
+
+    // MARK: - Per-app ergonomic score table
+
+    private var appErgScoreTable: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header row
+            HStack {
+                Text(L10n.shared.appErgScoreAppHeader)
+                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Text(L10n.shared.appErgScoreKeysHeader)
+                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+                Text(L10n.shared.appErgScoreScoreHeader)
+                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.primary.opacity(0.05))
+            .cornerRadius(6)
+
+            ForEach(model.appErgScores) { entry in
+                HStack {
+                    Text(entry.app)
+                        .font(.system(size: 13))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(1)
+                    Text(entry.keystrokes.formatted())
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 80, alignment: .trailing)
+                    HStack(spacing: 4) {
+                        // Score bar (fills proportionally from 0–100)
+                        GeometryReader { geo in
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(scoreColor(entry.score).opacity(0.25))
+                                .frame(width: geo.size.width)
+                                .overlay(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(scoreColor(entry.score))
+                                        .frame(width: geo.size.width * entry.score / 100)
+                                }
+                        }
+                        .frame(width: 44, height: 8)
+                        Text(String(format: "%.0f", entry.score))
+                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                            .foregroundStyle(scoreColor(entry.score))
+                            .frame(width: 28, alignment: .trailing)
+                    }
+                    .frame(width: 80, alignment: .trailing)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                Divider().padding(.horizontal, 12)
+            }
+        }
+    }
+
+    private func scoreColor(_ score: Double) -> Color {
+        switch score {
+        case 80...: return .green
+        case 60..<80: return .orange
+        default: return .red
         }
     }
 
@@ -328,6 +429,58 @@ struct ChartsView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Apps Charts
+
+    @ViewBuilder
+    private var topAppsChart: some View {
+        if model.topApps.isEmpty {
+            emptyState
+        } else {
+            let appOrder = model.topApps.map(\.app)
+            Chart(model.topApps) { item in
+                BarMark(
+                    x: .value("Count", item.count),
+                    y: .value("App", item.app)
+                )
+                .foregroundStyle(Color.accentColor.gradient)
+                .cornerRadius(3)
+                .annotation(position: .trailing, spacing: 4) {
+                    Text(item.count.formatted())
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: appOrder.reversed())
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.topApps.count * 28 + 24))
+        }
+    }
+
+    @ViewBuilder
+    private var todayTopAppsChart: some View {
+        if model.todayTopApps.isEmpty {
+            emptyState
+        } else {
+            let appOrder = model.todayTopApps.map(\.app)
+            Chart(model.todayTopApps) { item in
+                BarMark(
+                    x: .value("Count", item.count),
+                    y: .value("App", item.app)
+                )
+                .foregroundStyle(Color.teal.gradient)
+                .cornerRadius(3)
+                .annotation(position: .trailing, spacing: 4) {
+                    Text(item.count.formatted())
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: appOrder.reversed())
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.todayTopApps.count * 28 + 24))
         }
     }
 
