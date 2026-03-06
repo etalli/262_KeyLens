@@ -14,6 +14,9 @@ graph TD
     B --> I[StatsWindowController]
     B --> J[ChartsWindowController]
     B --> K[KeystrokeOverlayController]
+    B --> N[AboutWindowController]
+    K --> O[OverlaySettingsController]
+    P[KeyboardDeviceInfo] -->|device names| B
     C -->|key event| E[KeyCountStore]
     C -->|keystrokeInput notification| K
     E -->|every milestone presses| F[NotificationManager]
@@ -21,7 +24,7 @@ graph TD
     V -->|fetch display data| E
     V -->|language switch| H[L10n]
     J -->|reads counts| E
-    J --> L[ChartsView / KeyType]
+    J --> L[ChartsView / KeyboardHeatmapView / KeyType]
     M[AIPromptStore] -->|currentPrompt| B
     M -->|reads language| H
 ```
@@ -41,6 +44,7 @@ graph TD
 │   │   ├── KeyLensApp.swift
 │   │   ├── AppDelegate.swift
 │   │   ├── AppDelegate+Actions.swift
+│   │   ├── AboutWindowController.swift
 │   │   ├── MenuView.swift
 │   │   ├── KeyboardMonitor.swift
 │   │   ├── KeyCountStore.swift
@@ -170,6 +174,12 @@ Extension on `AppDelegate` containing all user-initiated actions triggered from 
 
 ---
 
+### [AboutWindowController.swift](Sources/KeyLens/AboutWindowController.swift)
+
+Singleton that manages the **About** panel. Wraps an `NSPanel` hosting an `AboutView` (SwiftUI) that displays the app icon, version string, and a link to the GitHub repository. The panel is created lazily on first `show()` call and reused thereafter; the title is refreshed on each `show()` to reflect the current language.
+
+---
+
 ### [MenuView.swift](Sources/KeyLens/MenuView.swift)
 
 SwiftUI view that renders the `MenuBarExtra` popup panel. Reads live data from `KeyCountStore.shared` on each render. Uses `@EnvironmentObject var appDelegate` to dispatch actions. Key subcomponents:
@@ -292,6 +302,16 @@ Chart sections (in display order):
 ### [KeystrokeOverlayController.swift](Sources/KeyLens/KeystrokeOverlayController.swift)
 
 Floating `NSPanel` that shows the last N keystrokes in real time using a SwiftUI `OverlayView`. Listens for `Notification(.keystrokeInput)` posted by `KeyboardMonitor`. The panel fades out after 3 s of inactivity using a debounced `DispatchWorkItem`. Toggle state is persisted in `UserDefaults`.
+
+---
+
+### [OverlaySettingsController.swift](Sources/KeyLens/OverlaySettingsController.swift)
+
+Defines overlay configuration types and manages the settings panel for `KeystrokeOverlayController`:
+
+- **`OverlayPosition`** — enum (`topLeft`, `topRight`, `bottomLeft`, `bottomRight`) for screen corner placement; preferences persisted in `UserDefaults`
+- **`OverlayFontSize`** — enum (`small`, `medium`, `large`, `extraLarge`) for keystroke text size
+- **`OverlaySettingsController`** — shows a SwiftUI settings panel (position picker, font size picker, display count slider); opened via the gear icon (⚙) in `MenuView`'s Overlay row
 
 ---
 

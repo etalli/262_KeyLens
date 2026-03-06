@@ -81,6 +81,27 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Keyboard Shortcuts** | Top modifier+key combinations |
 | **Apps** | Per-application keystroke bar charts (all-time and today) and ergonomic score table |
 
+### AI Analysis
+
+Export your keystroke data and analyze it with an AI assistant for layout optimization advice.
+
+1. Open **Settings… > Data > Export CSV** to export your keystroke data as a CSV file
+2. Open **Settings… > Data > Edit AI Prompt** to review or customize the analysis prompt
+3. Copy the exported CSV content and paste it into an AI tool (e.g. Claude, ChatGPT) together with the prompt
+
+**Example prompt workflow:**
+
+```
+[Paste the built-in prompt]
+
+Here is my keystroke data:
+[Paste CSV content]
+```
+
+The default prompt asks the AI to compute same-finger rates, hand alternation rates, bigram/trigram frequencies, and recommend thumb-key assignments for a split keyboard.
+
+---
+
 ### Keystroke Overlay
 
 <table>
