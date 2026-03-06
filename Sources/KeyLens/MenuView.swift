@@ -54,9 +54,6 @@ struct MenuView: View {
     private var statsSection: some View {
         let l = L10n.shared
         let store = KeyCountStore.shared
-        let rankEmoji = ["🥇", "🥈", "🥉"]
-        let topKeys = store.topKeys(limit: 3)
-
         return VStack(alignment: .leading, spacing: 0) {
             infoRow(l.recordingSince(store.startedAt))
 
@@ -76,34 +73,6 @@ struct MenuView: View {
             if let avgMs = store.averageIntervalMs {
                 infoRow(String(format: l.avgIntervalFormat, avgMs))
             }
-
-            // Top 3 バッジ
-            if !topKeys.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(Array(topKeys.enumerated()), id: \.offset) { i, entry in
-                        HStack(spacing: 3) {
-                            Text(rankEmoji[i]).font(.system(size: 11))
-                            Text(displayKey(entry.key)).font(.system(size: 11))
-                                .foregroundColor(.primary)
-                        }
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.primary.opacity(0.06)))
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 4)
-            } else {
-                infoRow(l.noInput)
-            }
-
-            // 本日のトップアプリ
-            if let topApp = store.todayTopApps(limit: 1).first {
-                infoRow(l.topAppTodayFormat(topApp.app, topApp.count.formatted()))
-                    .foregroundColor(.secondary)
-            }
         }
         .padding(.vertical, 6)
     }
@@ -113,8 +82,8 @@ struct MenuView: View {
     private var actionRow: some View {
         let l = L10n.shared
         return VStack(alignment: .leading, spacing: 0) {
-            menuRow(l.showAllMenuItem) { appDelegate.showAllStats() }
-            menuRow(l.chartsMenuItem)  { appDelegate.showCharts() }
+            menuRow(l.showAllMenuItem, icon: "list.bullet")       { appDelegate.showAllStats() }
+            menuRow(l.chartsMenuItem,  icon: "chart.bar.xaxis")   { appDelegate.showCharts() }
         }
     }
 
@@ -127,7 +96,8 @@ struct MenuView: View {
             Divider().padding(.horizontal, 14).padding(.vertical, 2)
             // データ操作サブメニュー
             DataMenuRow()
-            // 設定サブメニュー（Launch at Login・言語・通知間隔・リセット）
+            Divider().padding(.horizontal, 14).padding(.vertical, 2)
+            // 設定サブメニュー（Launch at Login・言語・通知間隔・AI Prompt・リセット）
             SettingsMenuRow()
         }
         .padding(.vertical, 4)
@@ -149,10 +119,6 @@ struct MenuView: View {
         Divider().padding(.horizontal, 0)
     }
 
-    private func displayKey(_ key: String) -> String {
-        key.hasPrefix("🖱") ? "Mouse \(key.dropFirst())" : key
-    }
-
     private func infoRow(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 13))
@@ -161,9 +127,15 @@ struct MenuView: View {
             .padding(.vertical, 4)
     }
 
-    private func menuRow(_ title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
+    private func menuRow(_ title: String, icon: String? = nil, destructive: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 8) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .frame(width: 16)
+                }
                 Text(title)
                     .font(.system(size: 13))
                     .foregroundColor(destructive ? .red : .primary)
@@ -176,25 +148,6 @@ struct MenuView: View {
         .buttonStyle(HoverRowStyle())
     }
 
-    private func toggleRow(_ title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Text(title)
-                    .font(.system(size: 13))
-                    .foregroundColor(.primary)
-                Spacer()
-                if isOn {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.accentColor)
-                }
-            }
-            .contentShape(Rectangle())
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-        }
-        .buttonStyle(HoverRowStyle())
-    }
 }
 
 // MARK: - OverlayRow (toggle + gear in one row)
@@ -209,7 +162,11 @@ private struct OverlayRow: View {
         HStack(spacing: 0) {
             // トグル部分（テキストのみ）
             Button(action: { appDelegate.toggleOverlay() }) {
-                HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .frame(width: 16)
                     Text(l.overlayMenuItem)
                         .font(.system(size: 13))
                         .foregroundColor(.primary)
@@ -257,7 +214,6 @@ private struct OverlayRow: View {
 
 private struct DataMenuRow: View {
     @EnvironmentObject var appDelegate: AppDelegate
-    @State private var isHovered = false
 
     var body: some View {
         Button(action: showMenu) {
@@ -291,7 +247,6 @@ private struct DataMenuRow: View {
         }
 
         add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
-        add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
         add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem) {
             appDelegate.copyDataToClipboard()
         }
@@ -374,6 +329,11 @@ private struct SettingsMenuRow: View {
                 appDelegate.setMilestoneInterval(interval)
             }
         }
+
+        menu.addItem(.separator())
+
+        // Edit AI Prompt
+        add(l.editPromptMenuItem) { appDelegate.editAIPrompt() }
 
         menu.addItem(.separator())
 
