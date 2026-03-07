@@ -111,8 +111,9 @@ struct MenuView: View {
     private var footerRow: some View {
         let l = L10n.shared
         return VStack(spacing: 0) {
-            menuRow(l.aboutMenuItem) { appDelegate.showAboutPanel() }
-            menuRow(l.quit)          { appDelegate.quit() }
+            menuRow(l.aboutMenuItem)             { appDelegate.showAboutPanel() }
+            menuRow(l.checkForUpdatesMenuItem)   { appDelegate.checkForUpdates() }
+            menuRow(l.quit)                      { appDelegate.quit() }
         }
     }
 

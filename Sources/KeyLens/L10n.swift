@@ -125,6 +125,40 @@ final class L10n {
         ja("KeyLens について", en: "About KeyLens")
     }
 
+    var checkForUpdatesMenuItem: String {
+        ja("アップデートを確認…", en: "Check for Updates…")
+    }
+
+    var updateAvailableTitle: String {
+        ja("アップデートがあります", en: "Update Available")
+    }
+
+    func updateAvailableMessage(current: String, latest: String) -> String {
+        ja("現在のバージョン: \(current)\n最新バージョン: \(latest)\n\nGitHub Releases からダウンロードできます。",
+           en: "Current version: \(current)\nLatest version: \(latest)\n\nDownload the latest release from GitHub.")
+    }
+
+    var updateUpToDateTitle: String {
+        ja("最新バージョンです", en: "Up to Date")
+    }
+
+    func updateUpToDateMessage(version: String) -> String {
+        ja("KeyLens \(version) は最新バージョンです。", en: "KeyLens \(version) is the latest version.")
+    }
+
+    var updateCheckFailedTitle: String {
+        ja("確認できませんでした", en: "Check Failed")
+    }
+
+    var updateCheckFailedMessage: String {
+        ja("アップデートの確認中にエラーが発生しました。ネットワーク接続を確認してください。",
+           en: "Could not check for updates. Please check your network connection.")
+    }
+
+    var downloadButton: String {
+        ja("ダウンロード", en: "Download")
+    }
+
     var close: String {
         ja("閉じる", en: "Close")
     }
