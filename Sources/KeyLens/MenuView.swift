@@ -220,7 +220,11 @@ private struct DataMenuRow: View {
 
     var body: some View {
         Button(action: showMenu) {
-            HStack {
+            HStack(spacing: 8) {
+                Image(systemName: "externaldrive")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
                 Text("Data...")
                     .font(.system(size: 13))
                     .foregroundColor(.primary)
@@ -270,7 +274,11 @@ private struct SettingsMenuRow: View {
 
     var body: some View {
         Button(action: showMenu) {
-            HStack {
+            HStack(spacing: 8) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
                 Text(L10n.shared.settingsMenuTitle)
                     .font(.system(size: 13))
                     .foregroundColor(.primary)
