@@ -445,6 +445,13 @@ final class L10n {
         ja("インテリジェンス", en: "Intelligence")
     }
 
+    var helpIntelligence: String {
+        ja(
+            "キー頻度パターンから推定した2つの指標を表示します。\n\n推定スタイル: よく使うキーの分布からタイピング用途を推定します。文字・スペース中心 → 執筆、記号・修飾キー多用 → 開発、短いパターン多用 → チャット。\n\n疲労リスク: 同一指で1行以上離れたキーを連続入力する「高負荷バイグラム」の割合で判定します。\n低（緑）: 2%以下 / 中（橙）: 2〜5% / 高（赤）: 5%超",
+            en: "Two metrics inferred from your keystroke patterns.\n\nInferred Style: estimated from key frequency distribution. High letters/Space → Prose; high symbols/modifiers → Code; frequent short patterns → Chat.\n\nFatigue Risk: based on the high-strain bigram rate — same-finger keypairs spanning ≥1 keyboard row (e.g. F→R, J→U).\nLow (green): ≤2% / Moderate (orange): 2–5% / High (red): >5%"
+        )
+    }
+
     var inferredStyle: String {
         ja("推定スタイル", en: "Inferred Style")
     }

@@ -194,7 +194,7 @@ struct ChartsView: View {
     private var overviewTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.intelligenceSection) { intelligenceGroup }
+                chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
                 chartSection("Top 20 Keys — All Time") { topKeysChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
