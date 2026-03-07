@@ -261,8 +261,11 @@ private struct DataMenuRow: View {
         add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem) {
             appDelegate.copyDataToClipboard()
         }
+        add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
         menu.addItem(.separator())
         add(l.openSaveFolder)          { appDelegate.openSaveDir() }
+        menu.addItem(.separator())
+        add(l.resetMenuItem)           { appDelegate.resetCounts() }
 
         guard let event = NSApp.currentEvent else { return }
         withExtendedLifetime(held) {
@@ -344,16 +347,6 @@ private struct SettingsMenuRow: View {
                 appDelegate.setMilestoneInterval(interval)
             }
         }
-
-        menu.addItem(.separator())
-
-        // Edit AI Prompt
-        add(l.editPromptMenuItem) { appDelegate.editAIPrompt() }
-
-        menu.addItem(.separator())
-
-        // Reset
-        add(l.resetMenuItem) { appDelegate.resetCounts() }
 
         guard let event = NSApp.currentEvent else { return }
         withExtendedLifetime(held) {
