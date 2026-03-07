@@ -85,7 +85,8 @@ struct MenuView: View {
     private var actionRow: some View {
         let l = L10n.shared
         return VStack(alignment: .leading, spacing: 0) {
-            menuRow(l.showAllMenuItem, icon: "list.bullet") { appDelegate.showAllStats() }
+            menuRow(l.showAllMenuItem, icon: "list.bullet")      { appDelegate.showAllStats() }
+            menuRow(l.chartsMenuItem,  icon: "chart.bar.xaxis")  { appDelegate.showCharts() }
         }
     }
 
