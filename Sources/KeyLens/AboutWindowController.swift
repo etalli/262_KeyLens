@@ -50,13 +50,13 @@ private struct AboutView: View {
             Link("github.com/etalli/262_KeyLens", destination: repoURL)
                 .font(.callout)
 
-            Button(L10n.shared.close) {
-                NSApp.keyWindow?.close()
-            }
-            .keyboardShortcut(.escape)
-            .buttonStyle(.borderedProminent)
         }
         .padding(28)
         .frame(width: 300)
+        .background(
+            Button("") { NSApp.keyWindow?.close() }
+                .keyboardShortcut(.escape)
+                .opacity(0)
+        )
     }
 }
