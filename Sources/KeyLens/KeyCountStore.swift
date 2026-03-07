@@ -615,6 +615,20 @@ final class KeyCountStore {
         queue.sync { store.dailyCounts[todayKey]?.values.reduce(0, +) ?? 0 }
     }
 
+    /// Returns per-day keystroke totals for the last N calendar days (oldest first).
+    /// 直近 N 日分の日別合計打鍵数を古い順で返す。
+    func dailyTotals(last days: Int) -> [(date: String, count: Int)] {
+        let cal = Calendar.current
+        return queue.sync {
+            (0..<days).reversed().compactMap { offset -> (String, Int)? in
+                guard let date = cal.date(byAdding: .day, value: -offset, to: Date()) else { return nil }
+                let key = Self.dayFormatter.string(from: date)
+                let count = store.dailyCounts[key]?.values.reduce(0, +) ?? 0
+                return (key, count)
+            }
+        }
+    }
+
     private static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"

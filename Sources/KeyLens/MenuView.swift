@@ -1,4 +1,5 @@
 import AppKit
+import Charts
 import ServiceManagement
 import SwiftUI
 
@@ -73,6 +74,8 @@ struct MenuView: View {
             if let avgMs = store.averageIntervalMs {
                 infoRow(String(format: l.avgIntervalFormat, avgMs))
             }
+
+            MiniDailyBarChart()
         }
         .padding(.vertical, 6)
     }
@@ -82,8 +85,7 @@ struct MenuView: View {
     private var actionRow: some View {
         let l = L10n.shared
         return VStack(alignment: .leading, spacing: 0) {
-            menuRow(l.showAllMenuItem, icon: "list.bullet")       { appDelegate.showAllStats() }
-            menuRow(l.chartsMenuItem,  icon: "chart.bar.xaxis")   { appDelegate.showCharts() }
+            menuRow(l.showAllMenuItem, icon: "list.bullet") { appDelegate.showAllStats() }
         }
     }
 
@@ -353,6 +355,62 @@ private final class NSMenuItemAction: NSObject {
     let block: () -> Void
     init(_ block: @escaping () -> Void) { self.block = block }
     @objc func invoke() { block() }
+}
+
+// MARK: - MiniDailyBarChart
+
+private struct DayBar: Identifiable {
+    let id = UUID()
+    let label: String
+    let count: Int
+    let isToday: Bool
+}
+
+private struct MiniDailyBarChart: View {
+    @State private var days: [DayBar] = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(L10n.shared.last7Days)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+
+            Chart(days) { day in
+                BarMark(
+                    x: .value("Day", day.label),
+                    y: .value("Count", day.count)
+                )
+                .foregroundStyle(day.isToday ? Color.accentColor : Color.blue.opacity(0.5))
+                .cornerRadius(2)
+            }
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisValueLabel().font(.system(size: 9))
+                }
+            }
+            .chartYAxis(.hidden)
+            .frame(height: 52)
+            .padding(.horizontal, 14)
+        }
+        .padding(.bottom, 4)
+        .onAppear { days = loadDays() }
+    }
+
+    private func loadDays() -> [DayBar] {
+        let cal = Calendar.current
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        let symbols = cal.shortWeekdaySymbols  // ["Sun", "Mon", ..., "Sat"]
+        let totals = KeyCountStore.shared.dailyTotals(last: 7)
+        return totals.enumerated().compactMap { idx, pair -> DayBar? in
+            guard let date = cal.date(from: cal.dateComponents([.year, .month, .day],
+                                      from: fmt.date(from: pair.date) ?? Date())) else { return nil }
+            let weekdayIndex = cal.component(.weekday, from: date) - 1
+            let label = String(symbols[weekdayIndex].prefix(2))
+            return DayBar(label: label, count: pair.count, isToday: idx == totals.count - 1)
+        }
+    }
 }
 
 // MARK: - HoverRowStyle

@@ -172,6 +172,10 @@ final class L10n {
         ja("グラフ表示…", en: "Show Charts…")
     }
 
+    var last7Days: String {
+        ja("直近7日間", en: "Last 7 Days")
+    }
+
     var overlayMenuItem: String {
         ja("キーオーバーレイ", en: "Keystroke Overlay")
     }
