@@ -15,6 +15,11 @@ enum HeatmapTemplate: String, CaseIterable {
     case ortholinear = "Ortho"
 }
 
+private enum HeatmapTooltipStyle {
+    case count
+    case strain
+}
+
 // MARK: - KeyDef
 
 struct KeyDef {
@@ -35,6 +40,7 @@ struct KeyboardHeatmapView: View {
     let counts: [String: Int]
 
     @State private var mode: HeatmapMode = .frequency
+    @State private var selectedCellID: String?
     @State private var showModeHelp: Bool = false
     @State private var showStrainLegendHelp: Bool = false
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
@@ -296,7 +302,8 @@ struct KeyboardHeatmapView: View {
                 mode: mode,
                 template: template,
                 keyboardKeyNames: keyboardKeyNames,
-                strainScores: strainScores
+                strainScores: strainScores,
+                selectedCellID: $selectedCellID
             )
         }
     }
@@ -342,6 +349,7 @@ struct HeatmapExportView: View {
     let template: HeatmapTemplate
     let keyboardKeyNames: Set<String>
     let strainScores: [String: Int]
+    var selectedCellID: Binding<String?>? = nil
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -389,16 +397,16 @@ struct HeatmapExportView: View {
                     switch template {
                     case .ansi, .ortholinear:
                         let activeRows = template == .ansi ? KeyboardHeatmapView.ansiRows : KeyboardHeatmapView.ortholinearRows
-                        ForEach(Array(activeRows.enumerated()), id: \.offset) { _, row in
-                            rowView(row, availableWidth: availableWidth)
+                        ForEach(Array(activeRows.enumerated()), id: \.offset) { rowIndex, row in
+                            rowView(row, rowID: "row-\(rowIndex)", availableWidth: availableWidth)
                         }
                     case .pangaea:
                         let splitGap: CGFloat = 20
                         let halfWidth = (availableWidth - splitGap) / 2
                         ForEach(KeyboardHeatmapView.pangaeaLeftRows.indices, id: \.self) { i in
                             HStack(spacing: splitGap) {
-                                rowView(KeyboardHeatmapView.pangaeaLeftRows[i],  availableWidth: halfWidth)
-                                rowView(KeyboardHeatmapView.pangaeaRightRows[i], availableWidth: halfWidth)
+                                rowView(KeyboardHeatmapView.pangaeaLeftRows[i], rowID: "left-\(i)", availableWidth: halfWidth)
+                                rowView(KeyboardHeatmapView.pangaeaRightRows[i], rowID: "right-\(i)", availableWidth: halfWidth)
                             }
                         }
                     }
@@ -414,22 +422,24 @@ struct HeatmapExportView: View {
     }
 
     @ViewBuilder
-    private func rowView(_ row: [KeyDef], availableWidth: CGFloat) -> some View {
+    private func rowView(_ row: [KeyDef], rowID: String, availableWidth: CGFloat) -> some View {
         let totalRatio = row.map(\.widthRatio).reduce(0, +)
         let gaps = CGFloat(row.count - 1) * keySpacing
         let unitWidth = (availableWidth - gaps) / CGFloat(totalRatio)
 
         HStack(spacing: keySpacing) {
-            ForEach(Array(row.enumerated()), id: \.offset) { _, key in
+            ForEach(Array(row.enumerated()), id: \.offset) { idx, key in
                 if key.keyName == "_spacer_" {
                     Color.clear.frame(width: unitWidth * CGFloat(key.widthRatio), height: keyHeight)
                 } else {
                     let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
                     heatCell(
+                        cellID: "\(rowID)-\(idx)-\(key.keyName)",
                         label: key.label,
                         count: displayCount,
                         max: displayMax,
-                        width: unitWidth * CGFloat(key.widthRatio)
+                        width: unitWidth * CGFloat(key.widthRatio),
+                        tooltipStyle: mode == .strain ? .strain : .count
                     )
                 }
             }
@@ -442,25 +452,34 @@ struct HeatmapExportView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             HStack(spacing: keySpacing) {
-                ForEach(Array(mouseButtons.enumerated()), id: \.offset) { _, key in
+                ForEach(Array(mouseButtons.enumerated()), id: \.offset) { idx, key in
                     heatCell(
+                        cellID: "mouse-\(idx)-\(key.keyName)",
                         label: key.label,
                         count: counts[key.keyName] ?? 0,
                         max: maxMouseCount,
-                        width: 80
+                        width: 80,
+                        tooltipStyle: .count
                     )
                 }
             }
         }
     }
 
-    private func heatCell(label: String, count: Int, max: Int, width: CGFloat) -> some View {
+    private func heatCell(
+        cellID: String,
+        label: String,
+        count: Int,
+        max: Int,
+        width: CGFloat,
+        tooltipStyle: HeatmapTooltipStyle
+    ) -> some View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
         let hue = (1.0 - t) * 0.67
         let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : emptyKeyColor
         let fgColor: Color = count > 0 ? .white : .secondary
 
-        return ZStack {
+        let cell = ZStack {
             RoundedRectangle(cornerRadius: 5).fill(bgColor)
             Text(label)
                 .font(.system(size: 10, weight: .medium))
@@ -471,6 +490,40 @@ struct HeatmapExportView: View {
                 .padding(.horizontal, 2)
         }
         .frame(width: width, height: keyHeight)
+
+        guard let selectedCellID else { return AnyView(cell) }
+
+        let isPresented = Binding(
+            get: { selectedCellID.wrappedValue == cellID },
+            set: { if !$0 { selectedCellID.wrappedValue = nil } }
+        )
+
+        return AnyView(
+            cell
+                .contentShape(RoundedRectangle(cornerRadius: 5))
+                .onTapGesture {
+                    selectedCellID.wrappedValue = cellID
+                }
+                .popover(isPresented: isPresented, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(tooltipText(for: count, style: tooltipStyle))
+                            .font(.callout.monospacedDigit())
+                    }
+                    .padding(10)
+                }
+        )
+    }
+
+    private func tooltipText(for value: Int, style: HeatmapTooltipStyle) -> String {
+        switch style {
+        case .count:
+            return L10n.shared.heatmapCountTooltip(value)
+        case .strain:
+            return L10n.shared.heatmapStrainTooltip(value)
+        }
     }
 
     private var legend: some View {

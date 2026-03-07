@@ -364,6 +364,14 @@ final class L10n {
            en: "High strain: key appears frequently in same-finger bigrams that span ≥1 row (e.g. F→R, J→U). These are the most biomechanically taxing sequences.")
     }
 
+    func heatmapCountTooltip(_ count: Int) -> String {
+        ja("打鍵数: \(count.formatted())", en: "Count: \(count.formatted())")
+    }
+
+    func heatmapStrainTooltip(_ score: Int) -> String {
+        ja("負荷スコア: \(score.formatted())", en: "Strain: \(score.formatted())")
+    }
+
     var helpLearningCurve: String {
         ja(
             "3つの人間工学的指標の日次推移を示します。\n\n同指率（オレンジ）：同じ指で連続して打鍵されるペアの割合。低いほど優れています。\n\n交互打鍵率（緑）：左右の手が交互に打鍵する割合。高いほど優れています。\n\n高負荷率（赤）：1行以上をまたぐ同指ビグラムの割合。低いほど優れています。\n\n傾向が改善方向に推移している場合、打鍵習慣が人間工学的に最適化されています。",

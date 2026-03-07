@@ -71,7 +71,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 
 | Section | What it shows |
 |---------|---------------|
-| **Keyboard Heatmap** | Physical key layout coloured by frequency or ergonomic strain; toggle layout template (ANSI / Pangaea / Ortho) |
+| **Keyboard Heatmap** | Physical key layout coloured by frequency or ergonomic strain; toggle layout template (ANSI / Pangaea / Ortho) and click a key to see the exact value |
 | **Top 20 Keys** | Horizontal bar chart coloured by key type |
 | **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
 | **Daily Totals** | Line chart of per-day keystroke counts |
