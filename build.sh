@@ -23,16 +23,20 @@ else
 fi
 msg() { [[ $USE_JA -eq 1 ]] && echo "$2" || echo "$1"; }
 
-# echo "=== KeyLens Build ==="
-swift build -c release 2>&1
+# Use release build only for distribution targets; debug build for development
+if [[ "$1" == "--dmg" || "$1" == "--release" ]]; then
+    swift build -c release 2>&1
+    BUILD_BIN=".build/release/KeyLens"
+else
+    swift build 2>&1
+    BUILD_BIN=".build/debug/KeyLens"
+fi
 
-# echo ""
-# echo "=== Building App Bundle ==="
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
 
-cp .build/release/KeyLens "$APP/Contents/MacOS/"
+cp "$BUILD_BIN" "$APP/Contents/MacOS/KeyLens"
 cp Resources/Info.plist "$APP/Contents/"
 cp images/AppIcon.png  "$APP/Contents/Resources/AppIcon.png"
 
