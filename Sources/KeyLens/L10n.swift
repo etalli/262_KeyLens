@@ -423,8 +423,8 @@ final class L10n {
 
     var helpActivityCalendar: String {
         ja(
-            "過去365日の日別打鍵数をカレンダーヒートマップで表示します。セルが濃いほど打鍵数が多い日です。",
-            en: "Calendar heatmap of daily keystroke counts over the past year. Darker cells indicate more keystrokes."
+            "過去365日の日別打鍵数をカレンダーヒートマップで表示します。セルが濃いほど打鍵数が多い日です。\n\n縦軸は曜日（上から日〜土）、横軸は週（左が古く、右が最新）です。",
+            en: "Calendar heatmap of daily keystroke counts over the past year. Darker cells indicate more keystrokes.\n\nRows represent days of the week (Sun at top, Sat at bottom). Columns represent weeks, with the most recent week on the right."
         )
     }
 
