@@ -40,11 +40,15 @@ English | [日本語](docs/README.ja.md)
 
 1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
-3. Launch the app — an alert will appear asking for **Accessibility** permission
-4. Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**
-5. Switch back to any app — the keyboard icon appears in your menu bar and monitoring starts
+3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer".
+   - **Do not** just click "Cancel".
+   - Right-click (or Control-click) **KeyLens.app** in your Applications folder and select **Open**.
+   - A different dialog will appear with an **Open** button. Click it to confirm.
+4. An alert will appear asking for **Accessibility** permission.
+   - Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**.
+5. Switch back to any app — the keyboard icon appears in your menu bar and monitoring starts.
 
-> **Note:** The app uses an ad-hoc signature and is intended for personal use. Gatekeeper may warn on first launch — right-click the app and choose **Open** to bypass.
+> **Note:** The app uses an ad-hoc signature. This manual override is required only once.
 
 ---
 
