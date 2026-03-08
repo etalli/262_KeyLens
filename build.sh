@@ -2,15 +2,18 @@
 # KeyLens Build Script
 #
 # Usage:
-#   ./build.sh           # Build App Bundle only
-#   ./build.sh --run     # Build and launch immediately
-#   ./build.sh --install # Build, install to /Applications, and launch (recommended)
-#   ./build.sh --dmg     # Build and create a distributable DMG
+#   ./build.sh             # Build App Bundle only
+#   ./build.sh --run       # Build and launch immediately
+#   ./build.sh --install   # Build, install to /Applications, and launch (recommended)
+#   ./build.sh --dmg       # Build and create a distributable DMG + ZIP
+#   ./build.sh --release   # Build DMG/ZIP and create a GitHub Release (draft)
+#   ./build.sh --release --publish  # Same, but publish immediately (no draft)
 set -e
 
 APP="KeyLens.app"
 DMG="KeyLens.dmg"
-VERSION=$(date +"%Y%m%d")
+ZIP="KeyLens.dmg.zip"
+VERSION=$(defaults read "$(pwd)/Resources/Info.plist" CFBundleShortVersionString 2>/dev/null || date +"%Y%m%d")
 
 # Language detection: $LANG env var first, fall back to system AppleLocale
 if [[ "${LANG:-}" == ja_* ]] || defaults read -g AppleLocale 2>/dev/null | grep -q "^ja"; then
@@ -55,12 +58,72 @@ if [[ "$1" == "--dmg" ]]; then
     rm -rf "$STAGING"
 
     echo "✅ DMG created: $(pwd)/$DMG"
+    
+    zip -q "$ZIP" "$DMG"
+    echo "✅ ZIP created: $(pwd)/$ZIP"
+
     echo ""
     msg "Distribution steps:" "配布手順:"
     msg "  1. Share $DMG with the user" "  1. $DMG をユーザーに配布する"
     msg "  2. Double-click the DMG to mount it" "  2. DMG をダブルクリックしてマウント"
     msg "  3. Drag KeyLens.app to the Applications folder" "  3. KeyLens.app を Applications フォルダにドラッグ"
     echo "  4. Launch /Applications/KeyLens.app"
+
+# --release: Build DMG/ZIP then create a GitHub Release
+elif [[ "$1" == "--release" ]]; then
+    PUBLISH_FLAG=""
+    [[ "$2" == "--publish" ]] && PUBLISH_FLAG="--latest" || PUBLISH_FLAG="--draft"
+
+    # Build DMG + ZIP first (reuse the same logic)
+    echo ""
+    echo "=== Creating DMG ==="
+
+    STAGING=$(mktemp -d)
+    cp -r "$APP" "$STAGING/"
+    ln -s /Applications "$STAGING/Applications"
+
+    rm -f "$DMG"
+    hdiutil create \
+        -volname "KeyLens" \
+        -srcfolder "$STAGING" \
+        -ov \
+        -format UDZO \
+        -o "$DMG"
+
+    rm -rf "$STAGING"
+
+    echo "✅ DMG created: $(pwd)/$DMG"
+
+    rm -f "$ZIP"
+    zip -q "$ZIP" "$DMG"
+    echo "✅ ZIP created: $(pwd)/$ZIP"
+
+    # Create GitHub Release
+    TAG="v${VERSION}"
+    echo ""
+    echo "=== Creating GitHub Release $TAG ==="
+
+    RELEASE_NOTES="## Installation Note
+
+> **If macOS blocks the app** (\"unidentified developer\" warning), run this in Terminal after copying to Applications:
+> \`\`\`bash
+> sudo xattr -rd com.apple.quarantine /Applications/KeyLens.app
+> \`\`\`
+> Then launch normally from Finder or Spotlight."
+
+    gh release create "$TAG" \
+        "$DMG" \
+        "$ZIP" \
+        --title "KeyLens $TAG" \
+        --notes "$RELEASE_NOTES" \
+        $PUBLISH_FLAG
+
+    if [[ "$2" == "--publish" ]]; then
+        echo "✅ Release $TAG published: https://github.com/etalli/262_KeyLens/releases/tag/$TAG"
+    else
+        echo "✅ Draft release $TAG created. Edit and publish at:"
+        echo "   https://github.com/etalli/262_KeyLens/releases"
+    fi
 
 # --install: Install to /Applications with ad-hoc signing and TCC reset (recommended for development)
 elif [[ "$1" == "--install" ]]; then
@@ -106,4 +169,5 @@ else
     msg "Launch:  open $APP"             "起動:         open $APP"
     msg "Install: ./build.sh --install"  "インストール: ./build.sh --install"
     msg "DMG:     ./build.sh --dmg"      "DMG を作る:   ./build.sh --dmg"
+    msg "Release: ./build.sh --release"  "リリース:     ./build.sh --release"
 fi
