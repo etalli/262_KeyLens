@@ -13,7 +13,7 @@ English | [日本語](docs/README.ja.md)
 
 <table>
   <tr>
-    <td><img src="images/menu_v044.png" width="280"/></td>
+    <td><img src="images/menu_v046.png" width="280"/></td>
     <td><img src="images/Heatmap.png" width="400"/></td>
   </tr>
   <tr>
@@ -28,9 +28,8 @@ English | [日本語](docs/README.ja.md)
 
 ## Features
 
-- **Global monitoring** — Counts all keystrokes regardless of the active application
+- **Global recording** — Counts all keystrokes regardless of the active application
 - **Menu bar statistics** — Today's count, total count, average keystroke interval
-- **Show All** — Full ranked list of every key with total and today's counts
 - **Charts** — Keyboard Heatmap, Top Keys, Bigrams, Apps, Devices, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
