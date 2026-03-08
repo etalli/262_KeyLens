@@ -346,7 +346,7 @@ struct ChartsView: View {
                         if presentTypes.contains(type) {
                             HStack(spacing: 4) {
                                 Circle().fill(type.color).frame(width: 8, height: 8)
-                                Text(type.label).font(.caption2).foregroundStyle(.secondary)
+                                Text(type.label).font(.caption).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -372,7 +372,7 @@ struct ChartsView: View {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -397,7 +397,7 @@ struct ChartsView: View {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -422,7 +422,7 @@ struct ChartsView: View {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -447,7 +447,7 @@ struct ChartsView: View {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -548,7 +548,7 @@ struct ChartsView: View {
                 .foregroundStyle(.blue)
                 .annotation(position: .top, spacing: 4) {
                     Text(item.total.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -589,7 +589,7 @@ struct ChartsView: View {
                 .foregroundStyle(.orange)
                 .annotation(position: .top, spacing: 4) {
                     Text(String(format: "%.0f", item.wpm))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -630,7 +630,7 @@ struct ChartsView: View {
                 .foregroundStyle(.red.opacity(0.8))
                 .annotation(position: .top, spacing: 4) {
                     Text(String(format: "%.1f%%", item.rate))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -752,7 +752,7 @@ struct ChartsView: View {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -790,7 +790,7 @@ struct ChartsView: View {
                     .cornerRadius(3)
                     .annotation(position: .trailing, spacing: 4) {
                         Text(item.count.formatted())
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -803,7 +803,7 @@ struct ChartsView: View {
                     ForEach([("⌘", Color.teal), ("⌃", Color.orange), ("⌥", Color.purple), ("⇧", Color.green), ("Multi", Color.pink)], id: \.0) { label, color in
                         HStack(spacing: 4) {
                             Circle().fill(color).frame(width: 8, height: 8)
-                            Text(label).font(.caption2).foregroundStyle(.secondary)
+                            Text(label).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -1001,7 +1001,7 @@ struct ChartsView: View {
                         AxisValueLabel {
                             if let v = value.as(Double.self) {
                                 Text("\(Int(v * 100))%")
-                                    .font(.caption2)
+                                    .font(.caption)
                             }
                         }
                     }
@@ -1013,7 +1013,7 @@ struct ChartsView: View {
                     ForEach([("Same-finger", Color.orange), ("Alternation", Color.teal), ("High-strain", Color.red)], id: \.0) { label, color in
                         HStack(spacing: 4) {
                             Circle().fill(color).frame(width: 8, height: 8)
-                            Text(label).font(.caption2).foregroundStyle(.secondary)
+                            Text(label).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -1159,7 +1159,7 @@ struct ChartsView: View {
                 .cornerRadius(4)
                 .annotation(position: .top, spacing: 3) {
                     Text(item.total.formatted(.number.notation(.compactName)))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -1174,7 +1174,7 @@ struct ChartsView: View {
                                 ? "\(String(parts[0]).suffix(2))/\(parts[1])"
                                 : s
                             Text(label)
-                                .font(.caption2)
+                                .font(.caption)
                         }
                     }
                 }
