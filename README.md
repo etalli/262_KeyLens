@@ -43,7 +43,7 @@ KeyLens provides helpful analysis based directly on your own typing data.
 
 ## Quick Install
 
-1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
+1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** (or the ZIP version from the release page)
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
 3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer". Run the following command in Terminal:
 

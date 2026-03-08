@@ -41,7 +41,7 @@ KeyLens は、実際のタイピング動作を分析し、エルゴノミクス
 
 ## クイックインストール
 
-1. **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** をダウンロード
+1. **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** (またはリリースベージの ZIP 版) をダウンロード
 2. DMG を開き、**KeyLens.app** を `/Applications` にドラッグ
 3. **重要 (セキュリティ警告の回避):** 初回起動時、macOS により「開発元を確認できないため開けません」という警告が表示されます。Terminal で以下のコマンドを実行してください：
 
