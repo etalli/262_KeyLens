@@ -9,9 +9,9 @@
     <key>CFBundleName</key>
     <string>KeyLens</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>4</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.47</string>
+    <string>0.48</string>
     <key>NSHumanReadableCopyright</key>
     <string>© 2026 k2. All rights reserved.</string>
     <key>NSPrincipalClass</key>
