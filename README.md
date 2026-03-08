@@ -13,7 +13,7 @@ English | [日本語](docs/README.ja.md)
 
 **Optimize your keyboard layout with real-world typing data.**
 
-KeyLens is a powerful macOS tool that analyzes your typing habits locally to recommend the perfect ergonomic layout tailored specifically to your hands and style.
+KeyLens is a powerful macOS tool that analyzes your typing habits locally to recommend ergonomic layout improvements tailored specifically to your usage patterns.
 
 [**Visit the Official Landing Page**](https://etalli.github.io/262_KeyLens/landing-page/) for a visual tour and deep dive into the optimization engine.
 
