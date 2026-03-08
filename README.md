@@ -39,10 +39,11 @@ English | [日本語](docs/README.ja.md)
 
 1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
-3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer".
-   - **Do not** just click "Cancel".
-   - Right-click (or Control-click) **KeyLens.app** in your Applications folder and select **Open**.
-   - A different dialog will appear with an **Open** button. Click it to confirm.
+3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer". Run the following command in Terminal:
+   ```bash
+   sudo xattr -rd com.apple.quarantine /Applications/KeyLens.app
+   ```
+   Then launch the app normally from Finder or Spotlight.
 4. An alert will appear asking for **Accessibility** permission.
    - Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**.
 5. Switch back to any app — the keyboard icon appears in your menu bar and monitoring starts.
