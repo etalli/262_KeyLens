@@ -9,7 +9,13 @@ English | [日本語](docs/README.ja.md)
 [![Download DMG](https://img.shields.io/badge/⬇_Download-DMG-blue?style=flat-square)](https://github.com/etalli/262_KeyLens/releases/latest)
 [![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 
-**A macOS menu bar app that records and analyzes global keyboard and mouse input.**
+**Understand how you really type and improve your keyboard ergonomics.**
+
+KeyLens is a macOS menu bar app that analyzes real typing behavior
+and provides useful information for your keyboard ergonomics.
+
+While traditional research often uses static text data sets,
+KeyLens provides helpful analysis based directly on your own typing data.
 
 <table>
   <tr>
@@ -40,9 +46,11 @@ English | [日本語](docs/README.ja.md)
 1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)**
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
 3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer". Run the following command in Terminal:
+
    ```bash
    sudo xattr -rd com.apple.quarantine /Applications/KeyLens.app
    ```
+
    Then launch the app normally from Finder or Spotlight.
 4. An alert will appear asking for **Accessibility** permission.
    - Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**.
