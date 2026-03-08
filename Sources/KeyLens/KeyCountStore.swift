@@ -14,6 +14,10 @@ private struct CountData: Codable {
     var avgIntervalCount: Int                  // 平均の標本数
     var modifiedCounts: [String: Int]          // "⌘c", "⇧a" など修飾キー+キー組み合わせ
     var dailyMinIntervalMs: [String: Double]   // "yyyy-MM-dd" -> 当日の最小入力間隔（ms, 1000ms以内のみ）
+    // Daily Welford average interval tracking (Issue #59 Phase 2) — for per-day WPM chart
+    // 日別 Welford 平均間隔（日別 WPM チャート用）
+    var dailyAvgIntervalMs:    [String: Double] // "yyyy-MM-dd" -> daily Welford avg interval (ms)
+    var dailyAvgIntervalCount: [String: Int]    // "yyyy-MM-dd" -> daily Welford sample count
     // Same-finger bigram tracking (Issue #16)
     var sameFingerCount: Int                   // Cumulative same-finger consecutive pairs
     var totalBigramCount: Int                  // Cumulative consecutive pairs (denominator)
@@ -72,6 +76,7 @@ private struct CountData: Codable {
         case startedAt, counts, dailyCounts
         case lastInputTime, avgIntervalMs, avgIntervalCount
         case modifiedCounts, dailyMinIntervalMs
+        case dailyAvgIntervalMs, dailyAvgIntervalCount
         case sameFingerCount, totalBigramCount
         case dailySameFingerCount, dailyTotalBigramCount
         case handAlternationCount, dailyHandAlternationCount
@@ -99,6 +104,8 @@ private struct CountData: Codable {
         self.avgIntervalCount = 0
         self.modifiedCounts = [:]
         self.dailyMinIntervalMs = [:]
+        self.dailyAvgIntervalMs    = [:]
+        self.dailyAvgIntervalCount = [:]
         self.sameFingerCount = 0
         self.totalBigramCount = 0
         self.dailySameFingerCount = [:]
@@ -143,7 +150,9 @@ private struct CountData: Codable {
         avgIntervalMs   = (try? c.decode(Double.self, forKey: .avgIntervalMs)) ?? 0
         avgIntervalCount = (try? c.decode(Int.self, forKey: .avgIntervalCount)) ?? 0
         modifiedCounts  = (try? c.decode([String: Int].self, forKey: .modifiedCounts)) ?? [:]
-        dailyMinIntervalMs = (try? c.decode([String: Double].self, forKey: .dailyMinIntervalMs)) ?? [:]
+        dailyMinIntervalMs    = (try? c.decode([String: Double].self, forKey: .dailyMinIntervalMs)) ?? [:]
+        dailyAvgIntervalMs    = (try? c.decode([String: Double].self, forKey: .dailyAvgIntervalMs))    ?? [:]
+        dailyAvgIntervalCount = (try? c.decode([String: Int].self,    forKey: .dailyAvgIntervalCount)) ?? [:]
         // Same-finger fields: default to 0 when reading old JSON (backward compatible)
         sameFingerCount  = (try? c.decode(Int.self, forKey: .sameFingerCount))  ?? 0
         totalBigramCount = (try? c.decode(Int.self, forKey: .totalBigramCount)) ?? 0
@@ -268,11 +277,19 @@ final class KeyCountStore {
             if let last = store.lastInputTime {
                 let intervalMs = timestamp.timeIntervalSince(last) * 1000
                 if intervalMs <= 1000 {
+                    // Global Welford update
                     store.avgIntervalCount += 1
                     store.avgIntervalMs += (intervalMs - store.avgIntervalMs) / Double(store.avgIntervalCount)
+                    // Daily min interval
                     if intervalMs < (store.dailyMinIntervalMs[today] ?? Double.infinity) {
                         store.dailyMinIntervalMs[today] = intervalMs
                     }
+                    // Daily Welford update (Issue #59 Phase 2) — independent per-day accumulator
+                    // 日別 Welford 更新：グローバルとは独立した日ごとの累積
+                    let dc = store.dailyAvgIntervalCount[today, default: 0] + 1
+                    store.dailyAvgIntervalCount[today] = dc
+                    let prevAvg = store.dailyAvgIntervalMs[today, default: 0.0]
+                    store.dailyAvgIntervalMs[today] = prevAvg + (intervalMs - prevAvg) / Double(dc)
                 }
             }
             store.lastInputTime = timestamp
@@ -387,6 +404,18 @@ final class KeyCountStore {
     var estimatedWPM: Double? {
         guard let ms = averageIntervalMs, ms > 0 else { return nil }
         return 60_000.0 / (ms * 5.0)
+    }
+
+    /// 日別推定 WPM を昇順（古い日付順）で返す。蓄積データがある日のみ含む。
+    /// Returns per-day estimated WPM sorted by date ascending. Only days with accumulated data are included.
+    func dailyWPM() -> [(date: String, wpm: Double)] {
+        queue.sync {
+            store.dailyAvgIntervalMs.compactMap { date, avgMs -> (date: String, wpm: Double)? in
+                guard let count = store.dailyAvgIntervalCount[date], count > 0, avgMs > 0 else { return nil }
+                return (date, 60_000.0 / (avgMs * 5.0))
+            }
+            .sorted { $0.date < $1.date }
+        }
     }
 
     /// 本日の最小入力間隔（ms, 1000ms以内のみ）。サンプルが1件以上あれば返す

@@ -311,6 +311,17 @@ final class L10n {
         ja("速度: %.0f WPM", en: "Speed: %.0f WPM")
     }
 
+    var chartTitleTypingSpeed: String {
+        ja("タイピング速度 (WPM)", en: "Typing Speed (WPM)")
+    }
+
+    var helpTypingSpeed: String {
+        ja(
+            "日別の推定タイピング速度（WPM）を表示します。\n\n算出方法: 1000ms 以内のキーストローク間隔のみを Welford オンライン平均で集計し、WPM = 60,000 ÷ (平均間隔ms × 5) で換算します（1ワード = 5打鍵の標準定義）。\n\n注意: このデータはこのバージョンから蓄積を開始します。過去データは表示されません。",
+            en: "Daily estimated typing speed in WPM.\n\nCalculation: Only inter-keystroke intervals ≤ 1,000 ms are included in a Welford online average. WPM = 60,000 ÷ (avg interval ms × 5), using the standard definition of 1 word = 5 keystrokes.\n\nNote: Data accumulates from this version onward. No historical data is available."
+        )
+    }
+
     var exportCSVMenuItem: String {
         ja("CSV 書き出し…", en: "Export CSV…")
     }

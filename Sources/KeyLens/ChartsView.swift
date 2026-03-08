@@ -44,6 +44,7 @@ struct ChartsView: View {
                 chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
                 chartSection("Top 20 Keys — All Time") { topKeysChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
+                chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                 chartSection("Monthly Totals") { monthlyTotalsChart }
@@ -530,6 +531,47 @@ struct ChartsView: View {
                 .foregroundStyle(.blue)
                 .annotation(position: .top, spacing: 4) {
                     Text(item.total.formatted())
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(height: 200)
+        }
+    }
+
+    // MARK: - Chart: Typing Speed (WPM) — Issue #59 Phase 2
+
+    @ViewBuilder
+    private var dailyWPMChart: some View {
+        if model.dailyWPM.isEmpty {
+            emptyState
+        } else if model.dailyWPM.count == 1 {
+            Chart(model.dailyWPM) { item in
+                BarMark(x: .value("Date", item.date), y: .value("WPM", item.wpm))
+                    .foregroundStyle(.orange)
+                    .cornerRadius(4)
+            }
+            .frame(height: 180)
+        } else {
+            Chart(model.dailyWPM) { item in
+                AreaMark(
+                    x: .value("Date", item.date),
+                    y: .value("WPM", item.wpm)
+                )
+                .foregroundStyle(.orange.opacity(0.12))
+                LineMark(
+                    x: .value("Date", item.date),
+                    y: .value("WPM", item.wpm)
+                )
+                .foregroundStyle(.orange)
+                .interpolationMethod(.catmullRom)
+                PointMark(
+                    x: .value("Date", item.date),
+                    y: .value("WPM", item.wpm)
+                )
+                .foregroundStyle(.orange)
+                .annotation(position: .top, spacing: 4) {
+                    Text(String(format: "%.0f", item.wpm))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

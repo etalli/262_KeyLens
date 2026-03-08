@@ -100,6 +100,15 @@ struct MonthlyTotalEntry: Identifiable {
     init(_ t: (month: String, total: Int)) { id = t.month; month = t.month; total = t.total }
 }
 
+// MARK: - Issue #59 Phase 2: Daily WPM entry (for Typing Speed chart)
+// 日別推定 WPM エントリ（タイピング速度チャート用）
+struct DailyWPMEntry: Identifiable {
+    let id: String
+    let date: String
+    let wpm: Double
+    init(_ t: (date: String, wpm: Double)) { id = t.date; date = t.date; wpm = t.wpm }
+}
+
 // MARK: - Phase 3 data types
 
 /// One data point in the Learning Curve chart: a rate value for a given date and metric series.

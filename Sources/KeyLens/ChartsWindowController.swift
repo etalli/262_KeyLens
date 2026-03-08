@@ -36,6 +36,9 @@ final class ChartDataModel: ObservableObject {
     @Published var todayTopDevices:      [DeviceEntry]          = []
     // Per-device ergonomic scores
     @Published var deviceErgScores:      [DeviceErgScoreEntry]  = []
+    // Issue #59 Phase 2: daily WPM time-series
+    // 日別 WPM 時系列（タイピング速度チャート用）
+    @Published var dailyWPM:             [DailyWPMEntry]        = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -85,6 +88,8 @@ final class ChartDataModel: ObservableObject {
         topDevices      = store.topDevices(limit: 20).map(DeviceEntry.init)
         todayTopDevices = store.todayTopDevices(limit: 10).map(DeviceEntry.init)
         deviceErgScores = store.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
+        // Issue #59 Phase 2: daily WPM
+        dailyWPM = store.dailyWPM().map(DailyWPMEntry.init)
     }
 
     // Compare the most recent 7 days against the 7 days before that.
