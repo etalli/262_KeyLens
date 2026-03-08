@@ -502,10 +502,10 @@ struct ChartsView: View {
             Text(label).font(.caption).foregroundStyle(.secondary)
             HStack(spacing: 12) {
                 if let v = allTime {
-                    Text("All-time: \(Int(v * 100))%").font(.caption.monospacedDigit())
+                    Text("All-time: \(Int(v * 100))%").font(.footnote.monospacedDigit())
                 }
                 if let v = today {
-                    Text("Today: \(Int(v * 100))%").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                    Text("Today: \(Int(v * 100))%").font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
                 }
                 if allTime == nil && today == nil {
                     Text("—").font(.caption).foregroundStyle(.secondary)
