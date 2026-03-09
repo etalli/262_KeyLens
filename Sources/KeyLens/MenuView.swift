@@ -7,6 +7,7 @@ import SwiftUI
 
 struct MenuView: View {
     @EnvironmentObject var appDelegate: AppDelegate
+    @ObservedObject private var widgetStore = MenuWidgetStore.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

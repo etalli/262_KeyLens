@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // MARK: - MenuWidget
 
@@ -25,8 +26,12 @@ enum MenuWidget: String, CaseIterable, Identifiable {
 
 /// Persists the user's widget selection and ordering in UserDefaults.
 /// ウィジェットの選択状態と順序を UserDefaults に永続化するシングルトン。
-final class MenuWidgetStore {
+final class MenuWidgetStore: ObservableObject {
     static let shared = MenuWidgetStore()
+
+    /// Incremented on every change to trigger SwiftUI re-renders.
+    /// 変更のたびにインクリメントし SwiftUI の再描画を促す。
+    @Published private(set) var revision: Int = 0
 
     private let orderKey   = "menuWidgetOrder"
     private let enabledKey = "menuWidgetEnabled"
@@ -55,6 +60,7 @@ final class MenuWidgetStore {
         }
         set {
             UserDefaults.standard.set(newValue.map(\.rawValue), forKey: orderKey)
+            revision += 1
         }
     }
 
@@ -70,6 +76,7 @@ final class MenuWidgetStore {
     func setEnabled(_ widget: MenuWidget, _ value: Bool) {
         let key = enabledKey + "." + widget.rawValue
         UserDefaults.standard.set(value, forKey: key)
+        revision += 1
     }
 
     // MARK: - Convenience
