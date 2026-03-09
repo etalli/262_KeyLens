@@ -19,11 +19,18 @@ KeyLens is a powerful macOS tool that analyzes your typing habits locally to rec
 
 <table>
   <tr>
-    <td><img src="docs/landing-page/hero.png" width="600"/></td>
+    <td><img src="images/menu_v048.png"/></td>
   </tr>
   <tr>
-    <td align="center"><i>Data-driven Layout Optimization Engine</i></td>
+    <td align="center"><i>Menu Bar</i></td>
   </tr>
+  <tr>
+    <td><img src="images/Heatmap.png"/></td>
+  </tr>
+  <tr>
+    <td align="center"><i>Heatmap</i></td>
+  </tr>
+
 </table>
 
 </div>
@@ -33,7 +40,7 @@ KeyLens is a powerful macOS tool that analyzes your typing habits locally to rec
 ## Features
 
 - **Global recording** — Counts all keystrokes regardless of the active application
-- **Menu bar statistics** — Today's count, total count, average keystroke interval
+- **Menu bar statistics** — Today's count, total count, average keystroke interval; customizable display (toggle and reorder widgets)
 - **Charts** — Keyboard Heatmap, Top Keys, Bigrams, Apps, Devices, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
@@ -73,7 +80,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay |
-| **Settings…** | Language, notifications, reset, export CSV, open log folder |
+| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, open log folder |
 
 ### Charts window
 
