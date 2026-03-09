@@ -22,6 +22,10 @@ extension AppDelegate {
         OverlaySettingsController.shared.showWindow()
     }
 
+    func showMenuCustomize() {
+        MenuCustomizeWindowController.shared.showWindow()
+    }
+
     func toggleLaunchAtLogin() {
         let service = SMAppService.mainApp
         do {

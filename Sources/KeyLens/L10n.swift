@@ -595,6 +595,35 @@ final class L10n {
         }
     }
 
+    // MARK: - Menu Customization
+
+    var customizeMenuMenuItem: String {
+        ja("メニューをカスタマイズ…", en: "Customize Menu…")
+    }
+
+    var customizeMenuTitle: String {
+        ja("メニュー表示のカスタマイズ", en: "Customize Menu Display")
+    }
+
+    var customizeMenuHint: String {
+        ja("表示する項目を選択し、ドラッグで並び替えできます。", en: "Toggle items to show or hide, and drag to reorder.")
+    }
+
+    var customizeMenuReset: String {
+        ja("デフォルトに戻す", en: "Reset to Default")
+    }
+
+    func widgetDisplayName(_ widget: MenuWidget) -> String {
+        switch widget {
+        case .recordingSince: return ja("記録開始日", en: "Recording Since")
+        case .todayTotal:     return ja("本日 / 合計", en: "Today / Total")
+        case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
+        case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
+        case .backspaceRate:  return ja("BS率", en: "Backspace Rate")
+        case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
+        }
+    }
+
     // MARK: - Break Reminder
 
     var breakReminderMenuTitle: String {

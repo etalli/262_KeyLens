@@ -58,34 +58,39 @@ struct MenuView: View {
     private var statsSection: some View {
         let l = L10n.shared
         let store = KeyCountStore.shared
+        let widgets = MenuWidgetStore.shared.orderedEnabled
         return VStack(alignment: .leading, spacing: 0) {
-            infoRow(l.recordingSince(store.startedAt))
-
-            // Today + Total を1行に
-            HStack {
-                Text(String(format: l.todayFormat, store.todayCount.formatted()))
-                    .foregroundColor(.primary)
-                Spacer()
-                Text(String(format: l.totalFormat, store.totalCount.formatted()))
-                    .foregroundColor(.primary)
+            ForEach(widgets) { widget in
+                switch widget {
+                case .recordingSince:
+                    infoRow(l.recordingSince(store.startedAt))
+                case .todayTotal:
+                    HStack {
+                        Text(String(format: l.todayFormat, store.todayCount.formatted()))
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text(String(format: l.totalFormat, store.totalCount.formatted()))
+                            .foregroundColor(.primary)
+                    }
+                    .font(.system(size: 13))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 4)
+                case .avgInterval:
+                    if let avgMs = store.averageIntervalMs {
+                        infoRow(String(format: l.avgIntervalFormat, avgMs))
+                    }
+                case .estimatedWPM:
+                    if let wpm = store.estimatedWPM {
+                        infoRow(String(format: l.estimatedWPMFormat, wpm))
+                    }
+                case .backspaceRate:
+                    if let bs = store.todayBackspaceRate {
+                        infoRow(String(format: l.backspaceRateFormat, bs))
+                    }
+                case .miniChart:
+                    MiniDailyBarChart()
+                }
             }
-            .font(.system(size: 13))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 4)
-
-            // Avg interval + estimated WPM
-            if let avgMs = store.averageIntervalMs {
-                infoRow(String(format: l.avgIntervalFormat, avgMs))
-            }
-            if let wpm = store.estimatedWPM {
-                infoRow(String(format: l.estimatedWPMFormat, wpm))
-            }
-            // Today's backspace rate (Issue #65)
-            if let bs = store.todayBackspaceRate {
-                infoRow(String(format: l.backspaceRateFormat, bs))
-            }
-
-            MiniDailyBarChart()
         }
         .padding(.vertical, 6)
     }
@@ -327,6 +332,13 @@ private struct SettingsMenuRow: View {
             item.isEnabled = false
             menu.addItem(item)
         }
+
+        // Customize Menu
+        add(l.customizeMenuMenuItem) {
+            appDelegate.showMenuCustomize()
+        }
+
+        menu.addItem(.separator())
 
         // Launch at Login
         add(l.launchAtLogin, checked: SMAppService.mainApp.status == .enabled) {
