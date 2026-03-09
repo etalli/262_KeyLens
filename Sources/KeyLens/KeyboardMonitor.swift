@@ -203,6 +203,7 @@ extension KeyboardMonitor {
         let now = Date()
         let appName = NSWorkspace.shared.frontmostApplication?.localizedName
         let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)
+        BreakReminderManager.shared.didType()
 
         if result.milestone {
             // 通知はメインスレッドで発行

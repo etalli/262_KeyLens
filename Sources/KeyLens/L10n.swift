@@ -595,6 +595,29 @@ final class L10n {
         }
     }
 
+    // MARK: - Break Reminder
+
+    var breakReminderMenuTitle: String {
+        ja("休憩リマインダー", en: "Break Reminder")
+    }
+
+    var breakReminderTitle: String {
+        ja("☕ 休憩しましょう", en: "☕ Time for a break")
+    }
+
+    func breakReminderBody(minutes: Int) -> String {
+        ja("\(minutes)分間タイピングが続いています。少し休憩しませんか？",
+           en: "You've been typing for \(minutes) minutes. Consider taking a short break.")
+    }
+
+    func breakReminderIntervalLabel(_ minutes: Int) -> String {
+        ja("\(minutes)分ごと", en: "Every \(minutes) min")
+    }
+
+    var breakReminderOff: String {
+        ja("オフ", en: "Off")
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {

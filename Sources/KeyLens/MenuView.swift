@@ -355,6 +355,22 @@ private struct SettingsMenuRow: View {
             }
         }
 
+        menu.addItem(.separator())
+
+        // Break Reminder
+        // 休憩リマインダー
+        header(l.breakReminderMenuTitle)
+        let brm = BreakReminderManager.shared
+        add(l.breakReminderOff, checked: !brm.isEnabled) {
+            brm.isEnabled = false
+        }
+        for mins in [15, 30, 45, 60] {
+            add(l.breakReminderIntervalLabel(mins), checked: brm.isEnabled && brm.intervalMinutes == mins) {
+                brm.intervalMinutes = mins
+                brm.isEnabled = true
+            }
+        }
+
         guard let event = NSApp.currentEvent else { return }
         withExtendedLifetime(held) {
             NSMenu.popUpContextMenu(menu, with: event, for: event.window?.contentView ?? NSView())
