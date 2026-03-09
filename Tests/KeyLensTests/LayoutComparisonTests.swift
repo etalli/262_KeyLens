@@ -31,6 +31,7 @@ import XCTest
 //    b. no beneficial swap → nil (bigramCounts with no SFBs)
 //    c. with SFB data → non-nil, proposed score >= current score
 //    d. recommended swaps list is non-empty
+//    e. verifies improvement across multiple dimensions (Phase 2 holistic optimization)
 //
 // 5. Equatable
 //    a. identical snapshots are equal
@@ -215,6 +216,24 @@ final class LayoutComparisonTests: XCTestCase {
         // 最適化後、提案レイアウトのSFB率は現行以下でなければならない。
         guard let cmp = LayoutComparison.make(bigramCounts: sfbBigrams, keyCounts: [:]) else { return }
         XCTAssertLessThanOrEqual(cmp.proposed.sameFingerRate, cmp.current.sameFingerRate + 1e-9)
+    }
+
+    func testMake_holisticImprovement_improvesMultipleMetrics() {
+        // High-SFB and high travel distance load.
+        // The holistic optimizer should improve the overall score even if one metric
+        // (like travel distance) slightly regresses to fix a major SFB issue,
+        // but generally it should aim for net positive across weighted factors.
+        let bigrams = ["f→r": 1000, "j→u": 1000]
+        let keys = ["f": 500, "r": 500, "j": 500, "u": 500, "k": 50, "l": 50]
+        
+        guard let cmp = LayoutComparison.make(bigramCounts: bigrams, keyCounts: keys) else {
+            XCTFail("Expected non-nil comparison")
+            return
+        }
+        
+        XCTAssertGreaterThan(cmp.ergonomicScoreDelta, 0.0)
+        // At least one of the major penalties should be reduced
+        XCTAssertTrue(cmp.sameFingerRateDelta > 0 || cmp.highStrainRateDelta > 0 || cmp.travelDistanceDelta > 0)
     }
 
     // MARK: - 5. Equatable
