@@ -190,7 +190,8 @@ extension AppDelegate {
               let tagName = json["tagName"] as? String ?? json["tag_name"] as? String,
               let htmlURL = json["html_url"] as? String
         else {
-            showAlert(title: l.updateCheckFailedTitle, message: l.updateCheckFailedMessage)
+            UpdateWindowController.shared.showInfo(title: l.updateCheckFailedTitle,
+                                                   message: l.updateCheckFailedMessage)
             return
         }
 
@@ -199,26 +200,14 @@ extension AppDelegate {
         // 先頭の 'v' を除去して比較（例: "v0.44" → "0.44"）
         let latest = tagName.hasPrefix("v") ? String(tagName.dropFirst()) : tagName
 
-        if latest.compare(current, options: .numeric) == .orderedDescending {
-            let alert = NSAlert()
-            alert.messageText = l.updateAvailableTitle
-            alert.informativeText = l.updateAvailableMessage(current: current, latest: latest)
-            alert.addButton(withTitle: l.downloadButton)
-            alert.addButton(withTitle: l.close)
-            if alert.runModal() == .alertFirstButtonReturn,
-               let releaseURL = URL(string: htmlURL) {
-                NSWorkspace.shared.open(releaseURL)
-            }
+        if latest.compare(current, options: .numeric) == .orderedDescending,
+           let releaseURL = URL(string: htmlURL) {
+            UpdateWindowController.shared.showUpdateAvailable(current: current,
+                                                              latest: latest,
+                                                              releaseURL: releaseURL)
         } else {
-            showAlert(title: l.updateUpToDateTitle, message: l.updateUpToDateMessage(version: current))
+            UpdateWindowController.shared.showInfo(title: l.updateUpToDateTitle,
+                                                   message: l.updateUpToDateMessage(version: current))
         }
-    }
-
-    private func showAlert(title: String, message: String) {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.addButton(withTitle: L10n.shared.close)
-        alert.runModal()
     }
 }
