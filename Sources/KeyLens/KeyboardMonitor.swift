@@ -41,6 +41,7 @@ final class KeyboardMonitor {
         mask |= CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.rightMouseDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.otherMouseDown.rawValue)
+        mask |= CGEventMask(1 << CGEventType.mouseMoved.rawValue)
 
         // .listenOnly + .tailAppendEventTap = 最小権限での監視
         // userInfo に self を渡すことで、コールバックが AppDelegate に依存せず tap を再有効化できる
@@ -181,6 +182,15 @@ extension KeyboardMonitor {
             KeyLens.log("CGEventTap disabled by timeout — re-enabling")
             if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
             return nil
+        }
+
+        // Mouse movement: accumulate distance only, no keystroke recording
+        // マウス移動: 距離を蓄積するのみ、キーストローク記録には含めない
+        if type == .mouseMoved {
+            let dx = event.getDoubleValueField(.mouseEventDeltaX)
+            let dy = event.getDoubleValueField(.mouseEventDeltaY)
+            MouseStore.shared.addMovement(dx: dx, dy: dy)
+            return Unmanaged.passRetained(event)
         }
 
         let name: String

@@ -96,6 +96,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         NSApp.terminate(nil)
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        // Flush pending mouse distance data to SQLite before exit.
+        // 終了前にマウス移動データを SQLite へフラッシュする。
+        MouseStore.shared.flushSync()
+    }
+
     private func detectHardware() {
         let names = KeyboardDeviceInfo.connectedNames()
         LayoutRegistry.shared.applyProfile(forDeviceNames: names)
