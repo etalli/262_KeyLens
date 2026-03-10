@@ -73,7 +73,6 @@ private struct CountData: Codable {
     var deviceHandAlternationCount: [String: Int]   // deviceLabel -> cumulative hand-alternating bigrams
     var deviceHighStrainBigramCount: [String: Int]  // deviceLabel -> cumulative high-strain bigrams
     // Daily shortcut counts (Issue #66) — "yyyy-MM-dd" -> total modifier+key combos that day
-    // 日別ショートカット数（修飾キー付き打鍵合計）
     var dailyModifiedCount: [String: Int]
 
     enum CodingKeys: String, CodingKey {
@@ -722,7 +721,6 @@ final class KeyCountStore {
     }
 
     /// Shortcut efficiency for today: shortcuts / (shortcuts + mouse clicks), or nil if no data.
-    /// 本日のショートカット効率：ショートカット数 / (ショートカット + マウスクリック数)。データなしは nil。
     func shortcutEfficiencyToday() -> Double? {
         queue.sync {
             let shortcuts = store.dailyModifiedCount[todayKey] ?? 0
