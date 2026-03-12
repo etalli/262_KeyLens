@@ -197,7 +197,7 @@ final class KeyCountStore {
     var store: CountData
     let queue = DispatchQueue(label: "com.keycounter.store")
 
-    private let saveURL: URL
+    let saveURL: URL
     private var saveWorkItem: DispatchWorkItem?
 
     // In-memory only: last key pressed, used for same-finger bigram detection.
@@ -395,6 +395,17 @@ final class KeyCountStore {
     /// Date tracking began.
     var startedAt: Date {
         queue.sync { store.startedAt }
+    }
+
+    /// Reload data from disk — call after externally replacing counts.json.
+    func reload() {
+        queue.sync {
+            load()
+            lastKeyName = nil
+            secondLastKeyName = nil
+            alternationStreak = 0
+            lastBigramWasHighStrain = false
+        }
     }
 
     /// Reset all counts and start date to now.

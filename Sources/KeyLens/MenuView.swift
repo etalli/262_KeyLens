@@ -299,6 +299,8 @@ private struct DataMenuRow: View {
         add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
         menu.addItem(.separator())
         add(l.openSaveFolder)          { appDelegate.openSaveDir() }
+        add(l.backupMenuItem)          { appDelegate.backupData() }
+        add(l.restoreMenuItem)         { appDelegate.restoreData() }
         menu.addItem(.separator())
         add(l.resetMenuItem)           { appDelegate.resetCounts() }
 

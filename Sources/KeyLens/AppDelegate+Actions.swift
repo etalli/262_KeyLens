@@ -158,6 +158,57 @@ extension AppDelegate {
         }
     }
 
+    func backupData() {
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let tag = dateFmt.string(from: Date())
+
+        let panel = NSSavePanel()
+        panel.title = L10n.shared.backupMenuItem
+        panel.nameFieldStringValue = "KeyLens-backup-\(tag).json"
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let dest = panel.url else { return }
+            let src = KeyCountStore.shared.saveURL
+            try? FileManager.default.copyItem(at: src, to: dest)
+        }
+    }
+
+    func restoreData() {
+        let l = L10n.shared
+        let alert = NSAlert()
+        alert.messageText = l.restoreAlertTitle
+        alert.informativeText = l.restoreAlertMessage
+        alert.addButton(withTitle: l.restoreConfirmButton)
+        alert.addButton(withTitle: l.cancel)
+        alert.buttons[0].hasDestructiveAction = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        let panel = NSOpenPanel()
+        panel.title = l.restoreMenuItem
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let src = panel.url else { return }
+            let dest = KeyCountStore.shared.saveURL
+            do {
+                _ = try? FileManager.default.removeItem(at: dest)
+                try FileManager.default.copyItem(at: src, to: dest)
+                KeyCountStore.shared.reload()
+            } catch {
+                KeyLens.log("Restore failed: \(error)")
+            }
+        }
+    }
+
     func openSaveDir() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

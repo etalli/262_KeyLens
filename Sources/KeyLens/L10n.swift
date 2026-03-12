@@ -358,6 +358,29 @@ final class L10n {
         ja("ここに保存", en: "Save Here")
     }
 
+    var backupMenuItem: String {
+        ja("バックアップを保存…", en: "Save Backup…")
+    }
+
+    var restoreMenuItem: String {
+        ja("バックアップから復元…", en: "Restore from Backup…")
+    }
+
+    var restoreAlertTitle: String {
+        ja("バックアップから復元しますか？", en: "Restore from backup?")
+    }
+
+    var restoreAlertMessage: String {
+        ja(
+            "現在のすべてのデータがバックアップファイルの内容に置き換えられます。この操作は取り消せません。",
+            en: "All current data will be replaced with the contents of the backup file. This cannot be undone."
+        )
+    }
+
+    var restoreConfirmButton: String {
+        ja("復元", en: "Restore")
+    }
+
     var copyDataMenuItem: String {
         ja("データをコピー", en: "Copy Data to Clipboard")
     }
