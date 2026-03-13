@@ -15,6 +15,9 @@ English | [日本語](docs/README.ja.md)
 
 KeyLens is a powerful macOS tool that analyzes your typing habits locally to recommend ergonomic layout improvements tailored specifically to your usage patterns.
 
+KeyLens is designed so that **typed content cannot be reconstructed** from the stored data. Only aggregated statistics (counts and timing summaries) are kept.
+
+
 [**Visit the Official Landing Page**](https://etalli.github.io/262_KeyLens/landing-page/) for a visual tour and deep dive into the optimization engine.
 
 <table>
@@ -72,24 +75,34 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay |
-| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, open log folder |
+| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, backup/restore data, open log folder |
 
 ### Charts window
 
 Open via **Charts** in the menu. Sections (scroll down):
 
+#### Ergonomics tab
 | Section | What it shows |
 |---------|---------------|
-| **Keyboard Heatmap** | Physical key layout coloured by frequency or ergonomic strain; toggle layout template (ANSI / Pangaea / Ortho) and click a key to see the exact value |
+| **Keyboard Heatmap** | Physical key layout colored by frequency or ergonomic strain; toggle layout template (ANSI / Pangaea / Ortho) and click a key to see the exact value |
 | **Top 20 Keys** | Horizontal bar chart coloured by key type |
 | **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
-| **Daily Totals** | Line chart of per-day keystroke counts |
 | **Ergonomic Learning Curve** | Same-finger rate, hand alternation rate, high-strain rate over time |
 | **Weekly Delta Report** | Last 7 days vs prior 7 days — keystrokes and ergonomic rates with trend arrows |
 | **Key Categories** | Donut chart of key-type distribution |
 | **Keyboard Shortcuts** | Top modifier+key combinations |
 | **Apps** | Per-application keystroke bar charts (all-time and today) and ergonomic score table |
 | **Devices** | Per-device keystroke bar charts (all-time and today) and ergonomic score table |
+
+#### Activity tab
+| Section | What it shows |
+|---------|---------------|
+| **Live IKI** | Bar chart of inter-keystroke intervals for the last 20 keystrokes, updated every 0.5s; bars colour-coded green/orange/red by speed |
+| **Daily Totals** | Line chart of per-day keystroke counts |
+| **Typing Speed** | Daily average WPM over time |
+| **Backspace Rate** | Daily backspace/correction rate over time |
+| **Hourly Distribution** | Aggregate keystroke count by hour of day (0–23) |
+| **Monthly Totals** | Keystroke count per calendar month |
 
 ### AI Analysis
 
