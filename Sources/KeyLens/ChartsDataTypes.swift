@@ -134,10 +134,14 @@ struct DailyErgonomicEntry: Identifiable {
 struct RecentIKIEntry: Identifiable {
     let id: Int       // position index (0 = oldest)
     let key: String
-    let iki: Double   // inter-keystroke interval in ms
+    let iki: Double   // inter-keystroke interval in ms; 0 = anchor (first key, no prior interval)
+    /// True for the first keystroke in a session burst (no IKI measured).
+    var isAnchor: Bool { iki == 0 }
     /// Color tier: fast <150ms, slow >400ms, medium otherwise.
-    var isFast: Bool { iki < 150 }
+    var isFast: Bool { !isAnchor && iki < 150 }
     var isSlow: Bool { iki > 400 }
+    /// Chart display value: anchors use a small stub height so the bar is visible.
+    var chartIKI: Double { isAnchor ? 20 : iki }
 }
 
 /// One row in the Weekly Delta table: a metric compared across two consecutive 7-day windows.

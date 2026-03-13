@@ -291,6 +291,10 @@ final class KeyCountStore {
                     recentIKIs.append((key: key, iki: intervalMs))
                     if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
                 }
+            } else {
+                // First keystroke in session — no interval yet; record as anchor (iki = 0).
+                recentIKIs.append((key: key, iki: 0))
+                if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
             }
             store.lastInputTime = timestamp
 
