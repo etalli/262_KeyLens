@@ -13,6 +13,8 @@ struct ChartsView: View {
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State private var copiedSection: String? = nil
+    /// Holds references to each section's rendered NSView for on-screen snapshotting.
+    @State private var snapperStore = SnapperStore()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -274,10 +276,10 @@ struct ChartsView: View {
 
                 // Copy to clipboard button
                 Button {
-                    copyChartToClipboard(title: title, view: contentView)
+                    snapshotToClipboard(title: title)
                 } label: {
                     Image(systemName: isCopied ? "checkmark" : "clipboard")
-                        .font(.caption)
+                        .font(.body)
                         .foregroundStyle(isCopied ? .green : .secondary)
                 }
                 .buttonStyle(.plain)
@@ -285,22 +287,23 @@ struct ChartsView: View {
                 .animation(.easeInOut(duration: 0.2), value: isCopied)
             }
             contentView
+                .background(ChartSnapper(store: snapperStore, key: title))
         }
     }
 
-    /// Renders `view` to a PNG via ImageRenderer and writes it to NSPasteboard.
-    private func copyChartToClipboard<V: View>(title: String, view: V) {
-        let renderer = ImageRenderer(content:
-            view
-                .padding(12)
-                .background(Color(NSColor.windowBackgroundColor))
-        )
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
-        guard let nsImage = renderer.nsImage else { return }
-
+    /// Snapshots the actual on-screen NSView for `title` and writes it to NSPasteboard.
+    private func snapshotToClipboard(title: String) {
+        guard let snapper = snapperStore.views[title],
+              let target = snapper.superview else { return }
+        let scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        guard let rep = target.bitmapImageRepForCachingDisplay(in: target.bounds) else { return }
+        target.cacheDisplay(in: target.bounds, to: rep)
+        let img = NSImage(size: NSSize(width: target.bounds.width * scale,
+                                       height: target.bounds.height * scale))
+        rep.size = img.size
+        img.addRepresentation(rep)
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.writeObjects([nsImage])
-
+        NSPasteboard.general.writeObjects([img])
         copiedSection = title
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             if copiedSection == title { copiedSection = nil }
@@ -1330,6 +1333,28 @@ struct ChartsView: View {
         Text("(no data yet)")
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, minHeight: 80, alignment: .center)
+    }
+}
+
+// MARK: - NSView snapshot helpers
+
+/// Reference-type store for registered chart NSViews (does not trigger SwiftUI re-renders).
+final class SnapperStore {
+    var views: [String: NSView] = [:]
+}
+
+/// Transparent NSView subclass used as a snapshot anchor.
+private final class SnapperHost: NSView {}
+
+/// Registers the rendered NSView of each chart section into a SnapperStore.
+private struct ChartSnapper: NSViewRepresentable {
+    let store: SnapperStore
+    let key: String
+
+    func makeNSView(context: Context) -> SnapperHost { SnapperHost() }
+
+    func updateNSView(_ nsView: SnapperHost, context: Context) {
+        store.views[key] = nsView
     }
 }
 
