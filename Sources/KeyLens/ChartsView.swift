@@ -1197,8 +1197,9 @@ struct ChartsView: View {
             .chartXAxis {
                 AxisMarks { _ in AxisGridLine() }
             }
+            .chartYScale(domain: 0...300)
             .chartYAxis {
-                AxisMarks(position: .leading) { value in
+                AxisMarks(position: .leading, values: [0, 100, 200, 300]) { value in
                     AxisValueLabel { Text("\(value.as(Double.self).map { Int($0) } ?? 0)ms") }
                     AxisGridLine()
                 }
