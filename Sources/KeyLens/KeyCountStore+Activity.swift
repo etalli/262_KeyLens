@@ -297,6 +297,11 @@ extension KeyCountStore {
         }
     }
 
+    /// Last N IKI values from the live ring buffer (main-thread safe snapshot).
+    func latestIKIs() -> [(key: String, iki: Double)] {
+        queue.sync { recentIKIs }
+    }
+
     /// All keys sorted by cumulative count descending, including today's count.
     func allEntries() -> [(key: String, total: Int, today: Int)] {
         queue.sync {

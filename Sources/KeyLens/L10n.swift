@@ -482,6 +482,17 @@ final class L10n {
         )
     }
 
+    var chartTitleRecentIKI: String {
+        ja("直近20打鍵のタイミング", en: "Recent 20 Keystrokes — Timing")
+    }
+
+    var helpRecentIKI: String {
+        ja(
+            "直近20打鍵のキー間隔（IKI: Inter-Keystroke Interval）をリアルタイムで表示します。緑＝高速（<150ms）、黄＝中速、赤＝低速（>400ms）。チャートウィンドウを開いた状態でタイピングすると更新されます。",
+            en: "Real-time inter-keystroke intervals (IKI) for the last 20 keystrokes. Green = fast (<150ms), yellow = medium, red = slow (>400ms). Type with this window open to see it update."
+        )
+    }
+
     var helpHourlyDistribution: String {
         ja(
             "全記録セッションを通じた、時刻（0〜23時）ごとの累積打鍵数を表示します。",

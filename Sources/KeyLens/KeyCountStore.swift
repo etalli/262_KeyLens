@@ -209,6 +209,11 @@ final class KeyCountStore {
     // In-memory only: consecutive hand-alternating pair count for streak detection (Issue #25).
     private var alternationStreak: Int = 0
 
+    // In-memory ring buffer: last 20 IKI values (key + interval ms, ≤1000ms only).
+    // Readable from extension files; writable only from this file.
+    private(set) var recentIKIs: [(key: String, iki: Double)] = []
+    private let recentIKICapacity = 20
+
     private init() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -282,6 +287,9 @@ final class KeyCountStore {
                     store.dailyAvgIntervalCount[today] = dc
                     let prevAvg = store.dailyAvgIntervalMs[today, default: 0.0]
                     store.dailyAvgIntervalMs[today] = prevAvg + (intervalMs - prevAvg) / Double(dc)
+                    // Live IKI ring buffer (capped at recentIKICapacity)
+                    recentIKIs.append((key: key, iki: intervalMs))
+                    if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
                 }
             }
             store.lastInputTime = timestamp

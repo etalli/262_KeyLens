@@ -43,6 +43,9 @@ final class ChartDataModel: ObservableObject {
     // Issue #65: daily backspace rate time-series
     // 日別 BS 率時系列（タイピング精度チャート用）
     @Published var dailyAccuracy:        [DailyAccuracyEntry]   = []
+    // Live IKI ring buffer — refreshed every 0.5s by a timer in ChartsWindowController.
+    // リアルタイムIKIリングバッファ（ChartsWindowControllerのタイマーで0.5秒ごとに更新）。
+    @Published var recentIKIEntries:     [RecentIKIEntry]       = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -105,6 +108,14 @@ final class ChartDataModel: ObservableObject {
         dailyAccuracy = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
     }
 
+    /// Lightweight refresh — reads only the live IKI ring buffer. Called by the 0.5s timer.
+    func refreshLiveData() {
+        let raw = KeyCountStore.shared.latestIKIs()
+        recentIKIEntries = raw.enumerated().map { i, item in
+            RecentIKIEntry(id: i, key: item.key, iki: item.iki)
+        }
+    }
+
     // Compare the most recent 7 days against the 7 days before that.
     // 直近7日 vs その前7日の比較。
     private static func computeWeeklyDeltas(
@@ -160,6 +171,7 @@ final class ChartDataModel: ObservableObject {
 final class ChartsWindowController: NSWindowController {
     static let shared = ChartsWindowController()
     private let model = ChartDataModel()
+    private var liveTimer: Timer?
 
     private init() {
         let hostVC = NSHostingController(rootView: ChartsView(model: model))
@@ -178,5 +190,13 @@ final class ChartsWindowController: NSWindowController {
         if !(window?.isVisible ?? false) { window?.center() }
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+        startLiveTimer()
+    }
+
+    private func startLiveTimer() {
+        guard liveTimer == nil else { return }
+        liveTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.model.refreshLiveData()
+        }
     }
 }

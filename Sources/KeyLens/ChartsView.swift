@@ -60,6 +60,7 @@ struct ChartsView: View {
     private var activityTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
                 chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
                 chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
@@ -1148,6 +1149,58 @@ struct ChartsView: View {
             emptyState
         } else {
             ActivityCalendarView(dailyTotals: model.dailyTotals)
+        }
+    }
+
+    // MARK: - Issue #5: Hourly Distribution (bar chart)
+
+    // MARK: - Recent IKI bar chart (live, updated every 0.5s)
+
+    /// Bar chart of IKI (ms) for the last 20 keystrokes. Bars are color-coded by speed.
+    /// 直近20打鍵のIKI棒グラフ。速度に応じて色分けする。
+    @ViewBuilder
+    private var recentIKIChart: some View {
+        let entries = model.recentIKIEntries
+        if entries.isEmpty {
+            VStack(spacing: 6) {
+                emptyState
+                Text("Type with this window open to see live timing.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Chart(entries) { item in
+                BarMark(
+                    x: .value("Key", item.id),
+                    y: .value("IKI (ms)", item.iki)
+                )
+                .foregroundStyle(item.isFast ? Color.green.opacity(0.8) :
+                                 item.isSlow ? Color.red.opacity(0.8)  :
+                                               Color.orange.opacity(0.75))
+                .cornerRadius(2)
+                .annotation(position: .top, spacing: 2) {
+                    Text(item.key)
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartXAxis {
+                AxisMarks { _ in AxisGridLine() }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading) { value in
+                    AxisValueLabel { Text("\(value.as(Double.self).map { Int($0) } ?? 0)ms") }
+                    AxisGridLine()
+                }
+            }
+            .frame(height: 180)
+            HStack(spacing: 16) {
+                Label("Fast (<150ms)", systemImage: "circle.fill").foregroundStyle(.green)
+                Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
+                Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
