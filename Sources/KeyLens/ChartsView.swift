@@ -1178,11 +1178,6 @@ struct ChartsView: View {
                                  item.isSlow ? Color.red.opacity(0.8)  :
                                                Color.orange.opacity(0.75))
                 .cornerRadius(2)
-                .annotation(position: .top, spacing: 2) {
-                    Text(item.key)
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                }
             }
             .chartXAxis {
                 AxisMarks { _ in AxisGridLine() }
