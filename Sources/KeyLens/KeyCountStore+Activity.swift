@@ -8,12 +8,7 @@ extension KeyCountStore {
 
     /// Today's top limit keys sorted descending.
     func todayTopKeys(limit: Int = 10) -> [(key: String, count: Int)] {
-        queue.sync {
-            (store.dailyCounts[todayKey] ?? [:])
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.dailyCounts[todayKey] ?? [:], limit: limit) }
     }
 
     /// Today's total keystroke count.
@@ -46,59 +41,41 @@ extension KeyCountStore {
     /// Top modifier+key combos sorted descending. Optional prefix filter (e.g. "⌘").
     func topModifiedKeys(prefix: String = "", limit: Int = 20) -> [(key: String, count: Int)] {
         queue.sync {
-            store.modifiedCounts
-                .filter { prefix.isEmpty || $0.key.hasPrefix(prefix) }
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
+            let filtered = prefix.isEmpty
+                ? store.modifiedCounts
+                : store.modifiedCounts.filter { $0.key.hasPrefix(prefix) }
+            return topEntries(filtered, limit: limit)
         }
     }
 
     /// Top-N keys by cumulative count, sorted descending.
     func topKeys(limit: Int = 10) -> [(key: String, count: Int)] {
-        queue.sync {
-            store.counts.sorted { $0.value > $1.value }
-                        .prefix(limit)
-                        .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.counts, limit: limit) }
     }
 
     /// Top-N apps by cumulative keystroke count, sorted descending.
     func topApps(limit: Int = 20) -> [(app: String, count: Int)] {
-        queue.sync {
-            store.appCounts.sorted { $0.value > $1.value }
-                           .prefix(limit)
-                           .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.appCounts, limit: limit) }
     }
 
     /// Top-N devices by cumulative keystroke count, sorted descending.
     func topDevices(limit: Int = 20) -> [(device: String, count: Int)] {
-        queue.sync {
-            store.deviceCounts.sorted { $0.value > $1.value }
-                              .prefix(limit)
-                              .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.deviceCounts, limit: limit) }
     }
 
     /// Per-app ergonomic scores for apps with at least minKeystrokes total keystrokes.
     func appErgonomicScores(minKeystrokes: Int = 100) -> [(app: String, score: Double, keystrokes: Int)] {
         queue.sync {
-            let engine = LayoutRegistry.shared.ergonomicScoreEngine
-            return store.appCounts
+            store.appCounts
                 .filter { $0.value >= minKeystrokes }
                 .compactMap { (app, keystrokes) -> (app: String, score: Double, keystrokes: Int)? in
                     let bigrams = store.appTotalBigramCount[app] ?? 0
                     guard bigrams > 0 else { return nil }
-                    let sfRate  = Double(store.appSameFingerCount[app]       ?? 0) / Double(bigrams)
-                    let hsRate  = Double(store.appHighStrainBigramCount[app] ?? 0) / Double(bigrams)
-                    let altRate = Double(store.appHandAlternationCount[app]  ?? 0) / Double(bigrams)
-                    let score = engine.score(
-                        sameFingerRate:             sfRate,
-                        highStrainRate:             hsRate,
-                        thumbImbalanceRatio:        0.0,
-                        handAlternationRate:        altRate,
-                        thumbEfficiencyCoefficient: 0.0
+                    let score = ergonomicScore(
+                        sfCount:     store.appSameFingerCount[app]       ?? 0,
+                        hsCount:     store.appHighStrainBigramCount[app] ?? 0,
+                        altCount:    store.appHandAlternationCount[app]  ?? 0,
+                        bigramCount: bigrams
                     )
                     return (app: app, score: score, keystrokes: keystrokes)
                 }
@@ -109,21 +86,16 @@ extension KeyCountStore {
     /// Per-device ergonomic scores for devices with at least minKeystrokes total keystrokes.
     func deviceErgonomicScores(minKeystrokes: Int = 100) -> [(device: String, score: Double, keystrokes: Int)] {
         queue.sync {
-            let engine = LayoutRegistry.shared.ergonomicScoreEngine
-            return store.deviceCounts
+            store.deviceCounts
                 .filter { $0.value >= minKeystrokes }
                 .compactMap { (device, keystrokes) -> (device: String, score: Double, keystrokes: Int)? in
                     let bigrams = store.deviceTotalBigramCount[device] ?? 0
                     guard bigrams > 0 else { return nil }
-                    let sfRate  = Double(store.deviceSameFingerCount[device]       ?? 0) / Double(bigrams)
-                    let hsRate  = Double(store.deviceHighStrainBigramCount[device] ?? 0) / Double(bigrams)
-                    let altRate = Double(store.deviceHandAlternationCount[device]  ?? 0) / Double(bigrams)
-                    let score = engine.score(
-                        sameFingerRate:             sfRate,
-                        highStrainRate:             hsRate,
-                        thumbImbalanceRatio:        0.0,
-                        handAlternationRate:        altRate,
-                        thumbEfficiencyCoefficient: 0.0
+                    let score = ergonomicScore(
+                        sfCount:     store.deviceSameFingerCount[device]       ?? 0,
+                        hsCount:     store.deviceHighStrainBigramCount[device] ?? 0,
+                        altCount:    store.deviceHandAlternationCount[device]  ?? 0,
+                        bigramCount: bigrams
                     )
                     return (device: device, score: score, keystrokes: keystrokes)
                 }
@@ -133,22 +105,12 @@ extension KeyCountStore {
 
     /// Today's top apps sorted descending.
     func todayTopApps(limit: Int = 10) -> [(app: String, count: Int)] {
-        queue.sync {
-            (store.dailyAppCounts[todayKey] ?? [:])
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.dailyAppCounts[todayKey] ?? [:], limit: limit) }
     }
 
     /// Today's top devices sorted descending.
     func todayTopDevices(limit: Int = 10) -> [(device: String, count: Int)] {
-        queue.sync {
-            (store.dailyDeviceCounts[todayKey] ?? [:])
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.dailyDeviceCounts[todayKey] ?? [:], limit: limit) }
     }
 
     /// Full cumulative bigram frequency table. Used by ErgonomicSnapshot / LayoutComparison.
@@ -163,42 +125,24 @@ extension KeyCountStore {
 
     /// Top-N bigrams by cumulative count (Issue #12).
     func topBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
-        queue.sync {
-            store.bigramCounts.sorted { $0.value > $1.value }
-                              .prefix(limit)
-                              .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.bigramCounts, limit: limit) }
     }
 
     /// Today's top bigrams (Issue #12).
     func todayTopBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         let today = todayKey
-        return queue.sync {
-            (store.dailyBigramCounts[today] ?? [:])
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
-        }
+        return queue.sync { topEntries(store.dailyBigramCounts[today] ?? [:], limit: limit) }
     }
 
     /// Top-N trigrams by cumulative frequency (Issue #12).
     func topTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
-        queue.sync {
-            store.trigramCounts.sorted { $0.value > $1.value }
-                               .prefix(limit)
-                               .map { ($0.key, $0.value) }
-        }
+        queue.sync { topEntries(store.trigramCounts, limit: limit) }
     }
 
     /// Today's top trigrams (Issue #12).
     func todayTopTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         let today = todayKey
-        return queue.sync {
-            (store.dailyTrigramCounts[today] ?? [:])
-                .sorted { $0.value > $1.value }
-                .prefix(limit)
-                .map { ($0.key, $0.value) }
-        }
+        return queue.sync { topEntries(store.dailyTrigramCounts[today] ?? [:], limit: limit) }
     }
 
     /// Average IKI (ms) for a bigram. Returns nil if no samples exist (Issue #24).
@@ -285,7 +229,7 @@ extension KeyCountStore {
                     combined[k, default: 0] += v
                 }
             }
-            let topKeyNames = combined.sorted { $0.value > $1.value }.prefix(limit).map { $0.key }
+            let topKeyNames = topEntries(combined, limit: limit).map { $0.0 }
             var result: [(date: String, key: String, count: Int)] = []
             for date in dates {
                 let dayCounts = store.dailyCounts[date] ?? [:]
@@ -309,5 +253,18 @@ extension KeyCountStore {
             return store.counts.sorted { $0.value > $1.value }
                 .map { (key: $0.key, total: $0.value, today: todayData[$0.key] ?? 0) }
         }
+    }
+}
+
+// MARK: - Private helpers
+
+extension KeyCountStore {
+
+    /// Returns the top-N entries from a [String: Int] dictionary, sorted by value descending.
+    /// Must be called from inside `queue.sync` — does not re-acquire the queue.
+    func topEntries(_ dict: [String: Int], limit: Int) -> [(String, Int)] {
+        dict.sorted { $0.value > $1.value }
+            .prefix(limit)
+            .map { ($0.key, $0.value) }
     }
 }

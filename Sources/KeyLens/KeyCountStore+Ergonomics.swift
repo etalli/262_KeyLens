@@ -188,27 +188,12 @@ extension KeyCountStore {
     /// Higher is better. Returns 100.0 when no bigram data is available.
     var currentErgonomicScore: Double {
         queue.sync {
-            let engine = LayoutRegistry.shared.ergonomicScoreEngine
-            let layout = LayoutRegistry.shared
-            let bigrams = store.totalBigramCount
-
-            let sfbRate = bigrams > 0
-                ? Double(store.sameFingerCount) / Double(bigrams) : 0.0
-            let hsRate  = bigrams > 0
-                ? Double(store.highStrainBigramCount) / Double(bigrams) : 0.0
-            let altRate = bigrams > 0
-                ? Double(store.handAlternationCount) / Double(bigrams) : 0.0
-            let tiRatio = layout.thumbImbalanceDetector
-                .imbalanceRatio(counts: store.counts, layout: layout) ?? 0.0
-            let teCoeff = layout.thumbEfficiencyCalculator
-                .coefficient(counts: store.counts, layout: layout) ?? 0.0
-
-            return engine.score(
-                sameFingerRate:             sfbRate,
-                highStrainRate:             hsRate,
-                thumbImbalanceRatio:        tiRatio,
-                handAlternationRate:        altRate,
-                thumbEfficiencyCoefficient: teCoeff
+            ergonomicScore(
+                sfCount:      store.sameFingerCount,
+                hsCount:      store.highStrainBigramCount,
+                altCount:     store.handAlternationCount,
+                bigramCount:  store.totalBigramCount,
+                keyCounts:    store.counts
             )
         }
     }
@@ -238,32 +223,54 @@ extension KeyCountStore {
     /// Keys are "yyyy-MM-dd" strings. Only dates with at least one bigram are included.
     var dailyErgonomicScore: [String: Double] {
         queue.sync {
-            let engine = LayoutRegistry.shared.ergonomicScoreEngine
-            let layout = LayoutRegistry.shared
             var result: [String: Double] = [:]
-
             for date in store.dailyCounts.keys {
                 let bigrams = store.dailyTotalBigramCount[date] ?? 0
                 guard bigrams > 0 else { continue }
-
-                let sfbRate = Double(store.dailySameFingerCount[date]       ?? 0) / Double(bigrams)
-                let hsRate  = Double(store.dailyHighStrainBigramCount[date] ?? 0) / Double(bigrams)
-                let altRate = Double(store.dailyHandAlternationCount[date]  ?? 0) / Double(bigrams)
-                let dayCounts = store.dailyCounts[date] ?? [:]
-                let tiRatio = layout.thumbImbalanceDetector
-                    .imbalanceRatio(counts: dayCounts, layout: layout) ?? 0.0
-                let teCoeff = layout.thumbEfficiencyCalculator
-                    .coefficient(counts: dayCounts, layout: layout) ?? 0.0
-
-                result[date] = engine.score(
-                    sameFingerRate:             sfbRate,
-                    highStrainRate:             hsRate,
-                    thumbImbalanceRatio:        tiRatio,
-                    handAlternationRate:        altRate,
-                    thumbEfficiencyCoefficient: teCoeff
+                result[date] = ergonomicScore(
+                    sfCount:     store.dailySameFingerCount[date]       ?? 0,
+                    hsCount:     store.dailyHighStrainBigramCount[date] ?? 0,
+                    altCount:    store.dailyHandAlternationCount[date]  ?? 0,
+                    bigramCount: bigrams,
+                    keyCounts:   store.dailyCounts[date] ?? [:]
                 )
             }
             return result
         }
+    }
+}
+
+// MARK: - Private helpers
+
+extension KeyCountStore {
+
+    /// Computes a unified ergonomic score (0–100) from raw bigram counters.
+    /// Must be called from inside `queue.sync` — does not re-acquire the queue.
+    /// - Parameter keyCounts: Per-key counts used to compute thumb metrics.
+    ///   Pass `nil` (or omit) when per-key counts are unavailable (e.g. per-app/device context);
+    ///   thumb imbalance and efficiency will be treated as 0.
+    func ergonomicScore(
+        sfCount:     Int,
+        hsCount:     Int,
+        altCount:    Int,
+        bigramCount: Int,
+        keyCounts:   [String: Int]? = nil
+    ) -> Double {
+        guard bigramCount > 0 else { return 100.0 }
+        let engine = LayoutRegistry.shared.ergonomicScoreEngine
+        let layout = LayoutRegistry.shared
+        let tiRatio = keyCounts.flatMap {
+            layout.thumbImbalanceDetector.imbalanceRatio(counts: $0, layout: layout)
+        } ?? 0.0
+        let teCoeff = keyCounts.flatMap {
+            layout.thumbEfficiencyCalculator.coefficient(counts: $0, layout: layout)
+        } ?? 0.0
+        return engine.score(
+            sameFingerRate:             Double(sfCount)  / Double(bigramCount),
+            highStrainRate:             Double(hsCount)  / Double(bigramCount),
+            thumbImbalanceRatio:        tiRatio,
+            handAlternationRate:        Double(altCount) / Double(bigramCount),
+            thumbEfficiencyCoefficient: teCoeff
+        )
     }
 }
