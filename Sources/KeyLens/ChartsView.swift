@@ -1270,44 +1270,46 @@ struct ChartsView: View {
                     .foregroundStyle(.secondary)
             }
         } else {
-            Chart(entries) { item in
-                let bar = BarMark(
-                    x: .value("Key", item.id),
-                    y: .value("IKI (ms)", item.chartIKI)
-                )
-                .foregroundStyle(item.isAnchor  ? Color.gray.opacity(0.4)   :
-                                 item.isFast    ? Color.green.opacity(0.8)  :
-                                 item.isSlow    ? Color.red.opacity(0.8)    :
-                                                  Color.orange.opacity(0.75))
-                .cornerRadius(2)
-                if ikichartShowKeyLabels {
-                    bar.annotation(position: .top, spacing: 2) {
-                        Text(item.key)
-                            .font(.system(size: 9, design: .monospaced))
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Chart(entries) { item in
+                    let bar = BarMark(
+                        x: .value("Key", item.id),
+                        y: .value("IKI (ms)", item.chartIKI)
+                    )
+                    .foregroundStyle(item.isAnchor  ? Color.gray.opacity(0.4)   :
+                                     item.isFast    ? Color.green.opacity(0.8)  :
+                                     item.isSlow    ? Color.red.opacity(0.8)    :
+                                                      Color.orange.opacity(0.75))
+                    .cornerRadius(2)
+                    if ikichartShowKeyLabels {
+                        bar.annotation(position: .top, spacing: 2) {
+                            Text(item.key)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        bar
                     }
-                } else {
-                    bar
                 }
-            }
-            .chartXAxis {
-                AxisMarks { _ in AxisGridLine() }
-            }
-            .chartYScale(domain: 0...300)
-            .chartYAxis {
-                AxisMarks(position: .leading, values: [0, 100, 200, 300]) { value in
-                    AxisValueLabel { Text("\(value.as(Double.self).map { Int($0) } ?? 0)ms") }
-                    AxisGridLine()
+                .chartXAxis {
+                    AxisMarks { _ in AxisGridLine() }
                 }
+                .chartYScale(domain: 0...300)
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: [0, 100, 200, 300]) { value in
+                        AxisValueLabel { Text("\(value.as(Double.self).map { Int($0) } ?? 0)ms") }
+                        AxisGridLine()
+                    }
+                }
+                .frame(height: 180)
+                HStack(spacing: 16) {
+                    Label("Fast (<150ms)", systemImage: "circle.fill").foregroundStyle(.green)
+                    Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
+                    Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            .frame(height: 180)
-            HStack(spacing: 16) {
-                Label("Fast (<150ms)", systemImage: "circle.fill").foregroundStyle(.green)
-                Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
-                Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
     }
 
