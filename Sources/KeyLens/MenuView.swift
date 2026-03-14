@@ -299,6 +299,8 @@ private struct DataMenuRow: View {
         add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
         menu.addItem(.separator())
         add(l.openSaveFolder)          { appDelegate.openSaveDir() }
+        add(l.backupMenuItem)          { appDelegate.backupData() }
+        add(l.restoreMenuItem)         { appDelegate.restoreData() }
         menu.addItem(.separator())
         add(l.resetMenuItem)           { appDelegate.resetCounts() }
 
@@ -415,6 +417,17 @@ private struct SettingsMenuRow: View {
         add(l.dailyGoalOff, checked: ks.dailyGoal == 0) { ks.dailyGoal = 0 }
         for count in [1000, 3000, 5000, 10000] {
             add(l.dailyGoalLabel(count), checked: ks.dailyGoal == count) { ks.dailyGoal = count }
+        }
+
+        menu.addItem(.separator())
+
+        // Chart Theme
+        header(l.chartThemeMenuTitle)
+        let currentTheme = ThemeStore.shared.current
+        for theme in ChartTheme.allCases {
+            add(theme.displayName, checked: currentTheme == theme) {
+                ThemeStore.shared.current = theme
+            }
         }
 
         guard let event = NSApp.currentEvent else { return }

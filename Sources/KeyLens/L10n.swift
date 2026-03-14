@@ -358,6 +358,29 @@ final class L10n {
         ja("ここに保存", en: "Save Here")
     }
 
+    var backupMenuItem: String {
+        ja("バックアップを保存…", en: "Save Backup…")
+    }
+
+    var restoreMenuItem: String {
+        ja("バックアップから復元…", en: "Restore from Backup…")
+    }
+
+    var restoreAlertTitle: String {
+        ja("バックアップから復元しますか？", en: "Restore from backup?")
+    }
+
+    var restoreAlertMessage: String {
+        ja(
+            "現在のすべてのデータがバックアップファイルの内容に置き換えられます。この操作は取り消せません。",
+            en: "All current data will be replaced with the contents of the backup file. This cannot be undone."
+        )
+    }
+
+    var restoreConfirmButton: String {
+        ja("復元", en: "Restore")
+    }
+
     var copyDataMenuItem: String {
         ja("データをコピー", en: "Copy Data to Clipboard")
     }
@@ -456,6 +479,17 @@ final class L10n {
         ja(
             "過去365日の日別打鍵数をカレンダーヒートマップで表示します。セルが濃いほど打鍵数が多い日です。\n\n縦軸は曜日（上から日〜土）、横軸は週（左が古く、右が最新）です。",
             en: "Calendar heatmap of daily keystroke counts over the past year. Darker cells indicate more keystrokes.\n\nRows represent days of the week (Sun at top, Sat at bottom). Columns represent weeks, with the most recent week on the right."
+        )
+    }
+
+    var chartTitleRecentIKI: String {
+        ja("直近20打鍵のタイミング", en: "Recent 20 Keystrokes — Timing")
+    }
+
+    var helpRecentIKI: String {
+        ja(
+            "直近20打鍵のキー間隔（IKI: Inter-Keystroke Interval）をリアルタイムで表示します。緑＝高速（<150ms）、黄＝中速、赤＝低速（>400ms）。チャートウィンドウを開いた状態でタイピングすると更新されます。",
+            en: "Real-time inter-keystroke intervals (IKI) for the last 20 keystrokes. Green = fast (<150ms), yellow = medium, red = slow (>400ms). Type with this window open to see it update."
         )
     }
 
@@ -704,12 +738,12 @@ final class L10n {
     /// Mouse distance display string. Shows raw screen points and physical distance.
     /// Physical distance uses NSScreen.main for accuracy, falling back to 96 dpi baseline.
     func mouseDistanceDisplay(_ pts: Double) -> String {
-        // Derive mm/pt from actual screen geometry; fall back to 96 dpi baseline (0.264 mm/pt)
+        // Derive mm/pt from screen DPI; fall back to 96 dpi baseline (0.264 mm/pt)
         let mmPerPt: Double
-        if let screen = NSScreen.main {
-            let physicalMM = screen.physicalSize.height
-            let pointHeight = screen.frame.height
-            mmPerPt = (physicalMM > 0 && pointHeight > 0) ? physicalMM / pointHeight : 0.264
+        if let screen = NSScreen.main,
+           let res = screen.deviceDescription[NSDeviceDescriptionKey("NSDeviceResolution")] as? NSSize,
+           res.width > 0 {
+            mmPerPt = 25.4 / res.width  // 25.4 mm per inch / dpi
         } else {
             mmPerPt = 0.264
         }
@@ -730,6 +764,21 @@ final class L10n {
 
     var mouseDistanceNoData: String {
         ja("🖱 移動距離データなし", en: "🖱 No mouse distance data yet")
+    }
+
+    // MARK: - Chart Theme
+
+    var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }
+
+    func chartThemeDisplayName(_ theme: ChartTheme) -> String {
+        switch theme {
+        case .blue:   return ja("ブルー", en: "Blue")
+        case .teal:   return ja("ティール", en: "Teal")
+        case .purple: return ja("パープル", en: "Purple")
+        case .orange: return ja("オレンジ", en: "Orange")
+        case .green:  return ja("グリーン", en: "Green")
+        case .pink:   return ja("ピンク", en: "Pink")
+        }
     }
 
     // MARK: - Helper

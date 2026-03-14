@@ -129,6 +129,21 @@ struct DailyErgonomicEntry: Identifiable {
     let rate: Double
 }
 
+/// One entry in the live IKI bar chart: a recent keystroke with its inter-keystroke interval.
+/// リアルタイムIKIバーチャートの1エントリ：直近打鍵のキー間隔（ms）。
+struct RecentIKIEntry: Identifiable {
+    let id: Int       // position index (0 = oldest)
+    let key: String
+    let iki: Double   // inter-keystroke interval in ms; 0 = anchor (first key, no prior interval)
+    /// True for the first keystroke in a session burst (no IKI measured).
+    var isAnchor: Bool { iki == 0 }
+    /// Color tier: fast <150ms, slow >400ms, medium otherwise.
+    var isFast: Bool { !isAnchor && iki < 150 }
+    var isSlow: Bool { iki > 400 }
+    /// Chart display value: anchors use a small stub; slow values are capped at 300 (the Y-axis max).
+    var chartIKI: Double { isAnchor ? 20 : min(iki, 300) }
+}
+
 /// One row in the Weekly Delta table: a metric compared across two consecutive 7-day windows.
 /// 週次デルタ表の1行：連続する2つの7日間ウィンドウで比較した指標。
 struct WeeklyDeltaRow: Identifiable {

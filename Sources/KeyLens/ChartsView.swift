@@ -6,15 +6,37 @@ import KeyLensCore
 
 struct ChartsView: View {
     @ObservedObject var model: ChartDataModel
+    @ObservedObject private var theme = ThemeStore.shared
 
     @AppStorage("selectedChartTab") private var selectedTab: ChartTab = .summary
     @AppStorage("frequentChartsSortDescending") private var sortDescending: Bool = true
+
+    /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
+    @State private var copiedSection: String? = nil
+    /// Stores each chart section's SwiftUI global frame and the Charts NSWindow reference.
+    @State private var snapperStore = SnapperStore()
+    /// Timer that drives real-time refresh on the Live tab.
+    @State private var liveTimer: Timer? = nil
+
+    /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
+    /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。
+    private let recentIKIChartWidth: CGFloat = 560
+    /// Slightly taller plot area leaves room for top annotations without making the snapshot too tall.
+    /// 上端注釈が切れないように、コピー全体を伸ばしすぎず最小限だけ高さを増やす。
+    private let recentIKIPlotHeight: CGFloat = 200
+    /// Extra Y-axis headroom prevents top annotations from being clipped at the 300ms ceiling.
+    /// 300ms天井で上端注釈が切れないように、表示用のヘッドルームを少し確保する。
+    private let recentIKIChartMaxDisplay: Double = 340
 
     var body: some View {
         TabView(selection: $selectedTab) {
             summaryTab
                 .tabItem { Label(ChartTab.summary.rawValue, systemImage: ChartTab.summary.icon) }
                 .tag(ChartTab.summary)
+
+            liveTab
+                .tabItem { Label(ChartTab.live.rawValue, systemImage: ChartTab.live.icon) }
+                .tag(ChartTab.live)
 
             activityTab
                 .tabItem { Label(ChartTab.activity.rawValue, systemImage: ChartTab.activity.icon) }
@@ -39,6 +61,11 @@ struct ChartsView: View {
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)
         .background(Color(NSColor.windowBackgroundColor))
+        .overlay(alignment: .topLeading) {
+            // Grabs the NSWindow reference and silences the beep on plain typing.
+            WindowGrabber(store: snapperStore).frame(width: 1, height: 1).opacity(0)
+            KeySilencer().frame(width: 1, height: 1).opacity(0)
+        }
     }
 
     // MARK: - Tabs
@@ -52,6 +79,30 @@ struct ChartsView: View {
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
             }
             .padding(24)
+        }
+    }
+
+    // Live: real-time IKI chart, refreshed every second while this tab is active.
+    private var liveTab: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 24)
+                .padding(.leading, 24)
+                .padding(.bottom, 24)
+                .padding(.trailing, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear {
+            model.refreshLiveData()
+            liveTimer?.invalidate()
+            liveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                model.refreshLiveData()
+            }
+        }
+        .onDisappear {
+            liveTimer?.invalidate()
+            liveTimer = nil
         }
     }
 
@@ -244,16 +295,19 @@ struct ChartsView: View {
 
     @ViewBuilder
     private func chartSection<C: View>(_ title: String, helpText: String? = nil, showSort: Bool = false, @ViewBuilder content: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let contentView = AnyView(content())
+        let isCopied = copiedSection == title
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 if let helpText {
                     SectionHeader(title: title, helpText: helpText)
                 } else {
                     Text(title).font(.headline)
                 }
-                
+
+                Spacer()
+
                 if showSort {
-                    Spacer()
                     Picker("", selection: $sortDescending) {
                         Image(systemName: "arrow.down.square").tag(true)
                             .help("Descending (Most frequent first)")
@@ -263,8 +317,66 @@ struct ChartsView: View {
                     .pickerStyle(.segmented)
                     .frame(width: 80)
                 }
+
+                // Copy to clipboard button
+                Button {
+                    snapshotToClipboard(title: title)
+                } label: {
+                    Image(systemName: isCopied ? "checkmark" : "clipboard")
+                        .font(.body)
+                        .foregroundStyle(isCopied ? .green : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy chart as image")
+                .animation(.easeInOut(duration: 0.2), value: isCopied)
             }
-            content()
+            ZStack(alignment: .topLeading) {
+                // ChartSnapper sits behind contentView as a ZStack sibling so it has
+                // a proper NSView superview and an always-current frame at click time.
+                ChartSnapper(store: snapperStore, key: title).allowsHitTesting(false)
+                contentView
+            }
+        }
+    }
+
+    /// Captures the composited on-screen pixels for `title`'s section and writes to NSPasteboard.
+    /// Uses GeometryReader (SwiftUI global frame) + CGWindowListCreateImage (Metal-compatible).
+    private func snapshotToClipboard(title: String) {
+        guard let snapper = snapperStore.views[title],
+              let superview = snapper.superview,
+              let window = superview.window else { return }
+
+        let scale = window.backingScaleFactor
+
+        // Convert snapper.frame (superview coords) → window coords → screen coords.
+        // snapper is a ZStack sibling of contentView, so its frame matches contentView exactly.
+        let inWindow   = superview.convert(snapper.frame, to: nil)
+        let onScreen   = window.convertToScreen(inWindow)
+        let winOnScreen = window.frame
+
+        guard let windowImage = CGWindowListCreateImage(
+            .null,
+            .optionIncludingWindow,
+            CGWindowID(window.windowNumber),
+            [.bestResolution, .boundsIgnoreFraming]
+        ) else { return }
+
+        // Map screen rect → CGImage pixel rect (top-left origin).
+        let cropRect = CGRect(
+            x:      (onScreen.minX - winOnScreen.minX) * scale,
+            y:      (winOnScreen.maxY - onScreen.maxY) * scale,
+            width:  onScreen.width  * scale,
+            height: onScreen.height * scale
+        )
+        guard let cropped = windowImage.cropping(to: cropRect) else { return }
+
+        let img = NSImage(cgImage: cropped,
+                          size: NSSize(width: onScreen.width, height: onScreen.height))
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects([img])
+        copiedSection = title
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if copiedSection == title { copiedSection = nil }
         }
     }
 
@@ -277,7 +389,7 @@ struct ChartsView: View {
                 title: L10n.shared.inferredStyle,
                 value: L10n.shared.typingStyleLabel(KeyCountStore.shared.currentTypingStyle),
                 icon: styleIcon(KeyCountStore.shared.currentTypingStyle),
-                color: .blue
+                color: theme.accentColor
             )
 
             intelligenceCard(
@@ -551,7 +663,7 @@ struct ChartsView: View {
             // 1点のみの場合は BarMark で代替
             Chart(model.dailyTotals) { item in
                 BarMark(x: .value("Date", item.date), y: .value("Total", item.total))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(theme.accentColor)
                     .cornerRadius(4)
             }
             .frame(height: 180)
@@ -561,18 +673,18 @@ struct ChartsView: View {
                     x: .value("Date", item.date),
                     y: .value("Total", item.total)
                 )
-                .foregroundStyle(.blue.opacity(0.12))
+                .foregroundStyle(theme.accentColor.opacity(0.12))
                 LineMark(
                     x: .value("Date", item.date),
                     y: .value("Total", item.total)
                 )
-                .foregroundStyle(.blue)
+                .foregroundStyle(theme.accentColor)
                 .interpolationMethod(.catmullRom)
                 PointMark(
                     x: .value("Date", item.date),
                     y: .value("Total", item.total)
                 )
-                .foregroundStyle(.blue)
+                .foregroundStyle(theme.accentColor)
                 .annotation(position: .top, spacing: 4) {
                     Text(item.total.formatted())
                         .font(.caption)
@@ -1152,6 +1264,82 @@ struct ChartsView: View {
 
     // MARK: - Issue #5: Hourly Distribution (bar chart)
 
+    // MARK: - Recent IKI bar chart (live, updated every 0.5s)
+
+    /// Set to true to show the actual key label above each IKI bar.
+    /// WARNING: enabling this exposes keystrokes (including passwords) visually.
+    /// Set to false (default) to hide key names for privacy.
+    private let ikichartShowKeyLabels = false
+
+    /// Bar chart of IKI (ms) for the last 20 keystrokes. Bars are color-coded by speed.
+    /// 直近20打鍵のIKI棒グラフ。速度に応じて色分けする。
+    @ViewBuilder
+    private var recentIKIChart: some View {
+        let entries = model.recentIKIEntries
+        if entries.isEmpty {
+            VStack(spacing: 6) {
+                emptyState
+                Text("Type with this window open to see live timing.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(width: recentIKIChartWidth, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Chart(entries) { item in
+                    let bar = BarMark(
+                        x: .value("Key", item.id),
+                        y: .value("IKI (ms)", item.chartIKI)
+                    )
+                    .foregroundStyle(item.isAnchor  ? Color.gray.opacity(0.4)   :
+                                     item.isFast    ? Color.green.opacity(0.8)  :
+                                     item.isSlow    ? Color.red.opacity(0.8)    :
+                                                      Color.orange.opacity(0.75))
+                    .cornerRadius(2)
+                    if item.isSlow {
+                        // Capped at 300ms — show actual value so it's distinct from a genuine 300ms bar.
+                        bar.annotation(position: .top, spacing: 2) {
+                            Text("\(Int(item.iki))ms")
+                                .font(.system(size: 8, design: .monospaced))
+                                .foregroundStyle(Color.red)
+                        }
+                    } else if ikichartShowKeyLabels {
+                        bar.annotation(position: .top, spacing: 2) {
+                            Text(item.key)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        bar
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks { _ in AxisGridLine() }
+                }
+                .chartYScale(domain: 0...recentIKIChartMaxDisplay)
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: [0, 100, 200, 300]) { value in
+                        AxisValueLabel { Text("\(value.as(Double.self).map { Int($0) } ?? 0)ms") }
+                        AxisGridLine()
+                    }
+                }
+                .frame(height: recentIKIPlotHeight)
+                HStack(spacing: 16) {
+                    Label("Fast (<150ms)", systemImage: "circle.fill").foregroundStyle(.green)
+                    Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
+                    Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            .frame(width: recentIKIChartWidth, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // MARK: - Issue #5: Hourly Distribution (bar chart)
+
     /// 24-bar chart showing aggregate keystroke count by hour of day.
     /// 時刻（0〜23時）別の累積打鍵数棒グラフ。
     @ViewBuilder
@@ -1228,6 +1416,60 @@ struct ChartsView: View {
         Text("(no data yet)")
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, minHeight: 80, alignment: .center)
+    }
+}
+
+// MARK: - NSView snapshot helpers
+
+/// Reference-type store for chart NSViews and the Charts NSWindow.
+/// Being a class means mutations don't trigger SwiftUI re-renders.
+final class SnapperStore {
+    var views: [String: NSView] = [:]
+    weak var window: NSWindow?
+}
+
+/// Tiny invisible NSViewRepresentable whose only job is to supply the NSWindow reference.
+private struct WindowGrabber: NSViewRepresentable {
+    let store: SnapperStore
+    func makeNSView(context: Context) -> NSView { NSView() }
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if store.window == nil {
+            DispatchQueue.main.async { store.window = nsView.window }
+        }
+    }
+}
+
+/// Accepts first responder so plain typing into the Charts window is silently swallowed
+/// instead of triggering the system beep. Cmd/Ctrl shortcuts are passed through normally.
+private final class KeySilencerView: NSView {
+    override var acceptsFirstResponder: Bool { true }
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+    override func keyDown(with event: NSEvent) {
+        guard event.modifierFlags.intersection([.command, .control]).isEmpty else {
+            super.keyDown(with: event); return
+        }
+        // Plain typing is captured by the CGEvent tap — just swallow it here.
+    }
+}
+
+private struct KeySilencer: NSViewRepresentable {
+    func makeNSView(context: Context) -> KeySilencerView { KeySilencerView() }
+    func updateNSView(_ nsView: KeySilencerView, context: Context) {}
+}
+
+/// Transparent NSView subclass used as a position anchor inside each chart section.
+private final class SnapperHost: NSView {}
+
+/// Registers the chart section's NSView into SnapperStore for later screen capture.
+private struct ChartSnapper: NSViewRepresentable {
+    let store: SnapperStore
+    let key: String
+    func makeNSView(context: Context) -> SnapperHost { SnapperHost() }
+    func updateNSView(_ nsView: SnapperHost, context: Context) {
+        store.views[key] = nsView
     }
 }
 
