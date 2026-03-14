@@ -1281,7 +1281,14 @@ struct ChartsView: View {
                                      item.isSlow    ? Color.red.opacity(0.8)    :
                                                       Color.orange.opacity(0.75))
                     .cornerRadius(2)
-                    if ikichartShowKeyLabels {
+                    if item.isSlow {
+                        // Capped at 300ms — show actual value so it's distinct from a genuine 300ms bar.
+                        bar.annotation(position: .top, spacing: 2) {
+                            Text("\(Int(item.iki))ms")
+                                .font(.system(size: 8, design: .monospaced))
+                                .foregroundStyle(Color.red)
+                        }
+                    } else if ikichartShowKeyLabels {
                         bar.annotation(position: .top, spacing: 2) {
                             Text(item.key)
                                 .font(.system(size: 9, design: .monospaced))
