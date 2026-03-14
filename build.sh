@@ -13,6 +13,13 @@ set -e
 APP="KeyLens.app"
 DMG="KeyLens.dmg"
 ZIP="KeyLens.dmg.zip"
+
+# --clean: Remove all build artifacts
+if [[ "$1" == "--clean" ]]; then
+    rm -rf .build "$APP" "$DMG" "$ZIP"
+    echo "Cleaned."
+    exit 0
+fi
 VERSION=$(defaults read "$(pwd)/Resources/Info.plist" CFBundleShortVersionString 2>/dev/null || date +"%Y%m%d")
 
 # Language detection: $LANG env var first, fall back to system AppleLocale
