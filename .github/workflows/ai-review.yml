@@ -1,0 +1,29 @@
+name: AI repo review
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate AI suggestion
+        run: |
+          echo "AI suggestion: review the repository and propose improvements." > issues.txt
+
+      - name: Create issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "AI suggestion" \
+            --body-file issues.txt
