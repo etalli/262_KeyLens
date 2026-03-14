@@ -18,6 +18,10 @@ struct ChartsView: View {
     /// Timer that drives real-time refresh on the Live tab.
     @State private var liveTimer: Timer? = nil
 
+    /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
+    /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。
+    private let recentIKIChartWidth: CGFloat = 560
+
     var body: some View {
         TabView(selection: $selectedTab) {
             summaryTab
@@ -1269,6 +1273,7 @@ struct ChartsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .frame(width: recentIKIChartWidth, alignment: .leading)
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 Chart(entries) { item in
@@ -1317,6 +1322,7 @@ struct ChartsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
+            .frame(width: recentIKIChartWidth, alignment: .leading)
         }
     }
 
