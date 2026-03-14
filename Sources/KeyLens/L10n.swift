@@ -313,17 +313,17 @@ final class L10n {
     }
 
     var backspaceRateFormat: String {
-        ja("BS率: %.1f%%", en: "BS rate: %.1f%%")
+        ja("Delete使用率: %.1f%%", en: "Delete: %.1f%%")
     }
 
     var chartTitleBackspaceRate: String {
-        ja("BS 率（タイピング精度）", en: "Backspace Rate (Accuracy)")
+        ja("Delete キー使用率（%）", en: "Delete Key Usage (%)")
     }
 
     var helpBackspaceRate: String {
         ja(
-            "日別の BS（Backspace）率を表示します。全打鍵数に対する Delete キーの割合（%）です。\n\n低いほど入力ミスが少なく、タイピング精度が高いことを示します。一般的なタイピストは 2〜5% 程度です。\n\n過去データも利用可能（counts.json の dailyCounts から直接算出）。",
-            en: "Daily backspace rate: Delete key presses as a percentage of total keystrokes.\n\nLower is better — a lower rate means fewer typing errors. Typical typists fall in the 2–5% range.\n\nHistorical data is available immediately (derived from existing dailyCounts in counts.json)."
+            "日別の Delete（⌫）キー使用率を表示します。全打鍵数に対する割合（%）です。\n\n注: Mac の「Delete」キーは Windows の「Backspace」と同じキーです。文字削除だけでなく、文章編集のための使用も含まれます。\n\n過去データも利用可能（counts.json の dailyCounts から直接算出）。",
+            en: "Daily Delete (⌫) key usage as a percentage of total keystrokes.\n\nNote: On Mac, the 'Delete' key is the same as 'Backspace' on Windows/Linux. This metric includes both typo corrections and intentional editing — so a higher value does not necessarily mean more errors.\n\nHistorical data is available immediately (derived from existing dailyCounts in counts.json)."
         )
     }
 
@@ -654,7 +654,7 @@ final class L10n {
         case .todayTotal:     return ja("本日 / 合計", en: "Today / Total")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
-        case .backspaceRate:  return ja("BS率", en: "Backspace Rate")
+        case .backspaceRate:  return ja("Delete使用率", en: "Delete Usage")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
         case .streak:               return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:   return ja("ショートカット効率", en: "Shortcut Efficiency")
