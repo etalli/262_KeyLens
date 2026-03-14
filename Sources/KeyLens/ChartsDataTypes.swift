@@ -140,8 +140,8 @@ struct RecentIKIEntry: Identifiable {
     /// Color tier: fast <150ms, slow >400ms, medium otherwise.
     var isFast: Bool { !isAnchor && iki < 150 }
     var isSlow: Bool { iki > 400 }
-    /// Chart display value: anchors use a small stub height so the bar is visible.
-    var chartIKI: Double { isAnchor ? 20 : iki }
+    /// Chart display value: anchors use a small stub; slow values are capped at 300 (the Y-axis max).
+    var chartIKI: Double { isAnchor ? 20 : min(iki, 300) }
 }
 
 /// One row in the Weekly Delta table: a metric compared across two consecutive 7-day windows.
