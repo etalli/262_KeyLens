@@ -7,10 +7,10 @@ extension ChartsView {
     var activityTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
                 chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
+                chartSection("Daily Totals") { dailyTotalsChart }
                 chartSection("Monthly Totals") { monthlyTotalsChart }
             }
             .padding(24)
