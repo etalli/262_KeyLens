@@ -15,16 +15,23 @@ graph TD
     B --> J[ChartsWindowController]
     B --> K[KeystrokeOverlayController]
     B --> N[AboutWindowController]
+    B --> BR[BreakReminderManager]
+    B --> UW[UpdateWindowController]
+    B --> MC[MenuCustomizeWindowController]
     K --> O[OverlaySettingsController]
     P[KeyboardDeviceInfo] -->|device names| B
     C -->|key event| E[KeyCountStore]
+    C -->|mouse event| MS[MouseStore]
     C -->|keystrokeInput notification| K
     E -->|every milestone presses| F[NotificationManager]
     E -->|JSON save| G[(counts.json)]
+    MS -->|SQLite save| GG[(mouse.db)]
     V -->|fetch display data| E
     V -->|language switch| H[L10n]
+    V -->|widget config| MW[MenuWidgetStore]
     J -->|reads counts| E
-    J --> L[ChartsView / KeyboardHeatmapView / KeyType]
+    J -->|theme| TS[ThemeStore]
+    J --> L[ChartsView tabs / KeyboardHeatmapView / ActivityCalendarView]
     M[AIPromptStore] -->|currentPrompt| B
     M -->|reads language| H
 ```
@@ -45,22 +52,42 @@ graph TD
 │   │   ├── AppDelegate.swift
 │   │   ├── AppDelegate+Actions.swift
 │   │   ├── AboutWindowController.swift
+│   │   ├── UpdateWindowController.swift
 │   │   ├── MenuView.swift
+│   │   ├── MenuWidgetStore.swift
+│   │   ├── MenuCustomizeWindowController.swift
 │   │   ├── KeyboardMonitor.swift
 │   │   ├── KeyCountStore.swift
+│   │   ├── KeyCountStore+Activity.swift
+│   │   ├── KeyCountStore+Ergonomics.swift
+│   │   ├── KeyCountStore+Export.swift
+│   │   ├── MouseStore.swift
 │   │   ├── KeyType.swift
 │   │   ├── NotificationManager.swift
+│   │   ├── BreakReminderManager.swift
 │   │   ├── StatsWindowController.swift
 │   │   ├── ChartsWindowController.swift
 │   │   ├── ChartsView.swift
+│   │   ├── ChartsComponents.swift
+│   │   ├── ChartsDataTypes.swift
+│   │   ├── Charts+SummaryTab.swift
+│   │   ├── Charts+KeyboardTab.swift
+│   │   ├── Charts+ErgonomicsTab.swift
+│   │   ├── Charts+ActivityTab.swift
+│   │   ├── Charts+AppsTab.swift
+│   │   ├── Charts+ShortcutsTab.swift
+│   │   ├── Charts+LiveTab.swift
+│   │   ├── ActivityCalendarView.swift
 │   │   ├── KeyboardHeatmapView.swift
 │   │   ├── KeyboardDeviceInfo.swift
 │   │   ├── KeystrokeOverlayController.swift
 │   │   ├── OverlaySettingsController.swift
+│   │   ├── ThemeStore.swift
 │   │   ├── AIPromptStore.swift
 │   │   └── L10n.swift
 │   └── KeyLensCore/                      # Research library (Phase 0+)
 │       ├── KeyboardLayout.swift
+│       ├── KeyCategory.swift
 │       ├── FingerLoadWeight.swift
 │       ├── SameFingerPenalty.swift
 │       ├── AlternationReward.swift
@@ -74,7 +101,12 @@ graph TD
 │       ├── ErgonomicScoreEngine.swift    # Phase 1: unified ergonomic score formula (#29)
 │       ├── ErgonomicSnapshot.swift       # Phase 2: all-metric snapshot for one layout (#3, #40)
 │       ├── LayoutComparison.swift        # Phase 2: before/after layout comparison (#3)
-│       └── ErgonomicProfile.swift        # Keyboard profile: layout + fingerWeights + splitConfig
+│       ├── ErgonomicProfile.swift        # Keyboard profile: layout + fingerWeights + splitConfig
+│       ├── TravelDistanceEstimator.swift # Phase 2: finger travel distance from bigram data (#40)
+│       ├── FullErgonomicOptimizer.swift  # Phase 2: hill-climb optimizer using unified score (#41)
+│       ├── FatigueRiskModel.swift        # Phase 3: fatigue risk estimation from speed/strain trends
+│       ├── ThumbRecommendationEngine.swift # Phase 3: recommends keys to relocate to thumb positions
+│       └── TypingStyleAnalyzer.swift     # Phase 3: infers typing context (prose / code / chat)
 └── Tests/
     └── KeyLensTests/
         ├── KeyboardLayoutTests.swift
@@ -89,7 +121,11 @@ graph TD
         ├── SameFingerOptimizerTests.swift
         ├── ErgonomicScoreEngineTests.swift
         ├── LayoutComparisonTests.swift
-        └── ErgonomicProfileTests.swift
+        ├── ErgonomicProfileTests.swift
+        ├── FullErgonomicOptimizerTests.swift
+        ├── KeyRelocationSimulatorTests.swift
+        ├── ThumbRecommendationEngineTests.swift
+        └── TravelDistanceEstimatorTests.swift
 ```
 
 ---
@@ -217,9 +253,9 @@ After translating a key name, the callback posts a `Notification(.keystrokeInput
 
 ---
 
-### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift)
+### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift)
 
-Singleton that manages counts and persists them to disk.
+Singleton that manages counts and persists them to disk. Split into focused extensions: `+Activity` handles WPM, IKI, and daily activity metrics; `+Ergonomics` handles same-finger, alternation, high-strain, and app/device ergonomic accessors; `+Export` handles CSV export and clipboard formatting.
 
 **Thread safety:**
 
@@ -297,21 +333,21 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
-Chart sections (in display order):
-- **Keyboard Heatmap** — physical key layout coloured by frequency or strain (Frequency / Strain mode toggle; hover ⓘ for explanation)
-- **Top 20 Keys** — horizontal bar coloured by `KeyType`
-- **Top 20 Bigrams** — horizontal bar of most frequent consecutive pairs; same-finger rate and hand alternation rate summary below (Phase 0 ergonomic metrics)
-- **Daily Totals** — line chart of per-day keystroke counts
-- **Ergonomic Learning Curve** — multi-series line chart (same-finger rate, hand alternation rate, high-strain rate) across all recorded days
-- **Weekly Delta Report** — table comparing the last 7 days against the prior 7 days for keystrokes and the three ergonomic rates; delta arrows coloured green/red by direction
-- **Key Categories** — donut chart of `KeyType` distribution
-- **Top 10 per Day** — grouped bar chart of the top keys across recent days
-- **⌘ Keyboard Shortcuts** — top modifier+key combos
-- **All Keyboard Combos** — all modifier combinations
-- **Apps** — per-application keystroke bar charts (all-time and today) + ergonomic score table (apps with ≥100 keystrokes, colour-coded: green ≥80 / orange 60–79 / red <60)
-- **Devices** — per-device keystroke bar charts (all-time and today) + ergonomic score table (detected keyboard labels with ≥100 keystrokes)
+`ChartsView` is organised into 7 tabs, each implemented as a `ChartsView` extension in its own file:
 
-`ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`. Phase 3 additions: `dailyErgonomics: [DailyErgonomicEntry]` and `weeklyDeltas: [WeeklyDeltaRow]`.
+| Tab file | Contents |
+|----------|----------|
+| `Charts+SummaryTab.swift` | Activity Calendar heatmap, Weekly Delta Report |
+| `Charts+KeyboardTab.swift` | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
+| `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Ergonomic Learning Curve, ergonomic score tables |
+| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart |
+| `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
+| `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
+| `Charts+LiveTab.swift` | Recent IKI scatter chart, live typing rhythm view |
+
+Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
+
+`ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`.
 
 ---
 
@@ -381,6 +417,17 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 | `LayoutComparison` | `LayoutComparison.swift` | Side-by-side ergonomic comparison: holds `current` + `proposed` snapshots + `recommendedSwaps`; `make(bigramCounts:keyCounts:)` runs `SameFingerOptimizer`, builds `RemappedLayout`, and computes both snapshots |
 | `LayoutRegistry.forSimulation` | `KeyboardLayout.swift` | Factory that creates an isolated `LayoutRegistry` with a given layout and configuration copied from a base registry, without modifying the global singleton |
 
+#### Phase 3: Typing analysis and recommendations
+
+| Type | File | Description |
+|------|------|-------------|
+| `KeyCategory` | `KeyCategory.swift` | High-level key classification (letter / number / symbol / control / function / nav / mouse / other); used by `TypingStyleAnalyzer` and stats views |
+| `FatigueLevel` / `FatigueRiskModel` | `FatigueRiskModel.swift` | Estimates typing fatigue risk (`low` / `moderate` / `high`) by comparing recent speed and strain metrics against a baseline |
+| `TypingStyle` / `TypingStyleAnalyzer` | `TypingStyleAnalyzer.swift` | Infers the active typing context (`prose` / `code` / `chat` / `unknown`) from keystroke distributions (symbol ratio, Enter frequency, etc.) |
+| `ThumbRecommendationEngine` | `ThumbRecommendationEngine.swift` | Recommends which high-burden keys (on weak fingers) should be relocated to thumb positions; accounts for left/right thumb imbalance when assigning slots |
+| `TravelDistanceEstimator` | `TravelDistanceEstimator.swift` | Estimates total finger travel distance from bigram data using Euclidean key-grid distances; `projectedTravel` wraps `RemappedLayout` for before/after comparison |
+| `FullErgonomicOptimizer` | `FullErgonomicOptimizer.swift` | Hill-climb optimizer that maximises the unified `ErgonomicScoreEngine` score; considers all five Phase 1 metrics (SFB, high-strain, alternation, thumb, travel) rather than SFB alone |
+
 ---
 
 ### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
@@ -391,6 +438,48 @@ SwiftUI view that renders a visual representation of the physical ANSI keyboard.
 - **Strain** — each key coloured by its cumulative high-strain bigram involvement score (red = frequent culprit)
 
 A hover-triggered popover (ⓘ icon) explains the active mode. Strain scores are computed from `KeyCountStore.shared.topHighStrainBigrams(limit: 1000)` by summing bigram counts for each participating key. Used inside `ChartsView` as the first chart section.
+
+---
+
+### [ActivityCalendarView.swift](Sources/KeyLens/ActivityCalendarView.swift)
+
+SwiftUI view that renders a contribution-style calendar heatmap of daily keystroke counts. Displays the past 365 days as a 53-column × 7-row grid coloured by keystroke intensity, matching the GitHub contribution graph style. Used in the Summary tab.
+
+---
+
+### [MouseStore.swift](Sources/KeyLens/MouseStore.swift)
+
+SQLite-backed singleton (using GRDB) that persists mouse movement metrics. Accumulates displacement in-memory (separated into rightward/leftward/downward/upward components) and flushes to `mouse.db` every 30 seconds via a `DispatchSourceTimer`. Keyboard data (`counts.json`) is unaffected. Tables: `mouse_daily`, `mouse_hourly`.
+
+---
+
+### [ThemeStore.swift](Sources/KeyLens/ThemeStore.swift)
+
+Singleton that manages the active `ChartTheme` (blue / teal / purple / orange / green / pink). Theme selection is persisted in `UserDefaults` and published via `@Published` so `ChartsView` reacts instantly on change.
+
+---
+
+### [MenuWidgetStore.swift](Sources/KeyLens/MenuWidgetStore.swift)
+
+Persists the user's widget selection and ordering for the `MenuView` popover. Defines the `MenuWidget` enum (recording since, today total, WPM, backspace rate, mini chart, streak, shortcut efficiency, mouse distance) and `MenuWidgetStore` singleton backed by `UserDefaults`.
+
+---
+
+### [MenuCustomizeWindowController.swift](Sources/KeyLens/MenuCustomizeWindowController.swift)
+
+Singleton `NSWindowController` hosting the Customize Menu SwiftUI panel. Lets users toggle and reorder `MenuWidget` items. Opened via the customize button in `MenuView`.
+
+---
+
+### [BreakReminderManager.swift](Sources/KeyLens/BreakReminderManager.swift)
+
+Singleton that fires a `UNUserNotification` break reminder after a configurable idle interval (default: 30 minutes). Uses a `DispatchSourceTimer` on a private queue. `isEnabled` and `intervalMinutes` are persisted in `UserDefaults`. The timer resets on each keystroke event so the reminder measures true idle time.
+
+---
+
+### [UpdateWindowController.swift](Sources/KeyLens/UpdateWindowController.swift)
+
+Singleton that displays update check results in a custom `NSPanel`. Shows either an "update available" panel (with a Download button linking to the GitHub release) or an "up to date" confirmation panel.
 
 ---
 
