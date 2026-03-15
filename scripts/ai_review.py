@@ -78,6 +78,25 @@ try:
     )
 
     text = response.output_text.strip()
+    usage = response.usage
+
+    if usage:
+        input_tokens = usage.input_tokens
+        output_tokens = usage.output_tokens
+        total_tokens = usage.total_tokens
+
+        print("---- AI Usage ----")
+        print(f"Input tokens : {input_tokens}")
+        print(f"Output tokens: {output_tokens}")
+        print(f"Total tokens : {total_tokens}")
+
+        # gpt-4.1-mini costc
+        input_cost = input_tokens / 1_000_000 * 0.15
+        output_cost = output_tokens / 1_000_000 * 0.60
+        cost = input_cost + output_cost
+
+        print(f"Estimated cost: ${cost:.6f}")
+        print("------------------")
 
 except Exception as e:
     print("ERROR: AI request failed:", e)
