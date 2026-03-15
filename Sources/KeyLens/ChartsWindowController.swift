@@ -51,6 +51,8 @@ final class ChartDataModel: ObservableObject {
     @Published var ikiHistogram:         [IKIHistogramEntry]    = []
     // Issue #103: slowest bigrams by average IKI
     @Published var slowBigrams:          [SlowBigramEntry]      = []
+    // Issue #104: average IKI broken down by finger
+    @Published var fingerIKI:            [FingerIKIEntry]       = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -115,6 +117,8 @@ final class ChartDataModel: ObservableObject {
         ikiHistogram = store.ikiHistogramEntries()
         // Issue #103: slowest bigrams by average IKI
         slowBigrams = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
+        // Issue #104: IKI per finger
+        fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
     }
 
     /// Lightweight refresh — reads only the live IKI ring buffer. Called by the 0.5s timer.

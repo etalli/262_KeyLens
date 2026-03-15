@@ -548,6 +548,22 @@ final class L10n {
         )
     }
 
+    var fingerIKITitle: String {
+        ja("指ごとの平均 IKI", en: "Avg IKI per Finger")
+    }
+
+    var helpFingerIKI: String {
+        ja(
+            "各指の平均 IKI (Inter-Key Interval) を示します。値が大きいほど、その指が次のキーを押すまでに時間がかかっています。\n\n集計方法: ビグラムの「受け取り側」の指に IKI を帰属させています。例えば「a→s」の IKI は中指 (s) に計上されます。\n\n練習のターゲットとして活用できます。",
+            en: "Shows the average IKI (Inter-Key Interval) for each finger. A higher value means that finger takes longer to engage as the receiving key in a transition.\n\nAggregation: IKI is attributed to the finger of the destination key in each bigram (e.g. the IKI of \"a→s\" is counted for the finger that presses \"s\").\n\nUse this to identify which fingers are slowest to respond."
+        )
+    }
+
+    var fingerIKINoData: String {
+        ja("データなし — しばらく入力すると指ごとの IKI データが蓄積されます。",
+           en: "No data yet — type for a while to accumulate per-finger IKI data.")
+    }
+
     var slowBigramsNoData: String {
         ja("データなし — しばらく入力するとビグラムIKIデータが蓄積されます。",
            en: "No data yet — type for a while to accumulate bigram IKI data.")

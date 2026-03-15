@@ -164,6 +164,17 @@ struct IKIHistogramEntry: Identifiable {
     let percentage: Double  // count / total * 100
 }
 
+struct FingerIKIEntry: Identifiable {
+    let id: String          // finger raw value e.g. "index"
+    let finger: String      // display label e.g. "Index"
+    let avgIKI: Double      // average inter-key interval in ms
+    init(_ t: (finger: String, avgIKI: Double)) {
+        id     = t.finger
+        finger = t.finger.prefix(1).uppercased() + t.finger.dropFirst()
+        avgIKI = t.avgIKI
+    }
+}
+
 struct SlowBigramEntry: Identifiable {
     let id: String          // bigram key e.g. "t→h"
     let bigram: String

@@ -8,11 +8,40 @@ extension ChartsView {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
+                chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
                 chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
             }
             .padding(24)
+        }
+    }
+
+    @ViewBuilder
+    var fingerIKIChart: some View {
+        if model.fingerIKI.isEmpty {
+            Text(L10n.shared.fingerIKINoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            let fingerOrder = model.fingerIKI.map(\.finger)
+            Chart(model.fingerIKI) { item in
+                BarMark(
+                    x: .value("Avg IKI (ms)", item.avgIKI),
+                    y: .value("Finger", item.finger)
+                )
+                .foregroundStyle(Color.indigo.opacity(0.8))
+                .cornerRadius(3)
+                .annotation(position: .trailing) {
+                    Text(String(format: "%.0f ms", item.avgIKI))
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: fingerOrder)
+            .chartXAxisLabel("ms", alignment: .trailing)
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.fingerIKI.count * 36 + 24))
         }
     }
 
