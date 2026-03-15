@@ -46,6 +46,9 @@ final class ChartDataModel: ObservableObject {
     // Live IKI ring buffer — refreshed every 0.5s by a timer in ChartsWindowController.
     // リアルタイムIKIリングバッファ（ChartsWindowControllerのタイマーで0.5秒ごとに更新）。
     @Published var recentIKIEntries:     [RecentIKIEntry]       = []
+    // Issue #102: IKI histogram — all-time bucket distribution
+    // 全打鍵データのIKI分布（バケット別）。
+    @Published var ikiHistogram:         [IKIHistogramEntry]    = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -106,6 +109,8 @@ final class ChartDataModel: ObservableObject {
         dailyWPM = store.dailyWPM().map(DailyWPMEntry.init)
         // Issue #65: daily backspace rate
         dailyAccuracy = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
+        // Issue #102: IKI histogram
+        ikiHistogram = store.ikiHistogramEntries()
     }
 
     /// Lightweight refresh — reads only the live IKI ring buffer. Called by the 0.5s timer.

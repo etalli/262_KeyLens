@@ -500,8 +500,19 @@ final class L10n {
 
     var helpRecentIKI: String {
         ja(
-            "直近20打鍵のキー間隔（IKI: Inter-Keystroke Interval）をリアルタイムで表示します。緑＝高速（<150ms）、黄＝中速、赤＝低速（>400ms）。チャートウィンドウを開いた状態でタイピングすると更新されます。",
+            "直近20打鍵のキー間隔 (IKI: Inter-Keystroke Interval) をリアルタイムで表示します。緑＝高速 (<150ms)、黄＝中速、赤＝低速 (>400ms)。チャートウィンドウを開いた状態でタイピングすると更新されます。",
             en: "Real-time inter-keystroke intervals (IKI) for the last 20 keystrokes. Green = fast (<150ms), yellow = medium, red = slow (>400ms). Type with this window open to see it update."
+        )
+    }
+
+    var chartTitleIKIHistogram: String {
+        ja("IKI分布ヒストグラム", en: "IKI Distribution Histogram")
+    }
+
+    var helpIKIHistogram: String {
+        ja(
+            "全打鍵データのキー間隔 (IKI) 分布を50ms刻みのバケットで表示します。緑＝高速 (0–100ms)、橙＝中速、赤＝低速 (300ms+)。タイピングリズムの全体的な傾向を把握できます。",
+            en: "Distribution of inter-keystroke intervals (IKI) across all recorded keystrokes, grouped in 50ms buckets. Green = fast (0–100ms), orange = medium, red = slow (300ms+). Shows your overall typing rhythm profile."
         )
     }
 
