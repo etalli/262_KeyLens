@@ -33,3 +33,19 @@ jobs:
         run: |
           export DEVELOPER_DIR="$(xcode-select -p)"
           swift test
+
+  validate-scripts:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Syntax check validate_counts.swift
+        run: swiftc -parse scripts/validate_counts.swift
+
+      - name: Syntax check check_mouse_data.sh
+        run: bash -n scripts/check_mouse_data.sh
+
+      - name: Syntax check ai_review.py
+        run: python3 -m py_compile scripts/ai_review.py
