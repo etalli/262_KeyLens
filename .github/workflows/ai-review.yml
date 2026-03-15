@@ -6,7 +6,7 @@ env:
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3 * * 1"   # weekly
   workflow_dispatch:
 
 jobs:
@@ -26,17 +26,35 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        run: pip install openai
+
+      - name: Install GitHub CLI
         run: |
-          pip install openai
+          sudo apt update
+          sudo apt install gh -y
 
       - name: Run AI review
         run: |
           python scripts/ai_review.py > issues.txt
+          echo "---- issues.txt ----"
+          cat issues.txt
 
-      - name: Create issue
+      - name: Create issues
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue create \
-            --title "AI suggestion $(date +%F)" \
-            --body-file issues.txt
+          if [ ! -s issues.txt ]; then
+            echo "No issues generated"
+            exit 0
+          fi
+
+          awk '/====/' RS= issues.txt | while read issue; do
+            title=$(echo "$issue" | head -n1)
+            body=$(echo "$issue" | tail -n +3)
+
+            if [ -n "$title" ]; then
+              gh issue create \
+                --title "$title" \
+                --body "$body"
+            fi
+          done
