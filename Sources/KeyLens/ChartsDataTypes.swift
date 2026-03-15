@@ -163,4 +163,3 @@ struct IKIHistogramEntry: Identifiable {
     let count: Int          // total keystrokes whose IKI fell in this bucket
     let percentage: Double  // count / total * 100
 }
-

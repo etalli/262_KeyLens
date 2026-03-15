@@ -9,6 +9,7 @@ extension ChartsView {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
                 chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
+                chartSection(L10n.shared.chartTitleIKIHistogram, helpText: L10n.shared.helpIKIHistogram) { ikiHistogramChart }
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                 chartSection("Daily Totals", helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
                 chartSection("Monthly Totals", helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
@@ -136,7 +137,7 @@ extension ChartsView {
     }
 
     /// 24-bar chart showing aggregate keystroke count by hour of day.
-    /// 時刻（0〜23時）別の累積打鍵数棒グラフ。
+    /// 時刻 (0〜23時) 別の累積打鍵数棒グラフ。
     @ViewBuilder
     var hourlyDistributionChart: some View {
         let dist = model.hourlyDistribution
@@ -162,8 +163,53 @@ extension ChartsView {
         }
     }
 
+    /// Bar chart showing the distribution of inter-keystroke intervals (IKI) across all recorded keystrokes.
+    /// 全打鍵データのIKI分布ヒストグラム (Issue #102)。
+    @ViewBuilder
+    var ikiHistogramChart: some View {
+        let entries = model.ikiHistogram
+        if entries.isEmpty || entries.allSatisfy({ $0.count == 0 }) {
+            emptyState
+        } else {
+            Chart(entries) { item in
+                BarMark(
+                    x: .value("IKI", item.bucket),
+                    y: .value("Count", item.count)
+                )
+                .foregroundStyle(ikiHistogramColor(for: item.bucket))
+                .cornerRadius(3)
+                .annotation(position: .top, spacing: 3) {
+                    if item.count > 0 {
+                        Text(String(format: "%.0f%%", item.percentage))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel {
+                        if let s = value.as(String.self) {
+                            Text(s).font(.caption2)
+                        }
+                    }
+                    AxisGridLine()
+                }
+            }
+            .frame(height: 180)
+        }
+    }
+
+    private func ikiHistogramColor(for bucket: String) -> Color {
+        switch bucket {
+        case "0–50", "50–100":   return .green.opacity(0.8)
+        case "100–150", "150–200": return .orange.opacity(0.75)
+        default:                   return .red.opacity(0.7)
+        }
+    }
+
     /// Bar chart of total keystrokes per calendar month (last 12 months).
-    /// 月別打鍵数合計の棒グラフ（直近12ヶ月）。
+    /// 月別打鍵数合計の棒グラフ (直近12ヶ月)。
     @ViewBuilder
     var monthlyTotalsChart: some View {
         let entries = Array(model.monthlyTotals.suffix(12))
