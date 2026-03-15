@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import KeyLensCore
 
 // MARK: - Ergonomic queries
@@ -29,7 +30,7 @@ extension KeyCountStore {
     /// Today's backspace rate (%).
     var todayBackspaceRate: Double? {
         queue.sync {
-            let dayCounts = store.dailyCounts[todayKey] ?? [:]
+            let dayCounts = dailyKeyCountsLocked(for: todayKey)
             let total = dayCounts.values.reduce(0, +)
             guard total > 0 else { return nil }
             return Double(dayCounts["Delete", default: 0]) / Double(total) * 100.0
@@ -39,17 +40,37 @@ extension KeyCountStore {
     /// Returns per-day backspace rate sorted ascending. Days with zero keystrokes are excluded.
     func dailyBackspaceRates() -> [(date: String, rate: Double)] {
         queue.sync {
-            store.dailyCounts.compactMap { date, dayCounts -> (date: String, rate: Double)? in
-                let total = dayCounts.values.reduce(0, +)
-                guard total > 0 else { return nil }
-                let bs = dayCounts["Delete", default: 0]
-                return (date, Double(bs) / Double(total) * 100.0)
+            guard let db = dbQueue else { return [] }
+            let today = todayKey
+            // Historical dates (before today) via a single SQL aggregation
+            var result: [(date: String, rate: Double)] = []
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date,
+                           SUM(count) as total,
+                           SUM(CASE WHEN key = 'Delete' THEN count ELSE 0 END) as deletes
+                    FROM daily_keys WHERE date < ?
+                    GROUP BY date HAVING total > 0 ORDER BY date
+                    """, arguments: [today])
+            }) {
+                for row in rows {
+                    let total: Int = row["total"]
+                    guard total > 0 else { continue }
+                    result.append((row["date"], Double(row["deletes"] as Int) / Double(total) * 100.0))
+                }
             }
-            .sorted { $0.date < $1.date }
+            // Today: merge SQL + pending for accuracy
+            let todayCounts = dailyKeyCountsLocked(for: today)
+            let todayTotal  = todayCounts.values.reduce(0, +)
+            if todayTotal > 0 {
+                let bs = todayCounts["Delete", default: 0]
+                result.append((today, Double(bs) / Double(todayTotal) * 100.0))
+            }
+            return result
         }
     }
 
-    /// Returns per-day estimated WPM sorted by date ascending. Only days with accumulated data are included.
+    /// Returns per-day estimated WPM sorted by date ascending.
     func dailyWPM() -> [(date: String, wpm: Double)] {
         queue.sync {
             store.dailyAvgIntervalMs.compactMap { date, avgMs -> (date: String, wpm: Double)? in
@@ -66,7 +87,7 @@ extension KeyCountStore {
         return queue.sync { store.dailyMinIntervalMs[key] }
     }
 
-    /// Cumulative same-finger bigram rate. Returns nil if no bigrams recorded.
+    /// Cumulative same-finger bigram rate.
     var sameFingerRate: Double? {
         queue.sync {
             guard store.totalBigramCount > 0 else { return nil }
@@ -74,18 +95,17 @@ extension KeyCountStore {
         }
     }
 
-    /// Today's same-finger bigram rate. Returns nil if no bigrams recorded today.
+    /// Today's same-finger bigram rate.
     var todaySameFingerRate: Double? {
         let today = todayKey
         return queue.sync {
             let total = store.dailyTotalBigramCount[today] ?? 0
             guard total > 0 else { return nil }
-            let same = store.dailySameFingerCount[today] ?? 0
-            return Double(same) / Double(total)
+            return Double(store.dailySameFingerCount[today] ?? 0) / Double(total)
         }
     }
 
-    /// Cumulative hand-alternation rate. Returns nil if no bigrams recorded.
+    /// Cumulative hand-alternation rate.
     var handAlternationRate: Double? {
         queue.sync {
             guard store.totalBigramCount > 0 else { return nil }
@@ -93,23 +113,22 @@ extension KeyCountStore {
         }
     }
 
-    /// Today's hand-alternation rate. Returns nil if no bigrams recorded today.
+    /// Today's hand-alternation rate.
     var todayHandAlternationRate: Double? {
         let today = todayKey
         return queue.sync {
             let total = store.dailyTotalBigramCount[today] ?? 0
             guard total > 0 else { return nil }
-            let alt = store.dailyHandAlternationCount[today] ?? 0
-            return Double(alt) / Double(total)
+            return Double(store.dailyHandAlternationCount[today] ?? 0) / Double(total)
         }
     }
 
-    /// Cumulative alternation reward score (Issue #25). Includes streak multiplier bonus.
+    /// Cumulative alternation reward score (Issue #25).
     var alternationRewardScore: Double {
         queue.sync { store.alternationRewardScore }
     }
 
-    /// Cumulative thumb imbalance ratio (Issue #26). Returns nil if no thumb keystrokes recorded.
+    /// Cumulative thumb imbalance ratio (Issue #26).
     var thumbImbalanceRatio: Double? {
         queue.sync {
             LayoutRegistry.shared.thumbImbalanceDetector
@@ -120,17 +139,17 @@ extension KeyCountStore {
     /// Thumb imbalance ratio for a specific day (Issue #26).
     func dailyThumbImbalance(for date: String) -> Double? {
         queue.sync {
-            guard let dayCounts = store.dailyCounts[date] else { return nil }
+            let dayCounts = dailyKeyCountsLocked(for: date)
+            guard !dayCounts.isEmpty else { return nil }
             return LayoutRegistry.shared.thumbImbalanceDetector
                 .imbalanceRatio(counts: dayCounts, layout: LayoutRegistry.shared)
         }
     }
 
     /// Per-day ergonomic rates for Learning Curve visualization (Phase 3).
-    /// Returns rows only for dates that have at least one bigram recorded.
     func dailyErgonomicRates() -> [(date: String, sameFingerRate: Double, handAltRate: Double, highStrainRate: Double)] {
         queue.sync {
-            store.dailyCounts.keys.sorted().compactMap { date in
+            allDatesLocked().compactMap { date in
                 let bigrams = store.dailyTotalBigramCount[date] ?? 0
                 guard bigrams > 0 else { return nil }
                 let sf = Double(store.dailySameFingerCount[date]       ?? 0) / Double(bigrams)
@@ -146,7 +165,7 @@ extension KeyCountStore {
         queue.sync { store.highStrainBigramCount }
     }
 
-    /// Fraction of all bigrams that are high-strain. Returns nil if no bigrams recorded.
+    /// Fraction of all bigrams that are high-strain.
     var highStrainBigramRate: Double? {
         queue.sync {
             guard store.totalBigramCount > 0 else { return nil }
@@ -175,7 +194,7 @@ extension KeyCountStore {
         }
     }
 
-    /// Thumb efficiency coefficient (Issue #27). Returns nil if no keystrokes recorded.
+    /// Thumb efficiency coefficient (Issue #27).
     var thumbEfficiencyCoefficient: Double? {
         queue.sync {
             LayoutRegistry.shared.thumbEfficiencyCalculator
@@ -183,8 +202,7 @@ extension KeyCountStore {
         }
     }
 
-    /// Unified ergonomic score (0–100) computed from cumulative keystroke data (Issue #29).
-    /// Higher is better. Returns 100.0 when no bigram data is available.
+    /// Unified ergonomic score (0–100) from cumulative keystroke data (Issue #29).
     var currentErgonomicScore: Double {
         queue.sync {
             ergonomicScore(
@@ -199,9 +217,7 @@ extension KeyCountStore {
 
     /// Inferred typing style based on cumulative data.
     public var currentTypingStyle: TypingStyle {
-        queue.sync {
-            TypingStyleAnalyzer().analyze(keyCounts: store.counts)
-        }
+        queue.sync { TypingStyleAnalyzer().analyze(keyCounts: store.counts) }
     }
 
     /// Detected fatigue risk level.
@@ -219,11 +235,10 @@ extension KeyCountStore {
     }
 
     /// Per-day ergonomic scores for trend tracking (Issue #29).
-    /// Keys are "yyyy-MM-dd" strings. Only dates with at least one bigram are included.
     var dailyErgonomicScore: [String: Double] {
         queue.sync {
             var result: [String: Double] = [:]
-            for date in store.dailyCounts.keys {
+            for date in allDatesLocked() {
                 let bigrams = store.dailyTotalBigramCount[date] ?? 0
                 guard bigrams > 0 else { continue }
                 result[date] = ergonomicScore(
@@ -231,7 +246,7 @@ extension KeyCountStore {
                     hsCount:     store.dailyHighStrainBigramCount[date] ?? 0,
                     altCount:    store.dailyHandAlternationCount[date]  ?? 0,
                     bigramCount: bigrams,
-                    keyCounts:   store.dailyCounts[date] ?? [:]
+                    keyCounts:   dailyKeyCountsLocked(for: date)
                 )
             }
             return result
@@ -244,10 +259,7 @@ extension KeyCountStore {
 extension KeyCountStore {
 
     /// Computes a unified ergonomic score (0–100) from raw bigram counters.
-    /// Must be called from inside `queue.sync` — does not re-acquire the queue.
-    /// - Parameter keyCounts: Per-key counts used to compute thumb metrics.
-    ///   Pass `nil` (or omit) when per-key counts are unavailable (e.g. per-app/device context);
-    ///   thumb imbalance and efficiency will be treated as 0.
+    /// Must be called from inside `queue.sync`.
     func ergonomicScore(
         sfCount:     Int,
         hsCount:     Int,
