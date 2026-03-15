@@ -4,7 +4,7 @@ from openai import OpenAI
 try:
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-repo = "https://github.com/etalli/262_KeyLens"
+    repo = "https://github.com/etalli/262_KeyLens"
 
     prompt = """
 Review this GitHub repository and propose improvements.
