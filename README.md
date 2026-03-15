@@ -99,6 +99,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | Section | What it shows |
 |---------|---------------|
 | **Live IKI** | Bar chart of inter-keystroke intervals for the last 20 keystrokes, updated every 0.5s; bars colour-coded green/orange/red by speed |
+| **IKI Distribution** | Histogram of keystroke interval buckets showing the distribution of your typing rhythm |
 | **Daily Totals** | Line chart of per-day keystroke counts |
 | **Typing Speed** | Daily average WPM over time |
 | **Backspace Rate** | Daily backspace/correction rate over time |

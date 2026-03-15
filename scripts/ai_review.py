@@ -51,7 +51,9 @@ Repository:
 Project files:
 {files}
 
-Suggest 3 useful GitHub issues that would improve this project.
+Suggest 1 useful GitHub issues that would improve this project.
+Then remove any that overlap with existing issues.
+Return only the remaining unique issues.
 
 Return JSON only (no markdown), like this:
 
@@ -90,7 +92,7 @@ try:
         print(f"Output tokens: {output_tokens}")
         print(f"Total tokens : {total_tokens}")
 
-        # gpt-4.1-mini costc
+        # gpt-4.1-mini cost: $0.15 per 1M input tokens, $0.60 per 1M output tokens1
         input_cost = input_tokens / 1_000_000 * 0.15
         output_cost = output_tokens / 1_000_000 * 0.60
         cost = input_cost + output_cost
