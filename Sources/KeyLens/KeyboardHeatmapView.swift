@@ -1,4 +1,5 @@
 import SwiftUI
+import KeyLensCore
 
 // MARK: - HeatmapMode
 
@@ -207,10 +208,9 @@ struct KeyboardHeatmapView: View {
     private var strainScores: [String: Int] {
         var scores: [String: Int] = [:]
         for (pair, count) in KeyCountStore.shared.topHighStrainBigrams(limit: 1000) {
-            let parts = pair.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            scores[parts[0], default: 0] += count
-            scores[parts[1], default: 0] += count
+            guard let b = Bigram.parse(pair) else { continue }
+            scores[b.from, default: 0] += count
+            scores[b.to, default: 0] += count
         }
         return scores
     }

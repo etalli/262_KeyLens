@@ -443,9 +443,8 @@ public final class LayoutRegistry {
     /// キー名ビグラム文字列（例："f→r"）に対する同指ペナルティを返す。
     /// 未知キー・異指・異手の場合は nil。
     public func sameFingerPenalty(for bigram: String) -> Double? {
-        let parts = bigram.components(separatedBy: "→")
-        guard parts.count == 2 else { return nil }
-        let (k1, k2) = (parts[0], parts[1])
+        guard let b = Bigram.parse(bigram) else { return nil }
+        let (k1, k2) = (b.from, b.to)
 
         // Both keys must be on the same hand and use the same finger.
         // 同じ手・同じ指でなければ同指ビグラムではない。

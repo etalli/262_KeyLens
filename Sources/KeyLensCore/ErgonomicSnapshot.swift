@@ -146,9 +146,8 @@ public struct ErgonomicSnapshot: Equatable {
         let detector   = layout.highStrainDetector
 
         for (bigram, count) in bigramCounts where count > 0 {
-            let parts = bigram.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            let (k1, k2) = (parts[0], parts[1])
+            guard let b = Bigram.parse(bigram) else { continue }
+            let (k1, k2) = (b.from, b.to)
 
             totalPairs += count
 

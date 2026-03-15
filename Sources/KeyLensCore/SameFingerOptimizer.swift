@@ -165,10 +165,9 @@ public struct SameFingerOptimizer {
     private func keysInBigrams(_ bigramCounts: [String: Int]) -> Set<String> {
         var keys = Set<String>()
         for bigram in bigramCounts.keys {
-            let parts = bigram.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            keys.insert(parts[0])
-            keys.insert(parts[1])
+            guard let b = Bigram.parse(bigram) else { continue }
+            keys.insert(b.from)
+            keys.insert(b.to)
         }
         return keys
     }
@@ -185,9 +184,8 @@ public struct SameFingerOptimizer {
         // Score each same-finger bigram by count × penalty.
         var scored: [(key1: String, key2: String, weight: Double)] = []
         for (bigram, count) in bigramCounts where count > 0 {
-            let parts = bigram.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            let k1 = parts[0], k2 = parts[1]
+            guard let b = Bigram.parse(bigram) else { continue }
+            let k1 = b.from, k2 = b.to
             guard let f1 = layout.finger(for: k1),
                   let f2 = layout.finger(for: k2),
                   f1 == f2,
