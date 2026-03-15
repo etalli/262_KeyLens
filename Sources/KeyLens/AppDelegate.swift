@@ -103,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     private func detectHardware() {
-        let names = KeyboardDeviceInfo.connectedNames()
-        LayoutRegistry.shared.applyProfile(forDeviceNames: names)
+        let devices = KeyboardDeviceInfo.connectedDevices()
+        LayoutRegistry.shared.applyProfile(forDevices: devices)
     }
 }

@@ -398,15 +398,27 @@ public struct SplitKeyboardConfig: Equatable {
 /// Downstream features (hand alternation, thumb imbalance, ergonomic scoring)
 /// should call `LayoutRegistry.shared.hand(for:)` rather than querying the
 /// layout directly, to respect any split config the user has set.
+/// Whether the active keyboard is built-in or externally connected.
+/// アクティブなキーボードが内蔵か外付けかを表す。
+public enum KeyboardKind: String, Codable, Sendable {
+    case `internal` = "internal"
+    case external   = "external"
+    case unknown    = "unknown"
+}
+
 public final class LayoutRegistry {
     public static let shared = LayoutRegistry()
 
     public var activeProfile: ErgonomicProfile = .standard
-    
+
     /// Human-readable label for the currently detected keyboard device set.
     /// Uses the connected HID product names when available.
     /// 現在検出されているキーボードデバイス集合の表示ラベル。
     public private(set) var currentDeviceLabel: String = "Unknown Keyboard"
+
+    /// Whether the currently detected keyboard is internal (built-in) or external.
+    /// 現在検出中のキーボードが内蔵か外付けかを示す。
+    public private(set) var currentKeyboardKind: KeyboardKind = .unknown
     
     /// Returns the active layout from the current profile.
     public var current: any KeyboardLayout { activeProfile.layout }
@@ -543,19 +555,42 @@ public final class LayoutRegistry {
     public func applyProfile(forDeviceNames names: [String]) {
         let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
         currentDeviceLabel = Self.resolvedDeviceLabel(for: names)
-        
+
         let detectedSplit = names.contains { name in
             let lower = name.lowercased()
             return splitKeywords.contains { lower.contains($0) }
         }
-        
+
         let newProfile = detectedSplit ? ErgonomicProfile.splitErgo : ErgonomicProfile.standard
-        
+
         if activeProfile != newProfile {
             let devices = names.isEmpty ? "None" : names.joined(separator: ", ")
             print("[LayoutRegistry] Hardware change detected: \(devices)")
             print("[LayoutRegistry] Switching profile to: \(newProfile.name)")
             activeProfile = newProfile
         }
+    }
+
+    /// Updates the active profile using full device info including keyboard kind.
+    /// デバイス名とキーボード種別（内蔵/外付け）を受け取ってプロファイルを更新する。
+    ///
+    /// `kind` is resolved as:
+    /// - `.internal` if any device reports SPI transport or has "internal" in its name
+    /// - `.external` if at least one keyboard is present and none qualifies as internal
+    /// - `.unknown` if no devices are detected
+    public func applyProfile(forDevices devices: [(name: String, kind: KeyboardKind)]) {
+        let names = devices.map(\.name)
+
+        // Determine overall keyboard kind from the device list.
+        if devices.isEmpty {
+            currentKeyboardKind = .unknown
+        } else if devices.contains(where: { $0.kind == .internal }) {
+            currentKeyboardKind = .internal
+        } else {
+            currentKeyboardKind = .external
+        }
+
+        print("[LayoutRegistry] Keyboard kind: \(currentKeyboardKind.rawValue)")
+        applyProfile(forDeviceNames: names)
     }
 }
