@@ -214,6 +214,45 @@ extension KeyCountStore {
         }
     }
 
+    /// Bigrams ranked by training priority (Issue #85).
+    ///
+    /// Reads all bigram IKI data from SQLite + pending, computes
+    /// `BigramScore` for each, and returns the top-k candidates.
+    ///
+    /// - Parameters:
+    ///   - minCount: Minimum observation count to include a bigram (default: 5).
+    ///   - topK:     Maximum results returned (default: 10).
+    func rankedBigramsForTraining(minCount: Int = 5, topK: Int = 10) -> [BigramScore] {
+        queue.sync {
+            var merged: [String: (sum: Double, count: Int)] = [:]
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let key: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    merged[key] = (sum: sum, count: cnt)
+                }
+            }
+
+            for (bigram, p) in pending.bigramIKI {
+                let e = merged[bigram] ?? (sum: 0, count: 0)
+                merged[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+
+            let candidates = merged.compactMap { bigram, data -> BigramScore? in
+                guard data.count > 0 else { return nil }
+                let meanIKI = data.sum / Double(data.count)
+                return BigramScore(bigram: bigram, meanIKI: meanIKI, count: data.count)
+            }
+
+            return BigramScore.topCandidates(candidates, minCount: minCount, topK: topK)
+        }
+    }
+
     /// All daily totals sorted ascending by date.
     func dailyTotals() -> [(date: String, total: Int)] {
         queue.sync {
