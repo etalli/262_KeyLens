@@ -97,8 +97,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Flush pending mouse distance data to SQLite before exit.
-        // 終了前にマウス移動データを SQLite へフラッシュする。
+        // Flush pending keystroke data to keylens.db before exit.
+        KeyCountStore.shared.flushSync()
+        // Flush pending mouse distance data to mouse.db before exit.
         MouseStore.shared.flushSync()
     }
 

@@ -154,3 +154,13 @@ struct WeeklyDeltaRow: Identifiable {
     let lowerIsBetter: Bool
     var delta: Double { thisWeek - lastWeek }
 }
+
+/// One bucket in the IKI histogram (Issue #102).
+/// IKIヒストグラムの1バケット。
+struct IKIHistogramEntry: Identifiable {
+    let id = UUID()
+    let bucket: String      // label e.g. "0–50", "50–100", …, "300+"
+    let count: Int          // total keystrokes whose IKI fell in this bucket
+    let percentage: Double  // count / total * 100
+}
+

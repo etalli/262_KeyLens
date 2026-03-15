@@ -20,86 +20,36 @@ extension KeyCountStore {
 
     /// Daily CSV (date, key, count) — per-day breakdown sorted by date and count.
     func exportDailyCSV() -> String {
-        queue.sync {
+        // Flush pending data first so the export is complete.
+        flushSync()
+        return queue.sync {
+            guard let db = dbQueue else { return "date,key,count\n" }
             var lines = ["date,key,count"]
-            for date in store.dailyCounts.keys.sorted() {
-                let dayCounts = store.dailyCounts[date] ?? [:]
-                for (key, count) in dayCounts.sorted(by: { $0.value > $1.value }) {
-                    let escaped = key.contains(",") ? "\"\(key)\"" : key
-                    lines.append("\(date),\(escaped),\(count)")
-                }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, key, count FROM daily_keys ORDER BY date, count DESC
+                    """)
+            }) ?? []
+            for row in rows {
+                let key: String = row["key"]
+                let escaped = key.contains(",") ? "\"\(key)\"" : key
+                lines.append("\(row["date"] as String),\(escaped),\(row["count"] as Int)")
             }
             return lines.joined(separator: "\n")
         }
     }
 
     /// Export all keystroke data to a SQLite database at the given URL.
-    /// Tables created:
-    ///   key_counts    — all-time total per key
-    ///   daily_counts  — per-day count per key
-    ///   hourly_counts — per-hour total keystrokes (key = "yyyy-MM-dd HH")
-    ///   bigram_counts — all-time bigram (two-key sequence) totals
+    /// Uses GRDB backup to safely copy the live keylens.db to the destination.
     func exportSQLite(to url: URL) throws {
-        // Snapshot data under the serial queue to avoid holding it during DB writes.
-        let (counts, dailyCounts, hourlyCounts, bigramCounts): (
-            [String: Int], [String: [String: Int]], [String: Int], [String: Int]
-        ) = queue.sync {
-            (store.counts, store.dailyCounts, store.hourlyCounts, store.bigramCounts)
+        // Flush pending so the copy is up-to-date.
+        flushSync()
+        guard let src = dbQueue else { return }
+        // Remove any existing file at the destination.
+        if FileManager.default.fileExists(atPath: url.path) {
+            try FileManager.default.removeItem(at: url)
         }
-
-        let db = try DatabaseQueue(path: url.path)
-        try db.write { db in
-            // key_counts
-            try db.execute(sql: """
-                CREATE TABLE IF NOT EXISTS key_counts (
-                    key   TEXT PRIMARY KEY,
-                    total INTEGER NOT NULL
-                )
-            """)
-            for (key, total) in counts {
-                try db.execute(sql: "INSERT OR REPLACE INTO key_counts (key, total) VALUES (?, ?)",
-                               arguments: [key, total])
-            }
-
-            // daily_counts
-            try db.execute(sql: """
-                CREATE TABLE IF NOT EXISTS daily_counts (
-                    date  TEXT NOT NULL,
-                    key   TEXT NOT NULL,
-                    count INTEGER NOT NULL,
-                    PRIMARY KEY (date, key)
-                )
-            """)
-            for (date, dayCounts) in dailyCounts {
-                for (key, count) in dayCounts {
-                    try db.execute(sql: "INSERT OR REPLACE INTO daily_counts (date, key, count) VALUES (?, ?, ?)",
-                                   arguments: [date, key, count])
-                }
-            }
-
-            // hourly_counts
-            try db.execute(sql: """
-                CREATE TABLE IF NOT EXISTS hourly_counts (
-                    hour  TEXT PRIMARY KEY,
-                    count INTEGER NOT NULL
-                )
-            """)
-            for (hour, count) in hourlyCounts {
-                try db.execute(sql: "INSERT OR REPLACE INTO hourly_counts (hour, count) VALUES (?, ?)",
-                               arguments: [hour, count])
-            }
-
-            // bigram_counts
-            try db.execute(sql: """
-                CREATE TABLE IF NOT EXISTS bigram_counts (
-                    bigram TEXT PRIMARY KEY,
-                    count  INTEGER NOT NULL
-                )
-            """)
-            for (bigram, count) in bigramCounts {
-                try db.execute(sql: "INSERT OR REPLACE INTO bigram_counts (bigram, count) VALUES (?, ?)",
-                               arguments: [bigram, count])
-            }
-        }
+        let dest = try DatabaseQueue(path: url.path)
+        try src.backup(to: dest)
     }
 }

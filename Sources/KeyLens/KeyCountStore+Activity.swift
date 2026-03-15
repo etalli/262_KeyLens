@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import KeyLensCore
 
 // MARK: - Activity & frequency queries
@@ -8,21 +9,29 @@ extension KeyCountStore {
 
     /// Today's top limit keys sorted descending.
     func todayTopKeys(limit: Int = 10) -> [(key: String, count: Int)] {
-        queue.sync { topEntries(store.dailyCounts[todayKey] ?? [:], limit: limit) }
+        queue.sync { topEntries(dailyKeyCountsLocked(for: todayKey), limit: limit) }
     }
 
-    /// Today's total keystroke count.
+    /// Today's total keystroke count (SQLite + pending).
     var todayCount: Int {
-        queue.sync { store.dailyCounts[todayKey]?.values.reduce(0, +) ?? 0 }
+        queue.sync { dailyTotalLocked(for: todayKey) }
     }
 
     /// Hourly keystroke counts for a given date (24-element array, index = hour 0–23).
     func hourlyCounts(for date: String) -> [Int] {
         queue.sync {
-            (0..<24).map { hour in
-                let key = String(format: "%@-%02d", date, hour)
-                return store.hourlyCounts[key] ?? 0
+            var result = [Int](repeating: 0, count: 24)
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT hour, count FROM hourly_counts WHERE date = ?", arguments: [date])
+               }) {
+                for row in rows {
+                    let h: Int = row["hour"]
+                    if h < 24 { result[h] += (row["count"] as Int) }
+                }
             }
+            for (h, v) in pending.hourly[date, default: [:]] where h < 24 { result[h] += v }
+            return result
         }
     }
 
@@ -30,7 +39,7 @@ extension KeyCountStore {
     func shortcutEfficiencyToday() -> Double? {
         queue.sync {
             let shortcuts = store.dailyModifiedCount[todayKey] ?? 0
-            let dayCounts = store.dailyCounts[todayKey] ?? [:]
+            let dayCounts = dailyKeyCountsLocked(for: todayKey)
             let mouseClicks = dayCounts.filter { $0.key.hasPrefix("🖱") }.values.reduce(0, +)
             let total = shortcuts + mouseClicks
             guard total > 0 else { return nil }
@@ -105,12 +114,34 @@ extension KeyCountStore {
 
     /// Today's top apps sorted descending.
     func todayTopApps(limit: Int = 10) -> [(app: String, count: Int)] {
-        queue.sync { topEntries(store.dailyAppCounts[todayKey] ?? [:], limit: limit) }
+        let today = todayKey
+        return queue.sync {
+            var result: [String: Int] = [:]
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT app, count FROM daily_apps WHERE date = ?", arguments: [today])
+               }) {
+                for row in rows { result[row["app"], default: 0] += (row["count"] as Int) }
+            }
+            for (a, v) in pending.dailyApps[today, default: [:]] { result[a, default: 0] += v }
+            return topEntries(result, limit: limit)
+        }
     }
 
     /// Today's top devices sorted descending.
     func todayTopDevices(limit: Int = 10) -> [(device: String, count: Int)] {
-        queue.sync { topEntries(store.dailyDeviceCounts[todayKey] ?? [:], limit: limit) }
+        let today = todayKey
+        return queue.sync {
+            var result: [String: Int] = [:]
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT device, count FROM daily_devices WHERE date = ?", arguments: [today])
+               }) {
+                for row in rows { result[row["device"], default: 0] += (row["count"] as Int) }
+            }
+            for (d, v) in pending.dailyDevices[today, default: [:]] { result[d, default: 0] += v }
+            return topEntries(result, limit: limit)
+        }
     }
 
     /// Full cumulative bigram frequency table. Used by ErgonomicSnapshot / LayoutComparison.
@@ -118,74 +149,126 @@ extension KeyCountStore {
         queue.sync { store.bigramCounts }
     }
 
-    /// Full cumulative per-key keystroke counts. Used for thumb imbalance and efficiency metrics.
+    /// Full cumulative per-key keystroke counts.
     var allKeyCounts: [String: Int] {
         queue.sync { store.counts }
     }
 
-    /// Top-N bigrams by cumulative count (Issue #12).
+    /// Top-N bigrams by cumulative count.
     func topBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         queue.sync { topEntries(store.bigramCounts, limit: limit) }
     }
 
-    /// Today's top bigrams (Issue #12).
+    /// Today's top bigrams.
     func todayTopBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         let today = todayKey
-        return queue.sync { topEntries(store.dailyBigramCounts[today] ?? [:], limit: limit) }
+        return queue.sync {
+            var result: [String: Int] = [:]
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, count FROM daily_bigrams WHERE date = ?", arguments: [today])
+               }) {
+                for row in rows { result[row["bigram"], default: 0] += (row["count"] as Int) }
+            }
+            for (b, v) in pending.dailyBigrams[today, default: [:]] { result[b, default: 0] += v }
+            return topEntries(result, limit: limit)
+        }
     }
 
-    /// Top-N trigrams by cumulative frequency (Issue #12).
+    /// Top-N trigrams by cumulative frequency.
     func topTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         queue.sync { topEntries(store.trigramCounts, limit: limit) }
     }
 
-    /// Today's top trigrams (Issue #12).
+    /// Today's top trigrams.
     func todayTopTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         let today = todayKey
-        return queue.sync { topEntries(store.dailyTrigramCounts[today] ?? [:], limit: limit) }
+        return queue.sync {
+            var result: [String: Int] = [:]
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT trigram, count FROM daily_trigrams WHERE date = ?", arguments: [today])
+               }) {
+                for row in rows { result[row["trigram"], default: 0] += (row["count"] as Int) }
+            }
+            for (t, v) in pending.dailyTrigrams[today, default: [:]] { result[t, default: 0] += v }
+            return topEntries(result, limit: limit)
+        }
     }
 
     /// Average IKI (ms) for a bigram. Returns nil if no samples exist (Issue #24).
     func avgBigramIKI(for bigram: String) -> Double? {
         queue.sync {
-            guard let count = store.bigramIKICount[bigram], count > 0 else { return nil }
-            return store.bigramIKISum[bigram].map { $0 / Double(count) }
+            var sum: Double = 0
+            var count: Int  = 0
+            if let db = dbQueue,
+               let row = try? db.read({ db in
+                   try Row.fetchOne(db, sql: "SELECT iki_sum, iki_count FROM bigram_iki WHERE bigram = ?", arguments: [bigram])
+               }) {
+                sum   = row["iki_sum"]   ?? 0
+                count = row["iki_count"] ?? 0
+            }
+            if let p = pending.bigramIKI[bigram] { sum += p.sum; count += p.count }
+            guard count > 0 else { return nil }
+            return sum / Double(count)
         }
     }
 
     /// All daily totals sorted ascending by date.
     func dailyTotals() -> [(date: String, total: Int)] {
         queue.sync {
-            store.dailyCounts
-                .map { (date: $0.key, total: $0.value.values.reduce(0, +)) }
-                .sorted { $0.date < $1.date }
+            guard let db = dbQueue else { return [] }
+            var map: [String: Int] = [:]
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: "SELECT date, SUM(count) as total FROM daily_keys GROUP BY date ORDER BY date")
+            }) {
+                for row in rows { map[row["date"], default: 0] = (row["total"] as Int) }
+            }
+            for (date, keys) in pending.dailyKeys { map[date, default: 0] += keys.values.reduce(0, +) }
+            return map.sorted { $0.key < $1.key }.map { (date: $0.key, total: $0.value) }
         }
     }
 
     /// Per-day keystroke totals for the last N calendar days (oldest first).
     func dailyTotals(last days: Int) -> [(date: String, count: Int)] {
         let cal = Calendar.current
+        let cutoffDate = cal.date(byAdding: .day, value: -(days - 1), to: Date()) ?? Date()
         return queue.sync {
-            (0..<days).reversed().compactMap { offset -> (String, Int)? in
+            guard let db = dbQueue else { return [] }
+            let cutoff = Self.dayFormatter.string(from: cutoffDate)
+            var map: [String: Int] = [:]
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, SUM(count) as total FROM daily_keys WHERE date >= ? GROUP BY date
+                    """, arguments: [cutoff])
+            }) {
+                for row in rows { map[row["date"], default: 0] = (row["total"] as Int) }
+            }
+            for (date, keys) in pending.dailyKeys where date >= cutoff {
+                map[date, default: 0] += keys.values.reduce(0, +)
+            }
+            return (0..<days).reversed().compactMap { offset -> (String, Int)? in
                 guard let date = cal.date(byAdding: .day, value: -offset, to: Date()) else { return nil }
                 let key = Self.dayFormatter.string(from: date)
-                let count = store.dailyCounts[key]?.values.reduce(0, +) ?? 0
-                return (key, count)
+                return (key, map[key] ?? 0)
             }
         }
     }
 
     /// Aggregate hourly keystroke counts across all recorded dates.
-    /// Returns a 24-element array where index = hour of day (0–23).
     func hourlyDistribution() -> [Int] {
         queue.sync {
             var result = [Int](repeating: 0, count: 24)
-            for (key, count) in store.hourlyCounts {
-                // key format: "yyyy-MM-dd-HH"
-                let parts = key.split(separator: "-")
-                guard parts.count == 4, let hour = Int(parts[3]), hour < 24 else { continue }
-                result[hour] += count
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT hour, SUM(count) as total FROM hourly_counts GROUP BY hour")
+               }) {
+                for row in rows {
+                    let h: Int = row["hour"]
+                    if h < 24 { result[h] += (row["total"] as Int) }
+                }
             }
+            for (_, hours) in pending.hourly { for (h, v) in hours where h < 24 { result[h] += v } }
             return result
         }
     }
@@ -193,15 +276,22 @@ extension KeyCountStore {
     /// Aggregate total keystrokes by calendar month ("yyyy-MM"), sorted ascending.
     func monthlyTotals() -> [(month: String, total: Int)] {
         queue.sync {
-            var monthMap: [String: Int] = [:]
-            for (date, keyCounts) in store.dailyCounts {
+            guard let db = dbQueue else { return [] }
+            var map: [String: Int] = [:]
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT SUBSTR(date,1,7) as month, SUM(count) as total
+                    FROM daily_keys GROUP BY month ORDER BY month
+                    """)
+            }) {
+                for row in rows { map[row["month"], default: 0] = (row["total"] as Int) }
+            }
+            for (date, keys) in pending.dailyKeys {
                 guard date.count >= 7 else { continue }
                 let month = String(date.prefix(7))
-                monthMap[month, default: 0] += keyCounts.values.reduce(0, +)
+                map[month, default: 0] += keys.values.reduce(0, +)
             }
-            return monthMap
-                .map { (month: $0.key, total: $0.value) }
-                .sorted { $0.month < $1.month }
+            return map.sorted { $0.key < $1.key }.map { (month: $0.key, total: $0.value) }
         }
     }
 
@@ -222,17 +312,33 @@ extension KeyCountStore {
     /// Top limit keys per day over the most recent recentDays days.
     func topKeysPerDay(limit: Int = 10, recentDays: Int = 14) -> [(date: String, key: String, count: Int)] {
         queue.sync {
-            let dates = Array(store.dailyCounts.keys.sorted().suffix(recentDays))
-            var combined: [String: Int] = [:]
-            for date in dates {
-                for (k, v) in store.dailyCounts[date] ?? [:] {
-                    combined[k, default: 0] += v
+            guard let db = dbQueue else { return [] }
+            let cal = Calendar.current
+            let cutoffDate = cal.date(byAdding: .day, value: -recentDays, to: Date()) ?? Date()
+            let cutoff = Self.dayFormatter.string(from: cutoffDate)
+
+            // Load all rows in range
+            var dateMap: [String: [String: Int]] = [:]
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: "SELECT date, key, count FROM daily_keys WHERE date >= ? ORDER BY date", arguments: [cutoff])
+            }) {
+                for row in rows {
+                    dateMap[row["date"], default: [:]][row["key"], default: 0] += (row["count"] as Int)
                 }
             }
+            for (date, keys) in pending.dailyKeys where date >= cutoff {
+                for (k, v) in keys { dateMap[date, default: [:]][k, default: 0] += v }
+            }
+
+            // Compute top keys across the range
+            var combined: [String: Int] = [:]
+            for (_, keys) in dateMap { for (k, v) in keys { combined[k, default: 0] += v } }
             let topKeyNames = topEntries(combined, limit: limit).map { $0.0 }
+
+            let dates = Array(dateMap.keys.sorted().suffix(recentDays))
             var result: [(date: String, key: String, count: Int)] = []
             for date in dates {
-                let dayCounts = store.dailyCounts[date] ?? [:]
+                let dayCounts = dateMap[date] ?? [:]
                 for key in topKeyNames {
                     result.append((date: date, key: key, count: dayCounts[key] ?? 0))
                 }
@@ -249,7 +355,7 @@ extension KeyCountStore {
     /// All keys sorted by cumulative count descending, including today's count.
     func allEntries() -> [(key: String, total: Int, today: Int)] {
         queue.sync {
-            let todayData = store.dailyCounts[todayKey] ?? [:]
+            let todayData = dailyKeyCountsLocked(for: todayKey)
             return store.counts.sorted { $0.value > $1.value }
                 .map { (key: $0.key, total: $0.value, today: todayData[$0.key] ?? 0) }
         }
@@ -261,7 +367,7 @@ extension KeyCountStore {
 extension KeyCountStore {
 
     /// Returns the top-N entries from a [String: Int] dictionary, sorted by value descending.
-    /// Must be called from inside `queue.sync` — does not re-acquire the queue.
+    /// Must be called from inside `queue.sync`.
     func topEntries(_ dict: [String: Int], limit: Int) -> [(String, Int)] {
         dict.sorted { $0.value > $1.value }
             .prefix(limit)
