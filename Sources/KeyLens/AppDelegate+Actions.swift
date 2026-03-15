@@ -67,6 +67,37 @@ extension AppDelegate {
         }
     }
 
+    func exportSQLite() {
+        let l = L10n.shared
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let tag = dateFmt.string(from: Date())
+
+        let panel = NSSavePanel()
+        panel.title = l.exportSQLiteMenuItem
+        panel.prompt = l.exportSQLiteSaveButton
+        panel.nameFieldStringValue = "KeyLens_\(tag).db"
+        panel.allowedContentTypes = [.init(filenameExtension: "db")!]
+        panel.canCreateDirectories = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let dest = panel.url else { return }
+            do {
+                try KeyCountStore.shared.exportSQLite(to: dest)
+                NSWorkspace.shared.selectFile(dest.path, inFileViewerRootedAtPath: "")
+            } catch {
+                KeyLens.log("SQLite export failed: \(error)")
+                DispatchQueue.main.async {
+                    let alert = NSAlert()
+                    alert.messageText = l.exportSQLiteFailedAlert
+                    alert.informativeText = error.localizedDescription
+                    alert.runModal()
+                }
+            }
+        }
+    }
+
     func changeLanguage(to lang: Language) {
         L10n.shared.language = lang
         objectWillChange.send()

@@ -293,6 +293,7 @@ private struct DataMenuRow: View {
         add(l.showAllMenuItem)         { appDelegate.showAllStats() }
         menu.addItem(.separator())
         add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
+        add(l.exportSQLiteMenuItem)    { appDelegate.exportSQLite() }
         add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem) {
             appDelegate.copyDataToClipboard()
         }

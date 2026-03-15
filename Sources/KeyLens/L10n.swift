@@ -342,6 +342,18 @@ final class L10n {
         ja("CSV 書き出し…", en: "Export CSV…")
     }
 
+    var exportSQLiteMenuItem: String {
+        ja("SQLite 書き出し…", en: "Export SQLite…")
+    }
+
+    var exportSQLiteSaveButton: String {
+        ja("保存", en: "Save")
+    }
+
+    var exportSQLiteFailedAlert: String {
+        ja("SQLite の書き出しに失敗しました", en: "Failed to export SQLite database")
+    }
+
     var exportHeatmap: String {
         ja("ヒートマップを保存", en: "Save Heatmap")
     }
