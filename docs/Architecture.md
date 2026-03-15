@@ -24,7 +24,8 @@ graph TD
     C -->|mouse event| MS[MouseStore]
     C -->|keystrokeInput notification| K
     E -->|every milestone presses| F[NotificationManager]
-    E -->|JSON save| G[(counts.json)]
+    E -->|JSON save scalars| G[(counts.json)]
+    E -->|SQLite save per-day| GG2[(keylens.db)]
     MS -->|SQLite save| GG[(mouse.db)]
     V -->|fetch display data| E
     V -->|language switch| H[L10n]
@@ -61,6 +62,8 @@ graph TD
 │   │   ├── KeyCountStore+Activity.swift
 │   │   ├── KeyCountStore+Ergonomics.swift
 │   │   ├── KeyCountStore+Export.swift
+│   │   ├── KeyCountStore+SQLite.swift
+│   │   ├── KeyCountStore+Migration.swift
 │   │   ├── MouseStore.swift
 │   │   ├── KeyType.swift
 │   │   ├── NotificationManager.swift
@@ -253,7 +256,7 @@ After translating a key name, the callback posts a `Notification(.keystrokeInput
 
 ---
 
-### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift)
+### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift) / [+SQLite](Sources/KeyLens/KeyCountStore+SQLite.swift) / [+Migration](Sources/KeyLens/KeyCountStore+Migration.swift)
 
 Singleton that manages counts and persists them to disk. Split into focused extensions: `+Activity` handles WPM, IKI, and daily activity metrics; `+Ergonomics` handles same-finger, alternation, high-strain, and app/device ergonomic accessors; `+Export` handles CSV export and clipboard formatting.
 
@@ -340,7 +343,7 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+SummaryTab.swift` | Activity Calendar heatmap, Weekly Delta Report |
 | `Charts+KeyboardTab.swift` | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
 | `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Ergonomic Learning Curve, ergonomic score tables |
-| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart |
+| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram |
 | `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
 | `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
 | `Charts+LiveTab.swift` | Recent IKI scatter chart, live typing rhythm view |
@@ -449,7 +452,7 @@ SwiftUI view that renders a contribution-style calendar heatmap of daily keystro
 
 ### [MouseStore.swift](Sources/KeyLens/MouseStore.swift)
 
-SQLite-backed singleton (using GRDB) that persists mouse movement metrics. Accumulates displacement in-memory (separated into rightward/leftward/downward/upward components) and flushes to `mouse.db` every 30 seconds via a `DispatchSourceTimer`. Keyboard data (`counts.json`) is unaffected. Tables: `mouse_daily`, `mouse_hourly`.
+SQLite-backed singleton (using GRDB) that persists mouse movement metrics. Accumulates displacement in-memory (separated into rightward/leftward/downward/upward components) and flushes to `mouse.db` every 30 seconds via a `DispatchSourceTimer`. Tables: `mouse_daily`, `mouse_hourly`.
 
 ---
 
@@ -491,21 +494,43 @@ Reads connected keyboard device information via IOKit. Used to identify the acti
 
 ## Persistent Storage
 
+KeyLens uses two storage backends:
+
+- **`counts.json`** — scalar values and small maps (cumulative totals, bigram sums, etc.)
+- **`keylens.db`** — large per-day tables (SQLite via GRDB)
+
+### keylens.db schema
+
+**Path:** `~/Library/Application Support/KeyLens/keylens.db`
+
+| Table | Key columns | Description |
+|-------|-------------|-------------|
+| `daily_keys` | `date`, `key`, `count` | Per-day per-key keystroke counts |
+| `daily_bigrams` | `date`, `bigram`, `count` | Per-day bigram frequency |
+| `daily_trigrams` | `date`, `trigram`, `count` | Per-day trigram frequency |
+| `daily_apps` | `date`, `app`, `count` | Per-day per-application keystroke counts |
+| `daily_devices` | `date`, `device`, `count` | Per-day per-device keystroke counts |
+| `hourly_counts` | `date_hour`, `count` | Total keystrokes per hour |
+| `bigram_iki` | `bigram`, `sum_ms`, `sample_count` | Per-bigram IKI sum and sample count |
+| `iki_buckets` | `date`, `bucket`, `count` | IKI distribution histogram buckets per day |
+
+Writes are batched and flushed asynchronously on a serial queue. Legacy `daily*` fields in `counts.json` are migrated to `keylens.db` on first launch (see `KeyCountStore+Migration.swift`).
+
+---
+
+### counts.json schema
+
 **Path:** `~/Library/Application Support/KeyLens/counts.json`
 
 Encoded as JSON with ISO 8601 dates (`JSONEncoder.dateEncodingStrategy = .iso8601`).
 Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
-
-### counts.json schema
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `startedAt` | ISO 8601 Date | Timestamp when recording began |
 | `lastInputTime` | ISO 8601 Date? | Timestamp of the last key event |
 | `counts` | `{String: Int}` | Cumulative count per key name |
-| `dailyCounts` | `{date: {key: Int}}` | Per-day per-key counts; key `"yyyy-MM-dd"` |
 | `modifiedCounts` | `{String: Int}` | Modifier-combo counts, e.g. `"⌘c": 42` |
-| `hourlyCounts` | `{String: Int}` | Total keystrokes per hour; key `"yyyy-MM-dd-HH"`. Entries older than 365 days are pruned on load. |
 | `avgIntervalMs` | Double | Running average keystroke interval (ms, Welford; intervals > 1000 ms excluded) |
 | `avgIntervalCount` | Int | Sample count for the running average |
 | `dailyMinIntervalMs` | `{date: Double}` | Minimum keystroke interval per day (ms, ≤ 1000 ms only) |
@@ -516,28 +541,24 @@ Writes are debounced (2 s) and atomic (`.atomic` flag) to prevent corruption.
 | `handAlternationCount` | Int | Cumulative hand-alternating pairs |
 | `dailyHandAlternationCount` | `{date: Int}` | Hand-alternating pairs per day |
 | `bigramCounts` | `{String: Int}` | Cumulative bigram frequency; key `"prev→cur"` |
-| `dailyBigramCounts` | `{date: {String: Int}}` | Per-day bigram frequency |
-| `bigramIKISum` | `{String: Double}` | Per-bigram cumulative IKI sum (ms); used for same-finger penalty calibration |
-| `bigramIKICount` | `{String: Int}` | Per-bigram IKI sample count |
 | `trigramCounts` | `{String: Int}` | Cumulative trigram frequency; key `"a→s→d"` |
-| `dailyTrigramCounts` | `{date: {String: Int}}` | Per-day trigram frequency |
 | `highStrainBigramCount` | `Int` | Cumulative high-strain (same-finger, ≥1-row span) bigram count |
 | `dailyHighStrainBigramCount` | `{date: Int}` | High-strain bigram count per day |
 | `highStrainTrigramCount` | `Int` | Cumulative count of two consecutive high-strain bigrams |
 | `dailyHighStrainTrigramCount` | `{date: Int}` | High-strain trigram count per day |
 | `alternationRewardScore` | `Double` | Running alternation reward score (includes streak multiplier bonus) |
 | `appCounts` | `{String: Int}` | Cumulative keystroke count per frontmost application name |
-| `dailyAppCounts` | `{date: {String: Int}}` | Per-day per-application keystroke counts |
 | `appSameFingerCount` | `{String: Int}` | Cumulative same-finger bigrams per app |
 | `appTotalBigramCount` | `{String: Int}` | Cumulative total bigrams per app (denominator) |
 | `appHandAlternationCount` | `{String: Int}` | Cumulative hand-alternating bigrams per app |
 | `appHighStrainBigramCount` | `{String: Int}` | Cumulative high-strain bigrams per app |
 | `deviceCounts` | `{String: Int}` | Cumulative keystroke count per detected keyboard device label |
-| `dailyDeviceCounts` | `{date: {String: Int}}` | Per-day per-device keystroke counts |
 | `deviceSameFingerCount` | `{String: Int}` | Cumulative same-finger bigrams per device |
 | `deviceTotalBigramCount` | `{String: Int}` | Cumulative total bigrams per device (denominator) |
 | `deviceHandAlternationCount` | `{String: Int}` | Cumulative hand-alternating bigrams per device |
 | `deviceHighStrainBigramCount` | `{String: Int}` | Cumulative high-strain bigrams per device |
+
+> Per-day tables (`daily_keys`, `daily_bigrams`, `daily_apps`, `daily_devices`, `hourly_counts`, `iki_buckets`, `bigram_iki`) have moved to `keylens.db` (see above).
 
 All fields except `startedAt` and `counts` use optional decoding with safe defaults,
 ensuring forward/backward compatibility when new fields are added.
