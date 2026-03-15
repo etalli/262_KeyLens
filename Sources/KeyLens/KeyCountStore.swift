@@ -322,7 +322,7 @@ final class KeyCountStore {
                     alternationStreak = 0
                 }
                 // Raw bigram pair frequency (Issue #12)
-                let pair = "\(prev)→\(key)"
+                let pair = Bigram(from: prev, to: key).key
                 store.bigramCounts[pair, default: 0] += 1
                 store.dailyBigramCounts[today, default: [:]][pair, default: 0] += 1
                 // Bigram IKI accumulation (Issue #24)

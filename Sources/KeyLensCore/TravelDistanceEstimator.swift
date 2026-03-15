@@ -82,10 +82,9 @@ public struct TravelDistanceEstimator {
     public func totalTravel(counts: [String: Int], layout: any KeyboardLayout) -> Double {
         var total = 0.0
         for (bigram, count) in counts where count > 0 {
-            let parts = bigram.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            guard let p1 = layout.position(for: parts[0]),
-                  let p2 = layout.position(for: parts[1]) else { continue }
+            guard let b = Bigram.parse(bigram) else { continue }
+            guard let p1 = layout.position(for: b.from),
+                  let p2 = layout.position(for: b.to) else { continue }
             total += Double(count) * distance(from: p1, to: p2)
         }
         return total

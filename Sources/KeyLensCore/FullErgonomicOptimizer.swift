@@ -142,10 +142,9 @@ public struct FullErgonomicOptimizer {
     private func keysInData(_ bigramCounts: [String: Int], _ keyCounts: [String: Int]) -> Set<String> {
         var keys = Set(keyCounts.keys)
         for bigram in bigramCounts.keys {
-            let parts = bigram.components(separatedBy: "→")
-            if parts.count == 2 {
-                keys.insert(parts[0])
-                keys.insert(parts[1])
+            if let b = Bigram.parse(bigram) {
+                keys.insert(b.from)
+                keys.insert(b.to)
             }
         }
         return keys

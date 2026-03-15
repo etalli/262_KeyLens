@@ -68,9 +68,8 @@ public struct SFBScoreEngine {
     public func score(bigramCounts: [String: Int], layout: any KeyboardLayout) -> Double {
         var total = 0.0
         for (bigram, count) in bigramCounts where count > 0 {
-            let parts = bigram.components(separatedBy: "→")
-            guard parts.count == 2 else { continue }
-            let k1 = parts[0], k2 = parts[1]
+            guard let b = Bigram.parse(bigram) else { continue }
+            let k1 = b.from, k2 = b.to
             // Only same-hand, same-finger bigrams contribute to the SFB penalty.
             // Left-index and right-index are different fingers — hand must also match.
             // 同手・同指ビグラムのみがSFBペナルティに寄与する。

@@ -166,9 +166,8 @@ extension KeyCountStore {
             let layout   = LayoutRegistry.shared
             return store.bigramCounts
                 .filter { pair, _ in
-                    let parts = pair.components(separatedBy: "→")
-                    guard parts.count == 2 else { return false }
-                    return detector.isHighStrain(from: parts[0], to: parts[1], layout: layout)
+                    guard let b = Bigram.parse(pair) else { return false }
+                    return detector.isHighStrain(from: b.from, to: b.to, layout: layout)
                 }
                 .sorted { $0.value > $1.value }
                 .prefix(limit)
