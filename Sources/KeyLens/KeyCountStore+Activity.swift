@@ -253,6 +253,44 @@ extension KeyCountStore {
         }
     }
 
+    /// Top N slowest bigrams by average IKI (Issue #103).
+    ///
+    /// - Parameters:
+    ///   - minCount: Minimum observation count; bigrams below this are excluded (default: 5).
+    ///   - limit:    Maximum number of results (default: 20).
+    /// - Returns: Array of `(bigram, avgIKI)` sorted descending by avg IKI (slowest first).
+    func slowestBigrams(minCount: Int = 5, limit: Int = 20) -> [(bigram: String, avgIKI: Double)] {
+        queue.sync {
+            var merged: [String: (sum: Double, count: Int)] = [:]
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let key: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    merged[key] = (sum: sum, count: cnt)
+                }
+            }
+
+            for (bigram, p) in pending.bigramIKI {
+                let e = merged[bigram] ?? (sum: 0, count: 0)
+                merged[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+
+            return merged
+                .compactMap { bigram, data -> (bigram: String, avgIKI: Double)? in
+                    guard data.count >= minCount else { return nil }
+                    return (bigram: bigram, avgIKI: data.sum / Double(data.count))
+                }
+                .sorted { $0.avgIKI > $1.avgIKI }
+                .prefix(limit)
+                .map { $0 }
+        }
+    }
+
     /// All daily totals sorted ascending by date.
     func dailyTotals() -> [(date: String, total: Int)] {
         queue.sync {
