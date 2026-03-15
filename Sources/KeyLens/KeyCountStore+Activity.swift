@@ -253,6 +253,52 @@ extension KeyCountStore {
         }
     }
 
+    /// Average IKI broken down by finger (Issue #104).
+    ///
+    /// Aggregates `bigram_iki` data by mapping the destination key of each bigram
+    /// to its finger via `ANSILayout`. IKI is attributed to the receiving finger —
+    /// how fast each finger responds when it is the next key to press.
+    ///
+    /// - Returns: Array of `(finger, avgIKI)` for fingers with data, sorted slowest-first.
+    func ikiPerFinger() -> [(finger: String, avgIKI: Double)] {
+        let layout = ANSILayout()
+        var perFinger: [String: (sum: Double, count: Int)] = [:]
+
+        queue.sync {
+            var merged: [String: (sum: Double, count: Int)] = [:]
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let key: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    merged[key] = (sum: sum, count: cnt)
+                }
+            }
+            for (bigram, p) in pending.bigramIKI {
+                let e = merged[bigram] ?? (sum: 0, count: 0)
+                merged[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+
+            for (bigramKey, data) in merged where data.count > 0 {
+                guard let bigram = Bigram.parse(bigramKey),
+                      let finger = layout.finger(for: bigram.to) else { continue }
+                let e = perFinger[finger.rawValue] ?? (sum: 0, count: 0)
+                perFinger[finger.rawValue] = (sum: e.sum + data.sum, count: e.count + data.count)
+            }
+        }
+
+        return perFinger
+            .compactMap { finger, data -> (finger: String, avgIKI: Double)? in
+                guard data.count > 0 else { return nil }
+                return (finger: finger, avgIKI: data.sum / Double(data.count))
+            }
+            .sorted { $0.avgIKI > $1.avgIKI }
+    }
+
     /// Top N slowest bigrams by average IKI (Issue #103).
     ///
     /// - Parameters:
