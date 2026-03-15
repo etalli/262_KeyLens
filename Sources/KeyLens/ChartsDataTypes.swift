@@ -163,3 +163,10 @@ struct IKIHistogramEntry: Identifiable {
     let count: Int          // total keystrokes whose IKI fell in this bucket
     let percentage: Double  // count / total * 100
 }
+
+struct SlowBigramEntry: Identifiable {
+    let id: String          // bigram key e.g. "t→h"
+    let bigram: String
+    let avgIKI: Double      // average inter-key interval in ms
+    init(_ t: (bigram: String, avgIKI: Double)) { id = t.bigram; bigram = t.bigram; avgIKI = t.avgIKI }
+}

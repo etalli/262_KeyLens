@@ -49,6 +49,8 @@ final class ChartDataModel: ObservableObject {
     // Issue #102: IKI histogram — all-time bucket distribution
     // 全打鍵データのIKI分布（バケット別）。
     @Published var ikiHistogram:         [IKIHistogramEntry]    = []
+    // Issue #103: slowest bigrams by average IKI
+    @Published var slowBigrams:          [SlowBigramEntry]      = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -111,6 +113,8 @@ final class ChartDataModel: ObservableObject {
         dailyAccuracy = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
         // Issue #102: IKI histogram
         ikiHistogram = store.ikiHistogramEntries()
+        // Issue #103: slowest bigrams by average IKI
+        slowBigrams = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
     }
 
     /// Lightweight refresh — reads only the live IKI ring buffer. Called by the 0.5s timer.

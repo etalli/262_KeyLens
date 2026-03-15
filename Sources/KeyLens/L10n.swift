@@ -537,6 +537,22 @@ final class L10n {
         )
     }
 
+    var slowBigramsTitle: String {
+        ja("遅いキーペア (平均 IKI)", en: "Slow Bigrams (Avg IKI)")
+    }
+
+    var helpSlowBigrams: String {
+        ja(
+            "IKI (Inter-Key Interval) とは、2つのキーを連続して押したときの時間間隔 (ms) です。\n\nこのグラフは平均IKIが最も長いキーペア (ビグラム) を表示します。値が大きいほど打鍵が遅い組み合わせです。\n\nタイピング練習のターゲットとして活用できます。サンプル数が少ないビグラムは除外されています。",
+            en: "IKI (Inter-Key Interval) is the time in milliseconds between two consecutive keystrokes.\n\nThis chart shows the bigrams with the highest average IKI — the key pairs where your transitions are slowest.\n\nUse this to target slow combinations in typing practice. Bigrams with fewer than 5 samples are excluded."
+        )
+    }
+
+    var slowBigramsNoData: String {
+        ja("データなし — しばらく入力するとビグラムIKIデータが蓄積されます。",
+           en: "No data yet — type for a while to accumulate bigram IKI data.")
+    }
+
     func topAppTodayFormat(_ app: String, _ count: String) -> String {
         ja("🖥 \(app)  \(count)", en: "🖥 \(app)  \(count)")
     }

@@ -8,10 +8,34 @@ extension ChartsView {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
+                chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
             }
             .padding(24)
+        }
+    }
+
+    @ViewBuilder
+    var slowBigramChart: some View {
+        if model.slowBigrams.isEmpty {
+            Text(L10n.shared.slowBigramsNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            let bigramOrder = model.slowBigrams.map(\.bigram)
+            Chart(model.slowBigrams) { item in
+                BarMark(
+                    x: .value("Avg IKI (ms)", item.avgIKI),
+                    y: .value("Bigram", item.bigram)
+                )
+                .foregroundStyle(Color.orange.opacity(0.8))
+                .cornerRadius(3)
+            }
+            .chartYScale(domain: bigramOrder)
+            .chartXAxisLabel("ms", alignment: .trailing)
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.slowBigrams.count * 26 + 24))
         }
     }
 
