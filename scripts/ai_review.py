@@ -58,7 +58,8 @@ Return JSON only (no markdown), like this:
 [
   {{
     "title": "Issue title",
-    "body": "Detailed issue description"
+    "body": "Detailed issue description",
+    "label": "enhancement"
   }}
 ]
 """
@@ -119,6 +120,7 @@ for issue in issues:
 
     title = issue.get("title", "").strip()
     body = issue.get("body", "").strip()
+    label = issue.get("label", "enhancement").strip()
 
     if not title:
         continue
@@ -132,7 +134,9 @@ for issue in issues:
         "--title",
         title,
         "--body",
-        body
+        body,
+        "--label",
+        label
     ])
 
 
