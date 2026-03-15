@@ -3,39 +3,114 @@ import subprocess
 import json
 from openai import OpenAI
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+# ---- configuration ----
 
-files = subprocess.check_output(["git", "ls-files"], text=True)
+REPO_URL = "https://github.com/etalli/262_KeyLens"
+MODEL = "gpt-4.1-mini"
+
+
+# ---- check API key ----
+
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("OPENAI_API_KEY not set")
+    exit(1)
+
+client = OpenAI(api_key=api_key)
+
+
+# ---- get repo file list ----
+
+try:
+    files = subprocess.check_output(
+        ["git", "ls-files"],
+        text=True
+    )
+except Exception as e:
+    print("Failed to read repo files:", e)
+    exit(1)
+
+
+# ---- build AI prompt ----
 
 prompt = f"""
 You are reviewing a GitHub repository.
 
-Repository: https://github.com/etalli/262_KeyLens
+Repository:
+{REPO_URL}
 
-Files:
+Project files:
 {files}
 
-Return 3 GitHub issues in JSON format:
+Suggest 3 useful GitHub issues that would improve this project.
+
+Return the result strictly as JSON:
 
 [
   {{
     "title": "Issue title",
-    "body": "Detailed description"
+    "body": "Detailed issue description"
+  }},
+  {{
+    "title": "Issue title",
+    "body": "Detailed issue description"
+  }},
+  {{
+    "title": "Issue title",
+    "body": "Detailed issue description"
   }}
 ]
 """
 
-response = client.responses.create(
-    model="gpt-4.1-mini",
-    input=prompt
-)
 
-text = response.output_text.strip()
+# ---- call AI ----
 
-issues = json.loads(text)
+print("Running AI repository review...")
+
+try:
+    response = client.responses.create(
+        model=MODEL,
+        input=prompt
+    )
+
+    text = response.output_text.strip()
+
+except Exception as e:
+    print("AI request failed:", e)
+    exit(1)
+
+
+# ---- parse JSON ----
+
+try:
+    issues = json.loads(text)
+except Exception as e:
+    print("Failed to parse AI output as JSON")
+    print("AI output was:")
+    print(text)
+    exit(1)
+
+
+# ---- create GitHub issues ----
 
 for issue in issues:
-    print(issue["title"])
-    print("----")
-    print(issue["body"])
-    print("====")
+
+    title = issue.get("title", "").strip()
+    body = issue.get("body", "").strip()
+
+    if not title:
+        continue
+
+    print(f"Creating issue: {title}")
+
+    subprocess.run([
+        "gh",
+        "issue",
+        "create",
+        "--title",
+        title,
+        "--body",
+        body
+    ])
+
+print("AI issue generation complete.")
