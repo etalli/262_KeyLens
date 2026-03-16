@@ -29,3 +29,6 @@ KeyLens-backup-*.json
 
 # references
 references/
+
+# database
+KeyLens_2026-03-15.db
