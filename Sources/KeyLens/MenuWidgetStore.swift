@@ -42,7 +42,7 @@ final class MenuWidgetStore: ObservableObject {
     /// Default order matching current hardcoded behaviour.
     /// 既存の表示順と一致するデフォルト順序。
     static let defaultOrder: [MenuWidget] = [
-        .recordingSince, .todayTotal, .avgInterval, .estimatedWPM, .backspaceRate, .miniChart
+        .recordingSince, .todayTotal, .avgInterval, .estimatedWPM, .miniChart
     ]
 
     private init() {}
@@ -71,8 +71,10 @@ final class MenuWidgetStore: ObservableObject {
 
     func isEnabled(_ widget: MenuWidget) -> Bool {
         let key = enabledKey + "." + widget.rawValue
-        // Default: all widgets enabled
-        if UserDefaults.standard.object(forKey: key) == nil { return true }
+        if UserDefaults.standard.object(forKey: key) == nil {
+            // backspaceRate is off by default; all other widgets are on by default
+            return widget != .backspaceRate
+        }
         return UserDefaults.standard.bool(forKey: key)
     }
 

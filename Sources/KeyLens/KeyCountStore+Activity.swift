@@ -7,12 +7,9 @@ import KeyLensCore
 
 extension KeyCountStore {
 
-    /// Today's top limit keys sorted descending. Correction keys (Delete) are excluded.
+    /// Today's top limit keys sorted descending.
     func todayTopKeys(limit: Int = 10) -> [(key: String, count: Int)] {
-        queue.sync {
-            let filtered = dailyKeyCountsLocked(for: todayKey).filter { $0.key != "Delete" }
-            return topEntries(filtered, limit: limit)
-        }
+        queue.sync { topEntries(dailyKeyCountsLocked(for: todayKey), limit: limit) }
     }
 
     /// Today's total keystroke count (SQLite + pending).
@@ -60,12 +57,9 @@ extension KeyCountStore {
         }
     }
 
-    /// Top-N keys by cumulative count, sorted descending. Correction keys (Delete) are excluded.
+    /// Top-N keys by cumulative count, sorted descending.
     func topKeys(limit: Int = 10) -> [(key: String, count: Int)] {
-        queue.sync {
-            let filtered = store.counts.filter { $0.key != "Delete" }
-            return topEntries(filtered, limit: limit)
-        }
+        queue.sync { topEntries(store.counts, limit: limit) }
     }
 
     /// Top-N apps by cumulative keystroke count, sorted descending.
