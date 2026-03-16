@@ -94,14 +94,18 @@ extension ChartsView {
                 }
             }
             .chartXAxis {
-                let stride = max(1, model.dailyWPM.count / 7)
+                let stride = max(2, model.dailyWPM.count / 5)
                 AxisMarks(values: model.dailyWPM.enumerated()
                     .filter { $0.offset % stride == 0 }
                     .map { $0.element.date }
-                ) { _ in
+                ) { value in
                     AxisGridLine()
-                    AxisValueLabel(centered: false)
-                        .font(.caption)
+                    AxisValueLabel {
+                        if let d = value.as(String.self) {
+                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                                .font(.caption)
+                        }
+                    }
                 }
             }
             .frame(height: 200)
@@ -144,14 +148,18 @@ extension ChartsView {
                 }
             }
             .chartXAxis {
-                let stride = max(1, model.dailyAccuracy.count / 7)
+                let stride = max(2, model.dailyAccuracy.count / 5)
                 AxisMarks(values: model.dailyAccuracy.enumerated()
                     .filter { $0.offset % stride == 0 }
                     .map { $0.element.date }
-                ) { _ in
+                ) { value in
                     AxisGridLine()
-                    AxisValueLabel(centered: false)
-                        .font(.caption)
+                    AxisValueLabel {
+                        if let d = value.as(String.self) {
+                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                                .font(.caption)
+                        }
+                    }
                 }
             }
             .frame(height: 200)
