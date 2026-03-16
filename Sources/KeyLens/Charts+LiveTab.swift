@@ -111,6 +111,7 @@ extension ChartsView {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            // Start / Stop button
             HStack(spacing: 12) {
                 Button {
                     if isMeasuringWPM {
@@ -138,14 +139,49 @@ extension ChartsView {
                 }
             }
 
+            // Result
             if let r = wpmResult {
                 Text(L10n.shared.wpmMeasureResult(wpm: r.wpm, duration: r.duration, keystrokes: r.keystrokes))
                     .font(.title2.monospacedDigit().bold())
                     .foregroundStyle(.orange)
                     .transition(.opacity)
             }
+
+            // Hotkey display and recorder
+            HStack(spacing: 6) {
+                Text(L10n.shared.wpmHotkeyLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(wpmHotkeyDisplay)
+                    .font(.caption.monospaced())
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                Button(isRecordingHotkey ? L10n.shared.wpmHotkeyRecording : L10n.shared.wpmHotkeyRecord) {
+                    isRecordingHotkey = true
+                    WPMHotkeyManager.shared.recordNextHotkey { newDisplay in
+                        wpmHotkeyDisplay = newDisplay
+                        isRecordingHotkey = false
+                    }
+                }
+                .buttonStyle(.plain)
+                .font(.caption)
+                .foregroundStyle(isRecordingHotkey ? .orange : .accentColor)
+                .disabled(isRecordingHotkey)
+            }
         }
         .animation(.easeInOut(duration: 0.2), value: isMeasuringWPM)
         .animation(.easeInOut(duration: 0.2), value: wpmResult != nil)
+        // Sync UI when hotkey toggles measurement from outside the window
+        .onReceive(NotificationCenter.default.publisher(for: .wpmMeasurementStarted)) { _ in
+            wpmResult = nil
+            isMeasuringWPM = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .wpmMeasurementStopped)) { note in
+            isMeasuringWPM = false
+            wpmResult = note.object as? (wpm: Double, duration: TimeInterval, keystrokes: Int)
+        }
     }
 }
