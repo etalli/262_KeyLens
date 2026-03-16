@@ -31,11 +31,11 @@ extension ChartsView {
             // Header row
             HStack {
                 Text(L10n.shared.appErgScoreAppHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 Text(L10n.shared.appErgScoreKeysHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+                    .font(.footnote).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
                 Text(L10n.shared.appErgScoreScoreHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+                    .font(.footnote).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -83,11 +83,11 @@ extension ChartsView {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(L10n.shared.deviceErgScoreDeviceHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 Text(L10n.shared.deviceErgScoreKeysHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+                    .font(.footnote).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
                 Text(L10n.shared.deviceErgScoreScoreHeader)
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
+                    .font(.footnote).foregroundStyle(.secondary).frame(width: 80, alignment: .trailing)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -155,7 +155,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -182,7 +182,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -209,7 +209,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -236,7 +236,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }

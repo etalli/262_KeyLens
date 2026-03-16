@@ -41,7 +41,7 @@ extension ChartsView {
             VStack(spacing: 6) {
                 emptyState
                 Text("Type with this window open to see live timing.")
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             .frame(width: recentIKIChartWidth, alignment: .leading)
@@ -62,13 +62,13 @@ extension ChartsView {
                         // Capped at 300ms — show actual value so it's distinct from a genuine 300ms bar.
                         bar.annotation(position: .top, spacing: 2) {
                             Text("\(Int(item.iki))ms")
-                                .font(.system(size: 8, design: .monospaced))
+                                .font(.system(size: 10, design: .monospaced))
                                 .foregroundStyle(Color.red)
                         }
                     } else if ikichartShowKeyLabels {
                         bar.annotation(position: .top, spacing: 2) {
                             Text(item.key)
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }
                     } else {
@@ -91,7 +91,7 @@ extension ChartsView {
                     Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
                     Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
                 }
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
             }
             .frame(width: recentIKIChartWidth, alignment: .leading)
@@ -108,7 +108,7 @@ extension ChartsView {
                 .font(.headline)
 
             Text(L10n.shared.wpmMeasureHint)
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
 
             // Start / Stop button
@@ -134,7 +134,7 @@ extension ChartsView {
 
                 if isMeasuringWPM {
                     Label("Recording…", systemImage: "record.circle")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.red)
                 }
             }
@@ -150,10 +150,10 @@ extension ChartsView {
             // Hotkey display and recorder
             HStack(spacing: 6) {
                 Text(L10n.shared.wpmHotkeyLabel)
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
                 Text(wpmHotkeyDisplay)
-                    .font(.caption.monospaced())
+                    .font(.footnote.monospaced())
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.secondary.opacity(0.15))
@@ -167,7 +167,7 @@ extension ChartsView {
                     }
                 }
                 .buttonStyle(.plain)
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(isRecordingHotkey ? .orange : .accentColor)
                 .disabled(isRecordingHotkey)
             }

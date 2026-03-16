@@ -50,7 +50,7 @@ extension ChartsView {
                 .foregroundStyle(theme.accentColor)
                 .annotation(position: .top, spacing: 4) {
                     Text(item.total.formatted())
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -89,7 +89,7 @@ extension ChartsView {
                 .foregroundStyle(.orange)
                 .annotation(position: .top, spacing: 4) {
                     Text(String(format: "%.0f", item.wpm))
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -103,7 +103,7 @@ extension ChartsView {
                     AxisValueLabel {
                         if let d = value.as(String.self) {
                             Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
-                                .font(.caption)
+                                .font(.footnote)
                         }
                     }
                 }
@@ -143,7 +143,7 @@ extension ChartsView {
                 .foregroundStyle(.red.opacity(0.8))
                 .annotation(position: .top, spacing: 4) {
                     Text(String(format: "%.1f%%", item.rate))
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -157,7 +157,7 @@ extension ChartsView {
                     AxisValueLabel {
                         if let d = value.as(String.self) {
                             Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
-                                .font(.caption)
+                                .font(.footnote)
                         }
                     }
                 }
@@ -211,7 +211,7 @@ extension ChartsView {
                 .annotation(position: .top, spacing: 3) {
                     if item.count > 0 {
                         Text(String(format: "%.0f%%", item.percentage))
-                            .font(.caption2)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -220,7 +220,7 @@ extension ChartsView {
                 AxisMarks { value in
                     AxisValueLabel {
                         if let s = value.as(String.self) {
-                            Text(s).font(.caption2)
+                            Text(s).font(.footnote)
                         }
                     }
                     AxisGridLine()
@@ -255,7 +255,7 @@ extension ChartsView {
                 .cornerRadius(4)
                 .annotation(position: .top, spacing: 3) {
                     Text(item.total.formatted(.number.notation(.compactName)))
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -270,7 +270,7 @@ extension ChartsView {
                                 ? "\(String(parts[0]).suffix(2))/\(parts[1])"
                                 : s
                             Text(label)
-                                .font(.caption)
+                                .font(.footnote)
                         }
                     }
                 }

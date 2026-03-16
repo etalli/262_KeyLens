@@ -13,7 +13,7 @@ struct SectionHeader: View {
         HStack(spacing: 6) {
             Text(title).font(.headline)
             Image(systemName: "info.circle")
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(showHelp ? .primary : .secondary)
                 .onHover { showHelp = $0 }
                 .popover(isPresented: $showHelp, arrowEdge: .bottom) {

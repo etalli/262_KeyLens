@@ -36,7 +36,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing) {
                     Text(String(format: "%.0f ms", item.avgIKI))
-                        .font(.caption2.monospacedDigit())
+                        .font(.footnote.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
             }
@@ -109,12 +109,12 @@ extension ChartsView {
                 // Header
                 GridRow {
                     Text("Layout")
-                        .font(.caption).bold().foregroundStyle(.secondary)
+                        .font(.footnote).bold().foregroundStyle(.secondary)
                         .gridColumnAlignment(.leading)
                     Text(L10n.shared.layoutEfficiencySFBHeader)
-                        .font(.caption).bold().foregroundStyle(.secondary)
+                        .font(.footnote).bold().foregroundStyle(.secondary)
                     Text(L10n.shared.layoutEfficiencyAltHeader)
-                        .font(.caption).bold().foregroundStyle(.secondary)
+                        .font(.footnote).bold().foregroundStyle(.secondary)
                 }
                 .padding(.bottom, 6)
 
@@ -129,7 +129,7 @@ extension ChartsView {
                                 .fontWeight(isBest ? .semibold : .regular)
                             if isBest {
                                 Image(systemName: "crown.fill")
-                                    .font(.caption2)
+                                    .font(.footnote)
                                     .foregroundStyle(.yellow)
                             }
                         }
@@ -149,7 +149,7 @@ extension ChartsView {
             .padding(.vertical, 4)
 
             Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams")
-                .font(.caption2)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -188,14 +188,14 @@ extension ChartsView {
                 // Incoming transitions
                 VStack(alignment: .leading, spacing: 6) {
                     Text(L10n.shared.keyTransitionIncomingTitle(keyTransitionTarget))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                     keyTransitionChart(entries: model.keyTransitionIncoming, color: .teal)
                 }
 
                 // Outgoing transitions
                 VStack(alignment: .leading, spacing: 6) {
                     Text(L10n.shared.keyTransitionOutgoingTitle(keyTransitionTarget))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                     keyTransitionChart(entries: model.keyTransitionOutgoing, color: .purple)
                 }
             }
@@ -207,7 +207,7 @@ extension ChartsView {
         if entries.isEmpty {
             Text(L10n.shared.keyTransitionNoData)
                 .foregroundStyle(.secondary)
-                .font(.caption)
+                .font(.footnote)
                 .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
         } else {
             let order = entries.map(\.bigram)
@@ -220,7 +220,7 @@ extension ChartsView {
                 .cornerRadius(3)
                 .annotation(position: .trailing) {
                     Text("n=\(item.count)")
-                        .font(.caption2.monospacedDigit())
+                        .font(.footnote.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
             }
@@ -235,7 +235,7 @@ extension ChartsView {
     private func fingerFilterButton(label: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.caption)
+                .font(.footnote)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(selected ? Color.orange.opacity(0.8) : Color.secondary.opacity(0.15))
@@ -287,7 +287,7 @@ extension ChartsView {
     @ViewBuilder
     func ergonomicMetricPair(label: String, allTime: Double?, today: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.footnote).foregroundStyle(.secondary)
             HStack(spacing: 12) {
                 if let v = allTime {
                     Text("All-time: \(Int(v * 100))%").font(.footnote.monospacedDigit())
@@ -296,7 +296,7 @@ extension ChartsView {
                     Text("Today: \(Int(v * 100))%").font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
                 }
                 if allTime == nil && today == nil {
-                    Text("—").font(.caption).foregroundStyle(.secondary)
+                    Text("—").font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }
@@ -321,14 +321,14 @@ extension ChartsView {
                     // Header row
                     GridRow {
                         Text("Metric")
-                            .font(.caption).bold().foregroundStyle(.secondary)
+                            .font(.footnote).bold().foregroundStyle(.secondary)
                             .gridColumnAlignment(.leading)
                         Text("Current")
-                            .font(.caption).bold().foregroundStyle(.secondary)
+                            .font(.footnote).bold().foregroundStyle(.secondary)
                         Text("Proposed")
-                            .font(.caption).bold().foregroundStyle(.secondary)
+                            .font(.footnote).bold().foregroundStyle(.secondary)
                         Text("Change")
-                            .font(.caption).bold().foregroundStyle(.secondary)
+                            .font(.footnote).bold().foregroundStyle(.secondary)
                     }
                     .padding(.bottom, 6)
 
@@ -482,7 +482,7 @@ extension ChartsView {
                         AxisValueLabel {
                             if let v = value.as(Double.self) {
                                 Text("\(Int(v * 100))%")
-                                    .font(.caption)
+                                    .font(.footnote)
                             }
                         }
                     }
@@ -494,7 +494,7 @@ extension ChartsView {
                     ForEach([("Same-finger", Color.orange), ("Alternation", Color.teal), ("High-strain", Color.red)], id: \.0) { label, color in
                         HStack(spacing: 4) {
                             Circle().fill(color).frame(width: 8, height: 8)
-                            Text(label).font(.caption).foregroundStyle(.secondary)
+                            Text(label).font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                 }

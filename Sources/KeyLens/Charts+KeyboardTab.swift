@@ -44,7 +44,7 @@ extension ChartsView {
                         if presentTypes.contains(type) {
                             HStack(spacing: 4) {
                                 Circle().fill(type.color).frame(width: 8, height: 8)
-                                Text(type.label).font(.caption).foregroundStyle(.secondary)
+                                Text(type.label).font(.footnote).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -114,7 +114,7 @@ extension ChartsView {
                     HStack(spacing: 4) {
                         Circle().fill(item.type.color).frame(width: 8, height: 8)
                         Text("\(item.type.label) \(item.count.formatted())")
-                            .font(.caption)
+                            .font(.footnote)
                     }
                 }
             }
