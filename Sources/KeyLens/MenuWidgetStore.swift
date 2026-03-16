@@ -42,7 +42,8 @@ final class MenuWidgetStore: ObservableObject {
     /// Default order matching current hardcoded behaviour.
     /// 既存の表示順と一致するデフォルト順序。
     static let defaultOrder: [MenuWidget] = [
-        .recordingSince, .todayTotal, .avgInterval, .estimatedWPM, .miniChart
+        .todayTotal, .miniChart, .estimatedWPM, .mouseDistance,
+        .avgInterval, .backspaceRate, .shortcutEfficiency, .recordingSince
     ]
 
     private init() {}

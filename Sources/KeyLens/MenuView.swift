@@ -82,7 +82,7 @@ struct MenuView: View {
                     }
                 case .estimatedWPM:
                     if let wpm = store.estimatedWPM {
-                        infoRow(String(format: l.estimatedWPMFormat, wpm))
+                        infoRow(String(format: l.estimatedWPMFormat, wpm), icon: "speedometer")
                     }
                 case .backspaceRate:
                     if let bs = store.todayBackspaceRate {
@@ -160,12 +160,20 @@ struct MenuView: View {
         Divider().padding(.horizontal, 0)
     }
 
-    private func infoRow(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 13))
-            .foregroundColor(.primary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 4)
+    private func infoRow(_ text: String, icon: String? = nil) -> some View {
+        HStack(spacing: 8) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
+            }
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 4)
     }
 
     private func menuRow(_ title: String, icon: String? = nil, destructive: Bool = false, action: @escaping () -> Void) -> some View {
