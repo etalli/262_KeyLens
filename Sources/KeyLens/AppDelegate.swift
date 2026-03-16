@@ -1,4 +1,5 @@
 import AppKit
+import IOKit.hid
 import ServiceManagement
 import KeyLensCore
 
@@ -8,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let monitor = KeyboardMonitor()
     private var permissionTimer: Timer?
     private var healthTimer: Timer?
+    private var hidManager: IOHIDManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = NotificationManager.shared
@@ -15,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
         startMonitor()
         detectHardware()
+        setupHIDHotPlug()
         setupHealthCheck()
 
         NotificationCenter.default.addObserver(
@@ -106,5 +109,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func detectHardware() {
         let devices = KeyboardDeviceInfo.connectedDevices()
         LayoutRegistry.shared.applyProfile(forDevices: devices)
+    }
+
+    // MARK: - IOKit hot-plug
+
+    /// Registers IOKit HID callbacks so layout detection re-runs when a keyboard
+    /// is connected or disconnected while the app is running.
+    /// アプリ実行中にキーボードが接続/切断された際にレイアウト再検出を行う。
+    private func setupHIDHotPlug() {
+        let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+        let matching: [String: Any] = [
+            kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
+            kIOHIDDeviceUsageKey:     kHIDUsage_GD_Keyboard,
+        ]
+        IOHIDManagerSetDeviceMatching(manager, matching as CFDictionary)
+
+        let callback: IOHIDDeviceCallback = { context, _, _, _ in
+            guard let context else { return }
+            let delegate = Unmanaged<AppDelegate>.fromOpaque(context).takeUnretainedValue()
+            DispatchQueue.main.async { delegate.detectHardware() }
+        }
+        let ctx = Unmanaged.passUnretained(self).toOpaque()
+        IOHIDManagerRegisterDeviceMatchingCallback(manager, callback, ctx)
+        IOHIDManagerRegisterDeviceRemovalCallback(manager, callback, ctx)
+
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+        hidManager = manager
     }
 }

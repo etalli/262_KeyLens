@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 
 // MARK: - Hand / Finger
 
@@ -494,10 +495,19 @@ public final class LayoutRegistry {
     /// 有効なエルゴノミクススコアエンジン。デフォルトは Issue #29 重みテーブル。
     public var ergonomicScoreEngine: ErgonomicScoreEngine = .default
 
-    /// Internal designated initialiser. Use `LayoutRegistry.shared` for the global singleton
-    /// or `LayoutRegistry.forSimulation(layout:base:)` for isolated evaluation contexts.
+    /// UserDefaults key for persisting the last resolved profile name.
+    private static let profileDefaultsKey = "layoutRegistryProfileName"
+
+    /// Internal designated initialiser. Restores the last persisted profile if available.
     /// シングルトンは `.shared`、シミュレーション用は `forSimulation` を使うこと。
-    init() {}
+    init() {
+        if let saved = UserDefaults.standard.string(forKey: Self.profileDefaultsKey) {
+            let known: [ErgonomicProfile] = [.standard, .splitErgo]
+            if let match = known.first(where: { $0.name == saved }) {
+                activeProfile = match
+            }
+        }
+    }
 
     // MARK: - Simulation factory
 
@@ -568,6 +578,7 @@ public final class LayoutRegistry {
             print("[LayoutRegistry] Hardware change detected: \(devices)")
             print("[LayoutRegistry] Switching profile to: \(newProfile.name)")
             activeProfile = newProfile
+            UserDefaults.standard.set(newProfile.name, forKey: Self.profileDefaultsKey)
         }
     }
 
