@@ -27,6 +27,8 @@ struct ChartsView: View {
     @State var wpmHotkeyDisplay: String = WPMHotkeyManager.shared.displayString
     /// Whether the app is waiting for the user to press a new hotkey.
     @State var isRecordingHotkey: Bool = false
+    /// Target key for the Key Transition analysis section (Issue #98).
+    @State var keyTransitionTarget: String = ""
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

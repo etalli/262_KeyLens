@@ -337,6 +337,63 @@ extension KeyCountStore {
         }
     }
 
+    /// Incoming and outgoing transitions for a specific key, ranked by avg IKI (Issue #98).
+    ///
+    /// - Parameters:
+    ///   - key:      The target key to inspect (case-sensitive, matches on-disk format).
+    ///   - minCount: Minimum sample count; transitions below this threshold are excluded (default: 3).
+    ///   - limit:    Maximum results per direction (default: 15).
+    /// - Returns: Tuple of incoming (`*→key`) and outgoing (`key→*`) arrays, each sorted slowest-first.
+    func keyTransitions(
+        for key: String,
+        minCount: Int = 3,
+        limit: Int = 15
+    ) -> (incoming: [(bigram: String, avgIKI: Double, count: Int)],
+          outgoing: [(bigram: String, avgIKI: Double, count: Int)]) {
+        queue.sync {
+            var merged: [String: (sum: Double, count: Int)] = [:]
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let k: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    merged[k] = (sum: sum, count: cnt)
+                }
+            }
+            for (bigram, p) in pending.bigramIKI {
+                let e = merged[bigram] ?? (sum: 0, count: 0)
+                merged[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+
+            func toEntry(_ kv: (key: String, value: (sum: Double, count: Int)))
+                -> (bigram: String, avgIKI: Double, count: Int)? {
+                guard kv.value.count >= minCount else { return nil }
+                return (bigram: kv.key, avgIKI: kv.value.sum / Double(kv.value.count), count: kv.value.count)
+            }
+
+            let incomingSuffix = "→\(key)"
+            let outgoingPrefix = "\(key)→"
+
+            let incoming = merged
+                .filter { $0.key.hasSuffix(incomingSuffix) }
+                .compactMap { toEntry($0) }
+                .sorted { $0.avgIKI > $1.avgIKI }
+                .prefix(limit).map { $0 }
+
+            let outgoing = merged
+                .filter { $0.key.hasPrefix(outgoingPrefix) }
+                .compactMap { toEntry($0) }
+                .sorted { $0.avgIKI > $1.avgIKI }
+                .prefix(limit).map { $0 }
+
+            return (incoming: incoming, outgoing: outgoing)
+        }
+    }
+
     /// All daily totals sorted ascending by date.
     func dailyTotals() -> [(date: String, total: Int)] {
         queue.sync {

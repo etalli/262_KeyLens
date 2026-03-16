@@ -610,6 +610,36 @@ final class L10n {
            en: "No data yet — type for a while to accumulate bigram IKI data.")
     }
 
+    // MARK: - Issue #98: Key Transition Analysis
+
+    var keyTransitionTitle: String {
+        ja("キー遷移分析", en: "Key Transition Analysis")
+    }
+
+    var helpKeyTransition: String {
+        ja(
+            "調べたいキーを入力すると、そのキーへの遷移 (*→K) とそのキーからの遷移 (K→*) を平均IKI順で表示します。\n\n値が大きいほど遅い組み合わせです。タイピング練習のターゲット発見に活用できます。サンプル数が少ない遷移は除外されます。",
+            en: "Enter a key to inspect its incoming (*→K) and outgoing (K→*) transitions, ranked by average IKI.\n\nHigher values mean slower transitions. Use this to find specific key pairs to target in practice. Transitions with fewer than 3 samples are excluded."
+        )
+    }
+
+    var keyTransitionPlaceholder: String {
+        ja("キーを入力 (例: f)", en: "Type a key (e.g. f)")
+    }
+
+    func keyTransitionIncomingTitle(_ key: String) -> String {
+        ja("→ \(key) への遷移 (遅い順)", en: "Incoming → \(key) (slowest first)")
+    }
+
+    func keyTransitionOutgoingTitle(_ key: String) -> String {
+        ja("\(key) → からの遷移 (遅い順)", en: "Outgoing \(key) → (slowest first)")
+    }
+
+    var keyTransitionNoData: String {
+        ja("該当する遷移データがありません。サンプル数が少ない場合は除外されます。",
+           en: "No transition data found. Transitions with fewer than 3 samples are excluded.")
+    }
+
     func topAppTodayFormat(_ app: String, _ count: String) -> String {
         ja("🖥 \(app)  \(count)", en: "🖥 \(app)  \(count)")
     }
