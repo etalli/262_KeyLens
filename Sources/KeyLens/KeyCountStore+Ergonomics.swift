@@ -254,6 +254,59 @@ extension KeyCountStore {
     }
 }
 
+// MARK: - Issue #61: Layout Efficiency Scores
+
+extension KeyCountStore {
+
+    /// Computes same-finger bigram rate and hand-alternation rate for QWERTY, Colemak, and Dvorak,
+    /// applied to the user's actual all-time bigram frequency distribution.
+    ///
+    /// Allows the user to see how their real typing patterns would perform across layouts without
+    /// needing to type on each layout or export data to an external tool.
+    ///
+    /// - Returns: One entry per layout, sorted by hand-alternation rate descending (best first).
+    func layoutEfficiencyScores() -> [LayoutEfficiencyEntry] {
+        let bigrams = queue.sync { store.bigramCounts }
+        guard !bigrams.isEmpty else { return [] }
+
+        let layouts: [(name: String, layout: any KeyboardLayout)] = [
+            ("QWERTY",  ANSILayout()),
+            ("Colemak", ColemakLayout()),
+            ("Dvorak",  DvorakLayout()),
+        ]
+
+        return layouts.map { layoutName, layout in
+            var sfbCount = 0
+            var altCount = 0
+            var total    = 0
+
+            for (bigramKey, count) in bigrams {
+                guard let b     = Bigram.parse(bigramKey),
+                      let handA = layout.hand(for: b.from),
+                      let handB = layout.hand(for: b.to) else { continue }
+                total += count
+                if handA != handB {
+                    altCount += count
+                } else if let fingerA = layout.finger(for: b.from),
+                          let fingerB = layout.finger(for: b.to),
+                          fingerA == fingerB {
+                    sfbCount += count
+                }
+            }
+
+            let sfbRate = total > 0 ? Double(sfbCount) / Double(total) : 0
+            let altRate = total > 0 ? Double(altCount) / Double(total) : 0
+            return LayoutEfficiencyEntry(
+                name: layoutName,
+                sameFingerRate: sfbRate,
+                handAlternationRate: altRate,
+                totalBigrams: total
+            )
+        }
+        .sorted { $0.handAlternationRate > $1.handAlternationRate }
+    }
+}
+
 // MARK: - Private helpers
 
 extension KeyCountStore {
