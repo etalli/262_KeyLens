@@ -56,6 +56,8 @@ final class ChartDataModel: ObservableObject {
     // Issue #98: key transition analysis — incoming and outgoing transitions for the selected key
     @Published var keyTransitionIncoming: [KeyTransitionEntry]  = []
     @Published var keyTransitionOutgoing: [KeyTransitionEntry]  = []
+    // Issue #61: layout efficiency comparison — QWERTY vs Colemak vs Dvorak
+    @Published var layoutEfficiency:      [LayoutEfficiencyEntry] = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -122,6 +124,8 @@ final class ChartDataModel: ObservableObject {
         slowBigrams = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
         // Issue #104: IKI per finger
         fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
+        // Issue #61: layout efficiency comparison
+        layoutEfficiency = store.layoutEfficiencyScores()
     }
 
     /// Reloads key transition data for the given target key (Issue #98).

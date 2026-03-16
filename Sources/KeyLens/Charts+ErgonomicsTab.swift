@@ -10,6 +10,7 @@ extension ChartsView {
                 chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
                 chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
                 chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
+                chartSection(L10n.shared.layoutEfficiencyTitle, helpText: L10n.shared.helpLayoutEfficiency) { layoutEfficiencySection }
                 chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
@@ -91,6 +92,65 @@ extension ChartsView {
                 .chartLegend(.hidden)
                 .frame(height: CGFloat(filtered.count * 26 + 24))
             }
+        }
+    }
+
+    // MARK: - Issue #61: Layout Efficiency Comparison
+
+    @ViewBuilder
+    var layoutEfficiencySection: some View {
+        if model.layoutEfficiency.isEmpty {
+            Text(L10n.shared.layoutEfficiencyNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
+        } else {
+            let best = model.layoutEfficiency.first
+            Grid(alignment: .trailing, horizontalSpacing: 24, verticalSpacing: 0) {
+                // Header
+                GridRow {
+                    Text("Layout")
+                        .font(.caption).bold().foregroundStyle(.secondary)
+                        .gridColumnAlignment(.leading)
+                    Text(L10n.shared.layoutEfficiencySFBHeader)
+                        .font(.caption).bold().foregroundStyle(.secondary)
+                    Text(L10n.shared.layoutEfficiencyAltHeader)
+                        .font(.caption).bold().foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 6)
+
+                Divider().gridCellUnsizedAxes(.horizontal)
+
+                ForEach(model.layoutEfficiency) { entry in
+                    let isBest = entry.id == best?.id
+                    GridRow {
+                        HStack(spacing: 4) {
+                            Text(entry.name)
+                                .font(.callout)
+                                .fontWeight(isBest ? .semibold : .regular)
+                            if isBest {
+                                Image(systemName: "crown.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(.yellow)
+                            }
+                        }
+                        .gridColumnAlignment(.leading)
+
+                        Text(String(format: "%.1f%%", entry.sameFingerRate * 100))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(isBest ? Color.green : .primary)
+
+                        Text(String(format: "%.1f%%", entry.handAlternationRate * 100))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(isBest ? Color.green : .primary)
+                    }
+                    .padding(.vertical, 5)
+                }
+            }
+            .padding(.vertical, 4)
+
+            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
         }
     }
 

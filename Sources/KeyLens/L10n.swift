@@ -612,6 +612,34 @@ final class L10n {
 
     // MARK: - Issue #98: Key Transition Analysis
 
+    // MARK: - Issue #61: Layout Efficiency Score
+
+    var layoutEfficiencyTitle: String {
+        ja("レイアウト効率比較", en: "Layout Efficiency Comparison")
+    }
+
+    var helpLayoutEfficiency: String {
+        ja(
+            "あなたの実際の打鍵ビグラムデータを使い、QWERTY / Colemak / Dvorak それぞれで「同指率」と「交互打鍵率」を計算します。\n\n同指率が低いほど、交互打鍵率が高いほど効率的なレイアウトです。\n\n※ あなたが実際に使っているレイアウトで記録されたビグラムを各レイアウトの指割り当てに当てはめた推定値です。",
+            en: "Applies your actual bigram frequencies to the finger assignments of QWERTY, Colemak, and Dvorak to estimate same-finger bigram rate (SFB) and hand-alternation rate for each layout.\n\nLower SFB and higher alternation = more efficient layout for your typing patterns.\n\nNote: these are estimates based on remapping your recorded bigrams to each layout's finger assignments."
+        )
+    }
+
+    var layoutEfficiencyNoData: String {
+        ja("データなし — しばらく入力するとビグラムデータが蓄積されます。",
+           en: "No data yet — type for a while to accumulate bigram data.")
+    }
+
+    var layoutEfficiencySFBHeader: String {
+        ja("同指率 (低いほど良い)", en: "Same-Finger Rate (lower = better)")
+    }
+
+    var layoutEfficiencyAltHeader: String {
+        ja("交互打鍵率 (高いほど良い)", en: "Hand Alternation (higher = better)")
+    }
+
+    // MARK: - Issue #98: Key Transition Analysis
+
     var keyTransitionTitle: String {
         ja("キー遷移分析", en: "Key Transition Analysis")
     }
