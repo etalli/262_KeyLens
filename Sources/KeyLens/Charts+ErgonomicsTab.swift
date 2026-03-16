@@ -47,25 +47,64 @@ extension ChartsView {
 
     @ViewBuilder
     var slowBigramChart: some View {
-        if model.slowBigrams.isEmpty {
-            Text(L10n.shared.slowBigramsNoData)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
-        } else {
-            let bigramOrder = model.slowBigrams.map(\.bigram)
-            Chart(model.slowBigrams) { item in
-                BarMark(
-                    x: .value("Avg IKI (ms)", item.avgIKI),
-                    y: .value("Bigram", item.bigram)
-                )
-                .foregroundStyle(Color.orange.opacity(0.8))
-                .cornerRadius(3)
+        let layout = ANSILayout()
+        let fingers = ["Pinky", "Ring", "Middle", "Index", "Thumb"]
+        let filtered: [SlowBigramEntry] = {
+            guard let sel = slowBigramFingerFilter else { return model.slowBigrams }
+            return model.slowBigrams.filter { entry in
+                guard let bigram = Bigram.parse(entry.bigram),
+                      let finger = layout.finger(for: bigram.to) else { return false }
+                return finger.rawValue.localizedCapitalized == sel
             }
-            .chartYScale(domain: bigramOrder)
-            .chartXAxisLabel("ms", alignment: .trailing)
-            .chartLegend(.hidden)
-            .frame(height: CGFloat(model.slowBigrams.count * 26 + 24))
+        }()
+
+        VStack(alignment: .leading, spacing: 12) {
+            // Finger filter picker
+            HStack(spacing: 6) {
+                fingerFilterButton(label: "All", selected: slowBigramFingerFilter == nil) {
+                    slowBigramFingerFilter = nil
+                }
+                ForEach(fingers, id: \.self) { finger in
+                    fingerFilterButton(label: finger, selected: slowBigramFingerFilter == finger) {
+                        slowBigramFingerFilter = slowBigramFingerFilter == finger ? nil : finger
+                    }
+                }
+            }
+
+            if filtered.isEmpty {
+                Text(L10n.shared.slowBigramsNoData)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+            } else {
+                let bigramOrder = filtered.map(\.bigram)
+                Chart(filtered) { item in
+                    BarMark(
+                        x: .value("Avg IKI (ms)", item.avgIKI),
+                        y: .value("Bigram", item.bigram)
+                    )
+                    .foregroundStyle(Color.orange.opacity(0.8))
+                    .cornerRadius(3)
+                }
+                .chartYScale(domain: bigramOrder)
+                .chartXAxisLabel("ms", alignment: .trailing)
+                .chartLegend(.hidden)
+                .frame(height: CGFloat(filtered.count * 26 + 24))
+            }
         }
+    }
+
+    @ViewBuilder
+    private func fingerFilterButton(label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(selected ? Color.orange.opacity(0.8) : Color.secondary.opacity(0.15))
+                .foregroundStyle(selected ? .white : .primary)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder

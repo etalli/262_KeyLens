@@ -17,6 +17,8 @@ struct ChartsView: View {
     @State var snapperStore = SnapperStore()
     /// Timer that drives real-time refresh on the Live tab.
     @State var liveTimer: Timer? = nil
+    /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
+    @State var slowBigramFingerFilter: String? = nil
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。
