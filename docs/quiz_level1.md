@@ -80,8 +80,11 @@
 ## 第3部：データとUI
 
 **Q7. 累計のキー入力回数などのデータは、Mac のどのディレクトリに保存されますか？**
-- **正解：** `~/Library/Application Support/KeyLens/counts.json`
-- **解説：** Mac の標準的なアプリケーションデータ保存場所である `Application Support` 内に専用フォルダを作って保存しています。
+- **正解：** データは3つのファイルに分散して保存されています。
+  - `~/Library/Application Support/KeyLens/counts.json` — スカラー値・累計カウント（全キー合計など）
+  - `~/Library/Application Support/KeyLens/keylens.db` — 日次詳細データ（SQLite）
+  - `~/Library/Application Support/KeyLens/mouse.db` — マウス移動距離（SQLite）
+- **解説：** もともとはすべて `counts.json` に保存していましたが、日次データが大きくなるにつれ SQLite (`keylens.db`) に移行しました。マウスデータは独立した `mouse.db` に保存されています。
 
 **Q8. メニューバーのメニューはどのタイミングで更新されますか？**
 - **正解：** B) ユーザーがメニューをクリックして開こうとした瞬間に更新される
@@ -89,7 +92,7 @@
 
 **Q9. キー入力が一定数に達したときに通知を出す処理は、どのクラスが担当していますか？**
 - **正解：** `NotificationManager`
-- **解説：** `KeyCountStore` が「キリの良い数字」を検知し、`NotificationManager` がユーザーに通知を出すという連携が行われています。
+- **解説：** 呼び出しの流れは以下の通りです。`KeyCountStore.increment()` がカウントを更新し `(count, milestone: Bool)` を返す → `KeyboardMonitor` がその戻り値の `milestone` フラグを確認する → `true` の場合に `NotificationManager.shared.notify(...)` を呼び出してユーザーに通知する。マイルストーンの「検知」は `KeyCountStore`、「通知の送信」は `NotificationManager` が担当しますが、両者をつなぐのは `KeyboardMonitor` です。
 
 ---
 
