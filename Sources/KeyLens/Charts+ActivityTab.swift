@@ -93,6 +93,17 @@ extension ChartsView {
                         .foregroundStyle(.secondary)
                 }
             }
+            .chartXAxis {
+                let stride = max(1, model.dailyWPM.count / 7)
+                AxisMarks(values: model.dailyWPM.enumerated()
+                    .filter { $0.offset % stride == 0 }
+                    .map { $0.element.date }
+                ) { _ in
+                    AxisGridLine()
+                    AxisValueLabel(centered: false)
+                        .font(.caption)
+                }
+            }
             .frame(height: 200)
         }
     }
@@ -130,6 +141,17 @@ extension ChartsView {
                     Text(String(format: "%.1f%%", item.rate))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+            .chartXAxis {
+                let stride = max(1, model.dailyAccuracy.count / 7)
+                AxisMarks(values: model.dailyAccuracy.enumerated()
+                    .filter { $0.offset % stride == 0 }
+                    .map { $0.element.date }
+                ) { _ in
+                    AxisGridLine()
+                    AxisValueLabel(centered: false)
+                        .font(.caption)
                 }
             }
             .frame(height: 200)
