@@ -182,6 +182,10 @@ final class KeyCountStore {
     private(set) var recentIKIs: [(key: String, iki: Double)] = []
     private let recentIKICapacity = 20
 
+    // Manual WPM measurement session (Issue #150). All access on `queue`.
+    var wpmSessionStart: Date? = nil
+    var wpmSessionKeystrokes: Int = 0
+
     private init() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -245,6 +249,9 @@ final class KeyCountStore {
             // Per-device → SQLite pending
             store.deviceCounts[deviceName, default: 0] += 1
             pending.dailyDevices[today, default: [:]][deviceName, default: 0] += 1
+
+            // Manual WPM session keystroke counter
+            if wpmSessionStart != nil { wpmSessionKeystrokes += 1 }
 
             // Update today count cache
             if _todayCacheDate != today {

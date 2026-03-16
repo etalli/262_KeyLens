@@ -475,6 +475,36 @@ extension KeyCountStore {
         queue.sync { recentIKIs }
     }
 
+    // MARK: - Manual WPM measurement (Issue #150)
+
+    /// Starts a new WPM measurement session. Resets any previous session.
+    func startWPMMeasurement() {
+        queue.sync {
+            wpmSessionStart = Date()
+            wpmSessionKeystrokes = 0
+        }
+    }
+
+    /// Stops the active session and returns the result.
+    /// Returns nil if no session was running.
+    func stopWPMMeasurement() -> (wpm: Double, duration: TimeInterval, keystrokes: Int)? {
+        queue.sync {
+            guard let start = wpmSessionStart else { return nil }
+            let duration = Date().timeIntervalSince(start)
+            let keystrokes = wpmSessionKeystrokes
+            wpmSessionStart = nil
+            wpmSessionKeystrokes = 0
+            guard duration > 0, keystrokes > 0 else { return nil }
+            let wpm = (Double(keystrokes) / 5.0) / (duration / 60.0)
+            return (wpm: wpm, duration: duration, keystrokes: keystrokes)
+        }
+    }
+
+    /// Whether a WPM measurement session is currently active.
+    var isWPMMeasuring: Bool {
+        queue.sync { wpmSessionStart != nil }
+    }
+
     /// All keys sorted by cumulative count descending, including today's count.
     func allEntries() -> [(key: String, total: Int, today: Int)] {
         queue.sync {
