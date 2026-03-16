@@ -80,43 +80,43 @@ struct ChartsView: View {
     func chartSection<C: View>(_ title: String, helpText: String? = nil, showSort: Bool = false, @ViewBuilder content: () -> C) -> some View {
         let contentView = AnyView(content())
         let isCopied = copiedSection == title
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                if let helpText {
-                    SectionHeader(title: title, helpText: helpText)
-                } else {
-                    Text(title).font(.headline)
-                }
-
-                Spacer()
-
-                if showSort {
-                    Picker("", selection: $sortDescending) {
-                        Image(systemName: "arrow.down.square").tag(true)
-                            .help("Descending (Most frequent first)")
-                        Image(systemName: "arrow.up.square").tag(false)
-                            .help("Ascending (Least frequent first)")
+        // ChartSnapper wraps the entire section (title + content) so the clipboard
+        // image includes the section title. (Fix for Issue #156)
+        return ZStack(alignment: .topLeading) {
+            ChartSnapper(store: snapperStore, key: title).allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    if let helpText {
+                        SectionHeader(title: title, helpText: helpText)
+                    } else {
+                        Text(title).font(.headline)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 80)
-                }
 
-                // Copy to clipboard button
-                Button {
-                    snapshotToClipboard(title: title)
-                } label: {
-                    Image(systemName: isCopied ? "checkmark" : "clipboard")
-                        .font(.body)
-                        .foregroundStyle(isCopied ? .green : .secondary)
+                    Spacer()
+
+                    if showSort {
+                        Picker("", selection: $sortDescending) {
+                            Image(systemName: "arrow.down.square").tag(true)
+                                .help("Descending (Most frequent first)")
+                            Image(systemName: "arrow.up.square").tag(false)
+                                .help("Ascending (Least frequent first)")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 80)
+                    }
+
+                    // Copy to clipboard button
+                    Button {
+                        snapshotToClipboard(title: title)
+                    } label: {
+                        Image(systemName: isCopied ? "checkmark" : "clipboard")
+                            .font(.body)
+                            .foregroundStyle(isCopied ? .green : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Copy chart as image")
+                    .animation(.easeInOut(duration: 0.2), value: isCopied)
                 }
-                .buttonStyle(.plain)
-                .help("Copy chart as image")
-                .animation(.easeInOut(duration: 0.2), value: isCopied)
-            }
-            ZStack(alignment: .topLeading) {
-                // ChartSnapper sits behind contentView as a ZStack sibling so it has
-                // a proper NSView superview and an always-current frame at click time.
-                ChartSnapper(store: snapperStore, key: title).allowsHitTesting(false)
                 contentView
             }
         }
