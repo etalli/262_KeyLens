@@ -10,6 +10,7 @@ extension ChartsView {
                 chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
                 chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
                 chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
+                chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
             }
@@ -90,6 +91,83 @@ extension ChartsView {
                 .chartLegend(.hidden)
                 .frame(height: CGFloat(filtered.count * 26 + 24))
             }
+        }
+    }
+
+    // MARK: - Issue #98: Key Transition Analysis
+
+    @ViewBuilder
+    var keyTransitionSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Key input field
+            HStack(spacing: 8) {
+                TextField(L10n.shared.keyTransitionPlaceholder, text: $keyTransitionTarget)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 160)
+                    .onChange(of: keyTransitionTarget) { newValue in
+                        model.reloadKeyTransitions(for: newValue)
+                    }
+
+                if !keyTransitionTarget.isEmpty {
+                    Button {
+                        keyTransitionTarget = ""
+                        model.reloadKeyTransitions(for: "")
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            if keyTransitionTarget.isEmpty {
+                Text(L10n.shared.keyTransitionPlaceholder)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
+            } else {
+                // Incoming transitions
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L10n.shared.keyTransitionIncomingTitle(keyTransitionTarget))
+                        .font(.caption).foregroundStyle(.secondary)
+                    keyTransitionChart(entries: model.keyTransitionIncoming, color: .teal)
+                }
+
+                // Outgoing transitions
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L10n.shared.keyTransitionOutgoingTitle(keyTransitionTarget))
+                        .font(.caption).foregroundStyle(.secondary)
+                    keyTransitionChart(entries: model.keyTransitionOutgoing, color: .purple)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func keyTransitionChart(entries: [KeyTransitionEntry], color: Color) -> some View {
+        if entries.isEmpty {
+            Text(L10n.shared.keyTransitionNoData)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+                .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
+        } else {
+            let order = entries.map(\.bigram)
+            Chart(entries) { item in
+                BarMark(
+                    x: .value("Avg IKI (ms)", item.avgIKI),
+                    y: .value("Bigram", item.bigram)
+                )
+                .foregroundStyle(color.opacity(0.8))
+                .cornerRadius(3)
+                .annotation(position: .trailing) {
+                    Text("n=\(item.count)")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: order)
+            .chartXAxisLabel("ms", alignment: .trailing)
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(entries.count * 28 + 24))
         }
     }
 

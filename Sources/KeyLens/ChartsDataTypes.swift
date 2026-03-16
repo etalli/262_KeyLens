@@ -181,3 +181,15 @@ struct SlowBigramEntry: Identifiable {
     let avgIKI: Double      // average inter-key interval in ms
     init(_ t: (bigram: String, avgIKI: Double)) { id = t.bigram; bigram = t.bigram; avgIKI = t.avgIKI }
 }
+
+/// One row in the Key Transition analysis chart (Issue #98).
+/// キー遷移分析チャートの1行。
+struct KeyTransitionEntry: Identifiable {
+    let id: String          // bigram key e.g. "d→f"
+    let bigram: String      // display label
+    let avgIKI: Double      // average inter-key interval in ms
+    let count: Int          // number of samples
+    init(_ t: (bigram: String, avgIKI: Double, count: Int)) {
+        id = t.bigram; bigram = t.bigram; avgIKI = t.avgIKI; count = t.count
+    }
+}

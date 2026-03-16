@@ -53,6 +53,9 @@ final class ChartDataModel: ObservableObject {
     @Published var slowBigrams:          [SlowBigramEntry]      = []
     // Issue #104: average IKI broken down by finger
     @Published var fingerIKI:            [FingerIKIEntry]       = []
+    // Issue #98: key transition analysis — incoming and outgoing transitions for the selected key
+    @Published var keyTransitionIncoming: [KeyTransitionEntry]  = []
+    @Published var keyTransitionOutgoing: [KeyTransitionEntry]  = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -119,6 +122,18 @@ final class ChartDataModel: ObservableObject {
         slowBigrams = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
         // Issue #104: IKI per finger
         fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
+    }
+
+    /// Reloads key transition data for the given target key (Issue #98).
+    func reloadKeyTransitions(for key: String) {
+        guard !key.isEmpty else {
+            keyTransitionIncoming = []
+            keyTransitionOutgoing = []
+            return
+        }
+        let result = KeyCountStore.shared.keyTransitions(for: key)
+        keyTransitionIncoming = result.incoming.map(KeyTransitionEntry.init)
+        keyTransitionOutgoing = result.outgoing.map(KeyTransitionEntry.init)
     }
 
     /// Lightweight refresh — reads only the live IKI ring buffer. Called by the 0.5s timer.
