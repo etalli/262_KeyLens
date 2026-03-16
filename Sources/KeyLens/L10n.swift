@@ -534,6 +534,18 @@ final class L10n {
         )
     }
 
+    var wpmHotkeyLabel: String {
+        ja("ショートカット:", en: "Hotkey:")
+    }
+
+    var wpmHotkeyRecord: String {
+        ja("変更…", en: "Change…")
+    }
+
+    var wpmHotkeyRecording: String {
+        ja("キーを押してください…", en: "Press a key combo…")
+    }
+
     var chartTitleIKIHistogram: String {
         ja("IKI分布ヒストグラム", en: "IKI Distribution Histogram")
     }

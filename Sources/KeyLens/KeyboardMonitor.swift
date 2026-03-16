@@ -210,6 +210,11 @@ extension KeyboardMonitor {
             return Unmanaged.passRetained(event)
         }
 
+        // Check WPM hotkey before recording the keystroke (Issue #151)
+        if type == .keyDown, WPMHotkeyManager.shared.matches(event: event) {
+            DispatchQueue.main.async { WPMHotkeyManager.shared.toggle() }
+        }
+
         let now = Date()
         let appName = NSWorkspace.shared.frontmostApplication?.localizedName
         let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)
