@@ -98,7 +98,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 #### Activity tab
 | Section | What it shows |
 |---------|---------------|
-| **Live IKI** | Bar chart of inter-keystroke intervals for the last 20 keystrokes, updated every 0.5s; bars colour-coded green/orange/red by speed |
+| **Live IKI** | Bar chart of inter-keystroke intervals for the last 20 keystrokes, updated every 0.5s; bars color-coded green/orange/red by speed |
 | **IKI Distribution** | Histogram of keystroke interval buckets showing the distribution of your typing rhythm |
 | **Daily Totals** | Line chart of per-day keystroke counts |
 | **Typing Speed** | Daily average WPM over time |
@@ -132,7 +132,7 @@ The default prompt asks the AI to compute same-finger rates, hand alternation ra
 <table>
   <tr>
     <td><img src="images/keystroke_overlay_settings.png" width="280"/></td>
-    <td><img src="images/KeyStorokeOverlay-screenshot.png" width="400"/></td>
+    <td><img src="images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
   </tr>
   <tr>
     <td align="center">Setting</td>
