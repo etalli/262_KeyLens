@@ -11,6 +11,12 @@ extension ChartsView {
                 .padding(.leading, 24)
                 .padding(.bottom, 24)
                 .padding(.trailing, 12)
+
+            Divider().padding(.horizontal, 24)
+
+            wpmMeasurementSection
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
@@ -91,5 +97,55 @@ extension ChartsView {
             .frame(width: recentIKIChartWidth, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    // MARK: - Manual WPM Measurement (Issue #150)
+
+    @ViewBuilder
+    var wpmMeasurementSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.shared.wpmMeasureTitle)
+                .font(.headline)
+
+            Text(L10n.shared.wpmMeasureHint)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 12) {
+                Button {
+                    if isMeasuringWPM {
+                        wpmResult = KeyCountStore.shared.stopWPMMeasurement()
+                        isMeasuringWPM = false
+                    } else {
+                        KeyCountStore.shared.startWPMMeasurement()
+                        wpmResult = nil
+                        isMeasuringWPM = true
+                    }
+                } label: {
+                    Label(
+                        isMeasuringWPM ? L10n.shared.wpmMeasureStop : L10n.shared.wpmMeasureStart,
+                        systemImage: isMeasuringWPM ? "stop.circle.fill" : "play.circle.fill"
+                    )
+                    .font(.body.bold())
+                    .foregroundStyle(isMeasuringWPM ? .red : .green)
+                }
+                .buttonStyle(.plain)
+
+                if isMeasuringWPM {
+                    Label("Recording…", systemImage: "record.circle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            if let r = wpmResult {
+                Text(L10n.shared.wpmMeasureResult(wpm: r.wpm, duration: r.duration, keystrokes: r.keystrokes))
+                    .font(.title2.monospacedDigit().bold())
+                    .foregroundStyle(.orange)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: isMeasuringWPM)
+        .animation(.easeInOut(duration: 0.2), value: wpmResult != nil)
     }
 }

@@ -19,6 +19,10 @@ struct ChartsView: View {
     @State var liveTimer: Timer? = nil
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
+    /// Whether a manual WPM session is active (Issue #150).
+    @State var isMeasuringWPM: Bool = false
+    /// Result of the last completed WPM session.
+    @State var wpmResult: (wpm: Double, duration: TimeInterval, keystrokes: Int)? = nil
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

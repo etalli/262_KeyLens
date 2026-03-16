@@ -505,6 +505,35 @@ final class L10n {
         )
     }
 
+    // MARK: - Manual WPM Measurement (Issue #150)
+
+    var wpmMeasureTitle: String {
+        ja("WPM 計測", en: "WPM Measurement")
+    }
+
+    var wpmMeasureStart: String {
+        ja("計測開始", en: "Start")
+    }
+
+    var wpmMeasureStop: String {
+        ja("計測停止", en: "Stop")
+    }
+
+    var wpmMeasureHint: String {
+        ja("「計測開始」を押してからタイピングし、「計測停止」を押すとWPMが表示されます。",
+           en: "Press Start, type freely, then press Stop to see your WPM.")
+    }
+
+    func wpmMeasureResult(wpm: Double, duration: TimeInterval, keystrokes: Int) -> String {
+        let mins = Int(duration) / 60
+        let secs = Int(duration) % 60
+        let timeStr = mins > 0 ? "\(mins)m \(secs)s" : "\(secs)s"
+        return ja(
+            String(format: "%.0f WPM  (%d打鍵 / %@)", wpm, keystrokes, timeStr),
+            en: String(format: "%.0f WPM  (%d keystrokes / %@)", wpm, keystrokes, timeStr)
+        )
+    }
+
     var chartTitleIKIHistogram: String {
         ja("IKI分布ヒストグラム", en: "IKI Distribution Histogram")
     }
