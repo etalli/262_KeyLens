@@ -186,6 +186,12 @@ final class KeyCountStore {
     var wpmSessionStart: Date? = nil
     var wpmSessionKeystrokes: Int = 0
 
+    // Typing session detection (Issue #60). All access on `queue`.
+    // A session boundary is defined as a gap of ≥ sessionGapThreshold with no keystrokes.
+    static let sessionGapThreshold: TimeInterval = 5 * 60  // 5 minutes
+    private var currentSessionStart: Date? = nil
+    private var currentSessionKeystrokes: Int = 0
+
     private init() {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -261,6 +267,24 @@ final class KeyCountStore {
             _todayCount += 1
 
             let prevInputTime = store.lastInputTime
+
+            // Session detection (Issue #60): detect ≥5-min gaps and record completed sessions.
+            if let prev = prevInputTime {
+                let gap = timestamp.timeIntervalSince(prev)
+                if gap >= Self.sessionGapThreshold {
+                    // Gap is large enough to close the current session and start a new one.
+                    finalizeCurrentSessionLocked(at: prev)
+                    currentSessionStart = timestamp
+                    currentSessionKeystrokes = 1
+                } else {
+                    if currentSessionStart == nil { currentSessionStart = timestamp }
+                    currentSessionKeystrokes += 1
+                }
+            } else {
+                // First keystroke ever recorded.
+                currentSessionStart = timestamp
+                currentSessionKeystrokes = 1
+            }
 
             // Welford IKI update (≤1000ms only)
             if let last = store.lastInputTime {
@@ -390,6 +414,32 @@ final class KeyCountStore {
         scheduleSave()
     }
 
+    // MARK: - Session management (Issue #60)
+
+    /// Finalize the in-progress session and add it to pending. Must be called on `queue`.
+    func finalizeCurrentSessionLocked(at endTime: Date) {
+        guard let start = currentSessionStart,
+              currentSessionKeystrokes > 0,
+              endTime.timeIntervalSince(start) > 0 else { return }
+        let date = Self.dayFormatter.string(from: start)
+        pending.pendingSessions.append(PendingStore.SessionRecord(
+            date: date,
+            startTime: start.timeIntervalSince1970,
+            endTime: endTime.timeIntervalSince1970,
+            keystrokeCount: currentSessionKeystrokes
+        ))
+        currentSessionStart = nil
+        currentSessionKeystrokes = 0
+    }
+
+    /// Finalize the open session and flush it. Call from AppDelegate on termination.
+    func finalizeCurrentSession() {
+        queue.sync {
+            guard let last = store.lastInputTime else { return }
+            finalizeCurrentSessionLocked(at: last)
+        }
+    }
+
     // MARK: - Metadata
 
     var totalCount: Int {
@@ -409,6 +459,8 @@ final class KeyCountStore {
             secondLastKeyName = nil
             alternationStreak = 0
             lastBigramWasHighStrain = false
+            currentSessionStart = nil
+            currentSessionKeystrokes = 0
             // Re-prime today cache
             _todayCacheDate = todayKey
             _todayCount = dailyTotalLocked(for: _todayCacheDate)
@@ -424,6 +476,8 @@ final class KeyCountStore {
             secondLastKeyName = nil
             alternationStreak = 0
             lastBigramWasHighStrain = false
+            currentSessionStart = nil
+            currentSessionKeystrokes = 0
             _todayCount = 0
             _todayCacheDate = todayKey
             // Clear SQLite tables
@@ -431,7 +485,7 @@ final class KeyCountStore {
                 try? db.write { db in
                     for table in ["daily_keys","daily_bigrams","daily_trigrams",
                                   "daily_apps","daily_devices","hourly_counts",
-                                  "bigram_iki","iki_buckets"] {
+                                  "bigram_iki","iki_buckets","sessions"] {
                         try db.execute(sql: "DELETE FROM \(table)")
                     }
                 }

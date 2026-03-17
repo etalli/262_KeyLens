@@ -13,11 +13,20 @@ struct PendingStore {
     var hourly:        [String: [Int: Int]]    = [:]  // date → hour → delta
     var bigramIKI:     [String: (sum: Double, count: Int)] = [:]
     var ikiBuckets:    [String: [Int: Int]]    = [:]  // date → bucket → delta
+    // Issue #60: completed typing sessions waiting to be flushed to SQLite
+    var pendingSessions: [SessionRecord]       = []
+
+    struct SessionRecord {
+        var date: String        // yyyy-MM-dd of sessionStart
+        var startTime: Double   // Unix timestamp
+        var endTime: Double     // Unix timestamp
+        var keystrokeCount: Int
+    }
 
     var isEmpty: Bool {
         dailyKeys.isEmpty && dailyBigrams.isEmpty && dailyTrigrams.isEmpty &&
         dailyApps.isEmpty && dailyDevices.isEmpty && hourly.isEmpty &&
-        bigramIKI.isEmpty && ikiBuckets.isEmpty
+        bigramIKI.isEmpty && ikiBuckets.isEmpty && pendingSessions.isEmpty
     }
 }
 
@@ -96,6 +105,17 @@ extension KeyCountStore {
                     t.column("count", .integer).notNull().defaults(to: 0)
                     t.primaryKey(["date", "bucket"])
                 }
+            }
+            // Issue #60: typing session records
+            migrator.registerMigration("v2") { db in
+                try db.create(table: "sessions", ifNotExists: true) { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("date", .text).notNull()
+                    t.column("start_time", .double).notNull()
+                    t.column("end_time", .double).notNull()
+                    t.column("keystroke_count", .integer).notNull().defaults(to: 0)
+                }
+                try db.create(index: "sessions_date_idx", on: "sessions", columns: ["date"], ifNotExists: true)
             }
             try migrator.migrate(db)
 
@@ -186,6 +206,13 @@ extension KeyCountStore {
                             """, arguments: [date, bucket, delta])
                     }
                 }
+                // Issue #60: flush completed typing sessions
+                for s in p.pendingSessions where s.endTime > s.startTime && s.keystrokeCount > 0 {
+                    try db.execute(sql: """
+                        INSERT INTO sessions (date, start_time, end_time, keystroke_count)
+                        VALUES (?, ?, ?, ?)
+                        """, arguments: [s.date, s.startTime, s.endTime, s.keystrokeCount])
+                }
             }
         } catch {
             pending = mergePending(p, into: pending)
@@ -211,6 +238,7 @@ extension KeyCountStore {
             r.bigramIKI[bigram] = (e.sum + sum, e.count + cnt)
         }
         for (d, bkts) in source.ikiBuckets { for (b,v) in bkts { r.ikiBuckets[d, default:[:]][b, default:0] += v } }
+        r.pendingSessions.append(contentsOf: source.pendingSessions)
         return r
     }
 }
@@ -279,6 +307,39 @@ extension KeyCountStore {
                     percentage: total > 0 ? Double(buckets[i]) / Double(total) * 100.0 : 0
                 )
             }
+        }
+    }
+}
+
+// MARK: - Issue #60: Session query
+
+extension KeyCountStore {
+
+    /// Returns per-day session summaries (count, total minutes, longest session) from SQLite.
+    /// Must NOT be called on `queue` to avoid deadlock.
+    func allSessionSummaries() -> [DailySessionSummary] {
+        guard let db = dbQueue else { return [] }
+        let rows = (try? db.read { db in
+            try Row.fetchAll(db, sql: """
+                SELECT date,
+                       COUNT(*) AS session_count,
+                       SUM(end_time - start_time) / 60.0 AS total_minutes,
+                       MAX(end_time - start_time) / 60.0 AS longest_minutes
+                FROM sessions
+                WHERE end_time > start_time AND keystroke_count > 0
+                GROUP BY date
+                ORDER BY date
+                """)
+        }) ?? []
+        return rows.map { row in
+            let date: String = row["date"]
+            return DailySessionSummary(
+                id: date,
+                date: date,
+                sessionCount: row["session_count"],
+                totalMinutes: row["total_minutes"] ?? 0,
+                longestMinutes: row["longest_minutes"] ?? 0
+            )
         }
     }
 }

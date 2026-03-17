@@ -58,6 +58,8 @@ final class ChartDataModel: ObservableObject {
     @Published var keyTransitionOutgoing: [KeyTransitionEntry]  = []
     // Issue #61: layout efficiency comparison — QWERTY vs Colemak vs Dvorak
     @Published var layoutEfficiency:      [LayoutEfficiencyEntry] = []
+    // Issue #60: Session detection
+    @Published var sessionSummaries:      [DailySessionSummary]   = []
     // Issue #168: Mouse tab
     @Published var mouseDailyDistances:   [MouseDailyEntry]       = []
     @Published var mouseHourlyActivity:   [MouseHourEntry]        = []
@@ -130,6 +132,8 @@ final class ChartDataModel: ObservableObject {
         fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
         // Issue #61: layout efficiency comparison
         layoutEfficiency = store.layoutEfficiencyScores()
+        // Issue #60: session detection
+        sessionSummaries = store.allSessionSummaries()
         // Issue #168: Mouse tab
         let ms = MouseStore.shared
         mouseDailyDistances = ms.dailyDistances().map(MouseDailyEntry.init)
