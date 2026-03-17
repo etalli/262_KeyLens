@@ -405,6 +405,29 @@ final class L10n {
         ja("コピーしました！", en: "Copied!")
     }
 
+    var importKLEButton: String {
+        ja("レイアウトをインポート…", en: "Import Layout…")
+    }
+
+    var kleParseErrorTitle: String {
+        ja("インポート失敗", en: "Import Failed")
+    }
+
+    var kleParseErrorInvalid: String {
+        ja("ファイルを KLE JSON として解析できませんでした。keyboard-layout-editor.com からエクスポートした有効な JSON ファイルを選択してください。",
+           en: "The file could not be parsed as KLE JSON. Select a valid JSON file exported from keyboard-layout-editor.com.")
+    }
+
+    var kleParseErrorEmpty: String {
+        ja("レイアウトにキーが見つかりませんでした。",
+           en: "No keys were found in the layout.")
+    }
+
+    var kleCustomNoData: String {
+        ja("カスタムレイアウトが未インポートです。\n「レイアウトをインポート…」をクリックして KLE JSON ファイルを読み込んでください。",
+           en: "No custom layout imported yet.\nClick \"Import Layout…\" to load a KLE JSON file.")
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }
