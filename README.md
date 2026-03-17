@@ -19,7 +19,7 @@ KeyLens is a powerful macOS tool that analyzes your typing habits locally to rec
 KeyLens is designed so that **typed content cannot be reconstructed** from the stored data. Only aggregated statistics (counts and timing summaries) are kept.
 
 
-[**Visit the Official Landing Page**](https://etalli.github.io/262_KeyLens/landing-page/) for a visual tour and deep dive into the optimization engine.
+[**Visit the Official Page**](https://etalli.github.io/262_KeyLens/landing-page/) for a visual tour and deep dive into the optimization engine
 
 <table>
   <tr>
