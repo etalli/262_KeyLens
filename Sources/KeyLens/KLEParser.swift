@@ -67,18 +67,21 @@ struct KLEParser {
                                                   withTemplate: #"$1"$2"$3"#)
 
         // Try parsing as-is first (handles already-wrapped files)
-        if let d = text.data(using: .utf8),
-           JSONSerialization.isValidJSONObject(try JSONSerialization.jsonObject(with: d) as AnyObject) {
-            return d
+        if let fixedData = text.data(using: .utf8),
+           (try? JSONSerialization.jsonObject(with: fixedData)) != nil {
+            return fixedData
         }
 
-        // File is bare rows (no outer [...]): wrap it
+        // File is bare rows (no outer [...]): wrap it, then try once more
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // Remove any trailing comma left over from the last row
         let stripped = trimmed.hasSuffix(",") ? String(trimmed.dropLast()) : trimmed
         text = "[\(stripped)]"
 
-        guard let result = text.data(using: .utf8) else { throw KLEParseError.invalidFormat }
+        guard let result = text.data(using: .utf8),
+              (try? JSONSerialization.jsonObject(with: result)) != nil else {
+            throw KLEParseError.invalidFormat
+        }
         return result
     }
 
