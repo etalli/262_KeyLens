@@ -74,6 +74,10 @@ struct ChartsView: View {
             appsTab
                 .tabItem { Label(ChartTab.apps.rawValue, systemImage: ChartTab.apps.icon) }
                 .tag(ChartTab.apps)
+
+            mouseTab
+                .tabItem { Label(ChartTab.mouse.rawValue, systemImage: ChartTab.mouse.icon) }
+                .tag(ChartTab.mouse)
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

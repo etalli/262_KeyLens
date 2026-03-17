@@ -169,4 +169,56 @@ final class MouseStore {
             return total > 0 ? total : nil
         }
     }
+
+    /// Daily mouse travel for the last N days, oldest first.
+    func dailyDistances(days: Int = 30) -> [(date: String, distancePts: Double)] {
+        queue.sync {
+            guard let db = dbQueue else { return [] }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, distance_pts FROM mouse_daily
+                    ORDER BY date DESC LIMIT ?
+                    """, arguments: [days])
+            }) ?? []
+            return rows.map { (date: $0["date"] as String? ?? "", distancePts: $0["distance_pts"] as Double? ?? 0) }
+                       .reversed()
+        }
+    }
+
+    /// Mouse movement summed by hour of day (0–23) across all recorded days.
+    func hourlyDistributionMouse() -> [(hour: Int, distancePts: Double)] {
+        queue.sync {
+            guard let db = dbQueue else { return [] }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT hour, SUM(distance_pts) AS total
+                    FROM mouse_hourly
+                    GROUP BY hour
+                    ORDER BY hour
+                    """)
+            }) ?? []
+            return rows.map { (hour: $0["hour"] as Int? ?? 0, distancePts: $0["total"] as Double? ?? 0) }
+        }
+    }
+
+    /// All-time directional movement totals: right, left, down, up (all non-negative).
+    func directionBreakdown() -> (right: Double, left: Double, down: Double, up: Double) {
+        queue.sync {
+            guard let db = dbQueue else { return (0, 0, 0, 0) }
+            let row = try? db.read { db in
+                try Row.fetchOne(db, sql: """
+                    SELECT SUM(dx_pos) AS r, SUM(dx_neg) AS l,
+                           SUM(dy_pos) AS d, SUM(dy_neg) AS u
+                    FROM mouse_daily
+                    """)
+            }
+            guard let r = row else { return (0, 0, 0, 0) }
+            return (
+                right: r["r"] as Double? ?? 0,
+                left:  r["l"] as Double? ?? 0,
+                down:  r["d"] as Double? ?? 0,
+                up:    r["u"] as Double? ?? 0
+            )
+        }
+    }
 }

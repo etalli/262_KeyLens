@@ -37,6 +37,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
     case ergonomics  = "Ergonomics"
     case shortcuts   = "Shortcuts"
     case apps        = "Apps"
+    case mouse       = "Mouse"
 
     var id: String { rawValue }
 
@@ -49,6 +50,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
         case .ergonomics: return "figure.walk"
         case .shortcuts:  return "command"
         case .apps:       return "app.badge"
+        case .mouse:      return "cursorarrow.motionlines"
         }
     }
 }

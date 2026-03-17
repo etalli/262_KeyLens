@@ -997,6 +997,41 @@ final class L10n {
         ja("🖱 移動距離データなし", en: "🖱 No mouse distance data yet")
     }
 
+    // MARK: - Mouse Tab (Charts window)
+
+    var chartTitleMouseDailyDistance: String {
+        ja("日別マウス移動距離（直近30日）", en: "Daily Mouse Travel (Last 30 Days)")
+    }
+
+    var helpMouseDailyDistance: String {
+        ja(
+            "直近30日間の日別マウス移動距離を棒グラフで表示します。単位はスクリーンポイント（px）です。",
+            en: "Daily mouse travel distance over the last 30 days. Values are in screen points (px)."
+        )
+    }
+
+    var chartTitleMouseHourly: String {
+        ja("時間帯別マウス活動量", en: "Hourly Mouse Activity")
+    }
+
+    var helpMouseHourly: String {
+        ja(
+            "全期間のデータを時間帯ごとに集計したマウス移動量です。マウスを最もよく使う時間帯が分かります。",
+            en: "Total mouse movement aggregated by hour of day across all recorded days. Shows your most active hours for mouse usage."
+        )
+    }
+
+    var chartTitleMouseDirection: String {
+        ja("移動方向の内訳", en: "Direction Breakdown")
+    }
+
+    var helpMouseDirection: String {
+        ja(
+            "上下左右それぞれのマウス移動量の累計です。右利き・左利き傾向やモニター配置の影響が読み取れます。",
+            en: "Cumulative mouse movement split by direction: right, left, down, up. Reflects handedness and monitor layout tendencies."
+        )
+    }
+
     // MARK: - Chart Theme
 
     var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }

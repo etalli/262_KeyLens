@@ -212,3 +212,26 @@ struct KeyTransitionEntry: Identifiable {
         id = t.bigram; bigram = t.bigram; avgIKI = t.avgIKI; count = t.count
     }
 }
+
+// MARK: - Issue #168: Mouse tab data types
+
+struct MouseDailyEntry: Identifiable {
+    let id: String
+    let date: String
+    let distancePts: Double
+    init(_ t: (date: String, distancePts: Double)) { id = t.date; date = t.date; distancePts = t.distancePts }
+}
+
+struct MouseHourEntry: Identifiable {
+    let id: Int
+    let hour: Int
+    let distancePts: Double
+    var hourLabel: String { String(format: "%02d:00", hour) }
+    init(hour: Int, distancePts: Double) { id = hour; self.hour = hour; self.distancePts = distancePts }
+}
+
+struct MouseDirectionEntry: Identifiable {
+    let id: String
+    let direction: String
+    let distancePts: Double
+}

@@ -58,6 +58,10 @@ final class ChartDataModel: ObservableObject {
     @Published var keyTransitionOutgoing: [KeyTransitionEntry]  = []
     // Issue #61: layout efficiency comparison — QWERTY vs Colemak vs Dvorak
     @Published var layoutEfficiency:      [LayoutEfficiencyEntry] = []
+    // Issue #168: Mouse tab
+    @Published var mouseDailyDistances:   [MouseDailyEntry]       = []
+    @Published var mouseHourlyActivity:   [MouseHourEntry]        = []
+    @Published var mouseDirectionEntries: [MouseDirectionEntry]   = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -126,6 +130,17 @@ final class ChartDataModel: ObservableObject {
         fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
         // Issue #61: layout efficiency comparison
         layoutEfficiency = store.layoutEfficiencyScores()
+        // Issue #168: Mouse tab
+        let ms = MouseStore.shared
+        mouseDailyDistances = ms.dailyDistances().map(MouseDailyEntry.init)
+        mouseHourlyActivity = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
+        let dir = ms.directionBreakdown()
+        mouseDirectionEntries = [
+            MouseDirectionEntry(id: "right", direction: "Right →", distancePts: dir.right),
+            MouseDirectionEntry(id: "left",  direction: "Left ←",  distancePts: dir.left),
+            MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
+            MouseDirectionEntry(id: "up",    direction: "Up ↑",    distancePts: dir.up),
+        ].filter { $0.distancePts > 0 }
     }
 
     /// Reloads key transition data for the given target key (Issue #98).
