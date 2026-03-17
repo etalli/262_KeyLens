@@ -55,6 +55,21 @@ extension ChartsView {
                         .foregroundStyle(.secondary)
                 }
             }
+            .chartXAxis {
+                let stride = max(2, model.dailyTotals.count / 5)
+                AxisMarks(values: model.dailyTotals.enumerated()
+                    .filter { $0.offset % stride == 0 }
+                    .map { $0.element.date }
+                ) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let d = value.as(String.self) {
+                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                                .font(.footnote)
+                        }
+                    }
+                }
+            }
             .frame(height: 200)
         }
     }
