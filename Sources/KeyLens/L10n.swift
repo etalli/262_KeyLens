@@ -405,6 +405,10 @@ final class L10n {
         ja("コピーしました！", en: "Copied!")
     }
 
+    var heatmapLayoutLabel: String {
+        ja("レイアウト", en: "Layout")
+    }
+
     var importKLEButton: String {
         ja("レイアウトをインポート…", en: "Import Layout…")
     }
