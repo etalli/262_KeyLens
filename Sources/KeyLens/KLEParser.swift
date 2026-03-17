@@ -4,9 +4,10 @@ import Foundation
 
 /// A keyboard key with absolute position computed from the KLE coordinate system.
 struct KLEAbsoluteKey: Codable {
-    let x: Double       // absolute x in KLE units
-    let y: Double       // absolute y in KLE units
+    let cx: Double      // rotated center x in KLE units
+    let cy: Double      // rotated center y in KLE units
     let w: Double       // width in KLE units (1.0 = standard key)
+    let r: Double       // visual rotation in degrees (0 = upright)
     let label: String   // display label
     let keyName: String // key used to look up counts (matches KeyCountStore keys)
 }
@@ -53,6 +54,7 @@ struct KLEParser {
         var currentBaseY: Double = 0
         var lastAnchorX: Double = 0       // last rx seen; resets cursor X at row start
         var lastAnchorY: Double? = nil    // last ry seen; nil = no rotation active yet
+        var currentR: Double = 0          // current rotation angle (degrees), persists across rows
 
         for element in outer {
             // Skip top-level metadata dicts
@@ -61,6 +63,7 @@ struct KLEParser {
             // In a rotated group, each row resets its cursor X to the anchor
             var currentX: Double = lastAnchorX
             var currentW: Double = 1.0
+            var currentH: Double = 1.0
             var rowDeltaY: Double = 0  // accumulated y offset for this row
 
             for item in kleRow {
@@ -84,28 +87,44 @@ struct KLEParser {
                         currentBaseY = newRy    // reset row base to anchor
                         lastAnchorY  = newRy
                     }
+                    if let rVal = props["r"] { currentR = doubleValue(rVal) }
                     rowDeltaY += doubleValue(props["y"])
                     currentX  += doubleValue(props["x"])   // x offset from anchor
                     if let w = props["w"] { currentW = doubleValue(w) }
+                    if let h = props["h"] { currentH = doubleValue(h) }
                 } else if let rawLabel = item as? String {
                     let cleaned   = cleanLabel(rawLabel)
                     let firstLine = cleaned.components(separatedBy: "\n").first ?? ""
                     let trimmed   = firstLine.trimmingCharacters(in: .whitespaces)
 
+                    // Compute the unrotated center of this key in KLE units
+                    let px = currentX + currentW / 2
+                    let py = currentBaseY + rowDeltaY + currentH / 2
+
+                    // Apply rotation around the anchor (rx, ry) to get the visual center
+                    let ax = lastAnchorX
+                    let ay = lastAnchorY ?? 0.0
+                    let rRad = currentR * .pi / 180.0
+                    let dx = px - ax
+                    let dy = py - ay
+                    let cx = ax + dx * cos(rRad) - dy * sin(rRad)
+                    let cy = ay + dx * sin(rRad) + dy * cos(rRad)
+
                     // Empty-label keys (e.g. ErgoDox thumb cluster) are real physical
                     // keys with no printed legend. Emit them with keyName = "" so they
                     // render as gray cells but never match any count data.
-                    // x-gaps are handled by absolute positions — no spacer keys needed.
                     keys.append(KLEAbsoluteKey(
-                        x: currentX,
-                        y: currentBaseY + rowDeltaY,
+                        cx: cx,
+                        cy: cy,
                         w: currentW,
+                        r: currentR,
                         label: trimmed,
                         keyName: trimmed  // "" for unlabeled keys
                     ))
 
                     currentX += currentW
                     currentW  = 1.0  // reset after consuming
+                    currentH  = 1.0
                 }
             }
 

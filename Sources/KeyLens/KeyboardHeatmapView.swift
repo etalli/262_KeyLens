@@ -459,8 +459,8 @@ struct HeatmapExportView: View {
         case .pangaea:     return CGFloat(KeyboardHeatmapView.pangaeaLeftRows.count) * rowH - keySpacing + 16
         case .ortholinear: return CGFloat(KeyboardHeatmapView.ortholinearRows.count) * rowH - keySpacing + 16
         case .custom:
-            let maxY = customKeys.map(\.y).max() ?? 2
-            return (CGFloat(maxY) + 1.0) * rowH + 16
+            let maxY = customKeys.map(\.cy).max() ?? 2
+            return CGFloat(maxY) * rowH + keyHeight + keySpacing + 16
         }
     }
 
@@ -514,25 +514,27 @@ struct HeatmapExportView: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.top, 20)
                         } else {
-                            let maxX  = customKeys.map { $0.x + $0.w }.max() ?? 1
-                            let maxY  = customKeys.map(\.y).max() ?? 0
+                            let maxX  = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
+                            let maxY  = customKeys.map(\.cy).max() ?? 0
                             let unitW = availableWidth / CGFloat(maxX)
                             let unitH = keyHeight + keySpacing
-                            let frameH = (CGFloat(maxY) + 1.0) * unitH
+                            let frameH = CGFloat(maxY) * unitH + keyHeight + keySpacing
                             ZStack(alignment: .topLeading) {
                                 Color.clear.frame(width: availableWidth, height: frameH)
                                 ForEach(Array(customKeys.enumerated()), id: \.offset) { idx, key in
+                                    let cellW = max(4, CGFloat(key.w) * unitW - keySpacing)
                                     let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
                                     heatCell(
                                         cellID: "custom-\(idx)-\(key.keyName)",
                                         label: key.label,
                                         count: displayCount,
                                         max: displayMax,
-                                        width: max(4, CGFloat(key.w) * unitW - keySpacing),
+                                        width: cellW,
                                         tooltipStyle: mode == .strain ? .strain : .count
                                     )
-                                    .offset(x: CGFloat(key.x) * unitW,
-                                            y: CGFloat(key.y) * unitH)
+                                    .rotationEffect(.degrees(key.r))
+                                    .offset(x: CGFloat(key.cx) * unitW - cellW / 2,
+                                            y: CGFloat(key.cy) * unitH - keyHeight / 2)
                                 }
                             }
                         }
