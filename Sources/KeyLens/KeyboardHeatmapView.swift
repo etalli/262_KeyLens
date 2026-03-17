@@ -181,14 +181,14 @@ struct KeyboardHeatmapView: View {
          .init("⌘", "⌘Cmd",    1), .init("⌥", "⌥Option", 1), .init("⌃", "⌃Ctrl", 1)],
     ]
 
-    // Decodes the persisted KLE JSON string into rows of KeyDef.
+    // Decodes the persisted KLE JSON string into absolute keys.
     // Returns [] when nothing has been imported yet.
-    private var customRows: [[KeyDef]] {
+    private var customKeys: [KLEAbsoluteKey] {
         guard !kleCustomLayoutJSON.isEmpty,
               let data = kleCustomLayoutJSON.data(using: .utf8),
-              let rows = try? JSONDecoder().decode([[KeyDef]].self, from: data)
+              let keys = try? JSONDecoder().decode([KLEAbsoluteKey].self, from: data)
         else { return [] }
-        return rows
+        return keys
     }
 
     // キーボードキー名をテンプレートに応じて動的に計算する（instance computed property）
@@ -203,7 +203,7 @@ struct KeyboardHeatmapView: View {
         case .ortholinear:
             defs = Self.ortholinearRows.flatMap { $0 }
         case .custom:
-            defs = customRows.flatMap { $0 }
+            return Set(customKeys.map(\.keyName)).subtracting(["_spacer_", ""])
         }
         return Set(defs.map(\.keyName)).subtracting(["_spacer_"])
     }
@@ -341,7 +341,7 @@ struct KeyboardHeatmapView: View {
                 keyboardKeyNames: keyboardKeyNames,
                 strainScores: strainScores,
                 selectedCellID: $selectedCellID,
-                customRows: customRows
+                customKeys: customKeys
             )
         }
     }
@@ -356,7 +356,7 @@ struct KeyboardHeatmapView: View {
             template: template,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
-            customRows: customRows
+            customKeys: customKeys
         )
         .frame(width: 800) // Base width for export
         .background(Color(NSColor.windowBackgroundColor))
@@ -405,7 +405,7 @@ struct KeyboardHeatmapView: View {
             template: template,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
-            customRows: customRows
+            customKeys: customKeys
         )
         .frame(width: 800)
         .background(Color(NSColor.windowBackgroundColor))
@@ -433,7 +433,7 @@ struct HeatmapExportView: View {
     let keyboardKeyNames: Set<String>
     let strainScores: [String: Int]
     var selectedCellID: Binding<String?>? = nil
-    var customRows: [[KeyDef]] = []
+    var customKeys: [KLEAbsoluteKey] = []
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -452,12 +452,17 @@ struct HeatmapExportView: View {
 
     private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
 
-    private var activeRowCount: Int {
+    private var keyboardFrameHeight: CGFloat {
+        let rowH = keyHeight + keySpacing
         switch template {
-        case .ansi:        return KeyboardHeatmapView.ansiRows.count
-        case .pangaea:     return KeyboardHeatmapView.pangaeaLeftRows.count
-        case .ortholinear: return KeyboardHeatmapView.ortholinearRows.count
-        case .custom:      return max(customRows.count, 3)
+        case .ansi:        return CGFloat(KeyboardHeatmapView.ansiRows.count) * rowH - keySpacing + 16
+        case .pangaea:     return CGFloat(KeyboardHeatmapView.pangaeaLeftRows.count) * rowH - keySpacing + 16
+        case .ortholinear: return CGFloat(KeyboardHeatmapView.ortholinearRows.count) * rowH - keySpacing + 16
+        case .custom:
+            let refMaxX = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
+            let refUnitW = 800.0 / CGFloat(refMaxX)   // estimate at reference 800px width
+            let maxY = customKeys.map(\.cy).max() ?? 2
+            return CGFloat(maxY) * refUnitW + refUnitW + keySpacing + 16
         }
     }
 
@@ -503,7 +508,7 @@ struct HeatmapExportView: View {
                             }
                         }
                     case .custom:
-                        if customRows.isEmpty {
+                        if customKeys.isEmpty {
                             Text(L10n.shared.kleCustomNoData)
                                 .font(.callout)
                                 .foregroundStyle(.secondary)
@@ -511,15 +516,38 @@ struct HeatmapExportView: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.top, 20)
                         } else {
-                            ForEach(Array(customRows.enumerated()), id: \.offset) { rowIndex, row in
-                                rowView(row, rowID: "custom-\(rowIndex)", availableWidth: availableWidth)
+                            let maxX  = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
+                            let maxY  = customKeys.map(\.cy).max() ?? 0
+                            let unitW = availableWidth / CGFloat(maxX)
+                            // KLE uses square units (1u = same size in both axes)
+                            let unitH = unitW
+                            let frameH = CGFloat(maxY) * unitH + unitH + keySpacing
+                            ZStack(alignment: .topLeading) {
+                                Color.clear.frame(width: availableWidth, height: frameH)
+                                ForEach(Array(customKeys.enumerated()), id: \.offset) { idx, key in
+                                    let cellW = max(4, CGFloat(key.w) * unitW - keySpacing)
+                                    let cellH = max(20, CGFloat(key.h) * unitW - keySpacing)
+                                    let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
+                                    heatCell(
+                                        cellID: "custom-\(idx)-\(key.keyName)",
+                                        label: key.label,
+                                        count: displayCount,
+                                        max: displayMax,
+                                        width: cellW,
+                                        height: cellH,
+                                        tooltipStyle: mode == .strain ? .strain : .count
+                                    )
+                                    .rotationEffect(.degrees(key.r))
+                                    .offset(x: CGFloat(key.cx) * unitW - cellW / 2,
+                                            y: CGFloat(key.cy) * unitH - cellH / 2)
+                                }
                             }
                         }
                     }
                 }
                 .padding(8)
             }
-            .frame(height: CGFloat(activeRowCount) * (keyHeight + keySpacing) - keySpacing + 16)
+            .frame(height: keyboardFrameHeight)
 
             mouseSection
             legend
@@ -578,6 +606,7 @@ struct HeatmapExportView: View {
         count: Int,
         max: Int,
         width: CGFloat,
+        height: CGFloat? = nil,
         tooltipStyle: HeatmapTooltipStyle
     ) -> some View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
@@ -596,7 +625,7 @@ struct HeatmapExportView: View {
                 .minimumScaleFactor(0.6)
                 .padding(.horizontal, 2)
         }
-        .frame(width: width, height: keyHeight)
+        .frame(width: width, height: height ?? keyHeight)
 
         guard let selectedCellID else { return AnyView(cell) }
 

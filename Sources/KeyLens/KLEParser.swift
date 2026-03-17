@@ -1,25 +1,16 @@
 import Foundation
 
-// MARK: - KeyDef Codable
+// MARK: - KLEAbsoluteKey
 
-extension KeyDef: Codable {
-    enum CodingKeys: String, CodingKey { case label, keyName, widthRatio }
-
-    public init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(
-            try c.decode(String.self, forKey: .label),
-            try c.decode(String.self, forKey: .keyName),
-            try c.decode(Double.self, forKey: .widthRatio)
-        )
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(label,      forKey: .label)
-        try c.encode(keyName,    forKey: .keyName)
-        try c.encode(widthRatio, forKey: .widthRatio)
-    }
+/// A keyboard key with absolute position computed from the KLE coordinate system.
+struct KLEAbsoluteKey: Codable {
+    let cx: Double      // rotated center x in KLE units
+    let cy: Double      // rotated center y in KLE units
+    let w: Double       // width in KLE units (1.0 = standard key)
+    let h: Double       // height in KLE units (1.0 = standard key)
+    let r: Double       // visual rotation in degrees (0 = upright)
+    let label: String   // display label
+    let keyName: String // key used to look up counts (matches KeyCountStore keys)
 }
 
 // MARK: - KLE parse errors
@@ -38,66 +29,157 @@ enum KLEParseError: LocalizedError {
 
 // MARK: - KLEParser
 
-/// Parses a keyboard-layout-editor.com JSON file into rows of KeyDef.
+/// Parses a keyboard-layout-editor.com JSON file into a flat list of keys with
+/// absolute (x, y) positions.
 ///
-/// Supports standard, non-rotated keyboards. Each top-level JSON array element
-/// that is itself an array is treated as one keyboard row. Property-only dict
-/// elements (KLE metadata) at the top level are skipped.
+/// Supports standard and staggered keyboards, including rotated groups (r/rx/ry).
 ///
-/// Within a row, object elements accumulate `x` (pre-key gap) and `w` (key width)
-/// that apply to the next string element (key label). After each key is consumed,
-/// `w` resets to 1.0 and `x` resets to 0. The first `\n`-separated legend line
-/// is used as both the display label and the keyName (matched against KeyCountStore
-/// counts keys).
+/// Algorithm per KLE spec:
+///   - Each top-level JSON array = one "row frame".
+///   - `y` in a property object adds to the current row's vertical offset.
+///   - `x` in a property object adds a gap before the next key.
+///   - `w`/`h` set the width/height of the next key (reset to 1.0 after each key).
+///   - `r`/`rx`/`ry` define a rotation group; rotation is applied around (rx, ry).
+///   - After processing a row frame, `currentBaseY += 1 + rowDeltaY`.
 struct KLEParser {
 
-    static func parse(_ data: Data) throws -> [[KeyDef]] {
-        guard let outer = try? JSONSerialization.jsonObject(with: data) as? [Any] else {
+    // MARK: - Public API
+
+    static func parse(_ data: Data) throws -> [KLEAbsoluteKey] {
+        let normalised = try normalise(data)
+        guard let outer = try? JSONSerialization.jsonObject(with: normalised) as? [Any] else {
             throw KLEParseError.invalidFormat
         }
 
-        var rows: [[KeyDef]] = []
+        var keys: [KLEAbsoluteKey] = []
+        var currentBaseY: Double = 0
+        var lastAnchorX: Double = 0       // last rx seen; resets cursor X at row start
+        var lastAnchorY: Double? = nil    // last ry seen; nil = no rotation active yet
+        var currentR: Double = 0          // current rotation angle (degrees), persists across rows
 
         for element in outer {
-            // Top-level dicts are KLE metadata — skip them.
+            // Skip top-level metadata dicts
             guard let kleRow = element as? [Any] else { continue }
 
-            var row: [KeyDef] = []
-            var pendingX: Double = 0.0  // gap to insert as spacer before next key
-            var currentW: Double = 1.0  // width of next key
+            // In a rotated group, each row resets its cursor X to the anchor
+            var currentX: Double = lastAnchorX
+            var currentW: Double = 1.0
+            var currentH: Double = 1.0
+            var rowDeltaY: Double = 0  // accumulated y offset for this row
 
             for item in kleRow {
                 if let props = item as? [String: Any] {
-                    pendingX += doubleValue(props["x"])
+                    let hasRx = props["rx"] != nil
+                    let hasRy = props["ry"] != nil
+
+                    // New rotation group (rx set) without a new ry:
+                    // inherit the last ry anchor so the group starts at the same
+                    // vertical base (e.g. ErgoDox right thumb reuses left thumb's ry)
+                    if hasRx && !hasRy, let lastRy = lastAnchorY {
+                        currentBaseY = lastRy
+                    }
+                    if hasRx {
+                        let newRx = doubleValue(props["rx"])
+                        currentX = newRx        // reset cursor to anchor
+                        lastAnchorX = newRx
+                    }
+                    if hasRy {
+                        let newRy = doubleValue(props["ry"])
+                        currentBaseY = newRy    // reset row base to anchor
+                        lastAnchorY  = newRy
+                    }
+                    if let rVal = props["r"] { currentR = doubleValue(rVal) }
+                    rowDeltaY += doubleValue(props["y"])
+                    currentX  += doubleValue(props["x"])   // x offset from anchor
                     if let w = props["w"] { currentW = doubleValue(w) }
+                    if let h = props["h"] { currentH = doubleValue(h) }
                 } else if let rawLabel = item as? String {
-                    // First legend line = primary label / keyName
-                    let firstLine = rawLabel.components(separatedBy: "\n").first ?? ""
+                    let cleaned   = cleanLabel(rawLabel)
+                    let firstLine = cleaned.components(separatedBy: "\n").first ?? ""
                     let trimmed   = firstLine.trimmingCharacters(in: .whitespaces)
 
-                    // Insert invisible spacer key for the x gap
-                    if pendingX > 0.01 {
-                        row.append(KeyDef("", "_spacer_", pendingX))
-                        pendingX = 0
-                    }
+                    // Compute the unrotated center of this key in KLE units
+                    let px = currentX + currentW / 2
+                    let py = currentBaseY + rowDeltaY + currentH / 2
 
-                    let label   = trimmed.isEmpty ? firstLine : trimmed
-                    let keyName = trimmed.isEmpty ? "_spacer_" : trimmed
-                    row.append(KeyDef(label, keyName, currentW))
+                    // Apply rotation around the anchor (rx, ry) to get the visual center
+                    let ax = lastAnchorX
+                    let ay = lastAnchorY ?? 0.0
+                    let rRad = currentR * .pi / 180.0
+                    let dx = px - ax
+                    let dy = py - ay
+                    let cx = ax + dx * cos(rRad) - dy * sin(rRad)
+                    let cy = ay + dx * sin(rRad) + dy * cos(rRad)
 
-                    currentW = 1.0  // reset for next key
-                    pendingX = 0
+                    // Empty-label keys (e.g. ErgoDox thumb cluster) are real physical
+                    // keys with no printed legend. Emit them with keyName = "" so they
+                    // render as gray cells but never match any count data.
+                    keys.append(KLEAbsoluteKey(
+                        cx: cx,
+                        cy: cy,
+                        w: currentW,
+                        h: currentH,
+                        r: currentR,
+                        label: trimmed,
+                        keyName: trimmed  // "" for unlabeled keys
+                    ))
+
+                    currentX += currentW
+                    currentW  = 1.0  // reset after consuming
+                    currentH  = 1.0
                 }
             }
 
-            if !row.isEmpty { rows.append(row) }
+            currentBaseY += 1.0 + rowDeltaY
         }
 
-        if rows.isEmpty { throw KLEParseError.emptyLayout }
-        return rows
+        if keys.isEmpty { throw KLEParseError.emptyLayout }
+        return keys
     }
 
-    // Extract Double from Any (JSON gives Int or Double for numeric values)
+    // MARK: - Preprocessing
+
+    /// Normalise KLE text so JSONSerialization can parse it:
+    ///   1. Quote bare identifier keys: {w:1.25} → {"w":1.25}
+    ///   2. Wrap bare rows in an outer array when the file has no top-level [...]
+    private static func normalise(_ data: Data) throws -> Data {
+        guard var text = String(data: data, encoding: .utf8) else {
+            throw KLEParseError.invalidFormat
+        }
+
+        // Quote unquoted property names: {w: → {"w":
+        // Only matches bare word chars after { or , (not already-quoted keys)
+        let keyRegex = try! NSRegularExpression(
+            pattern: #"([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)"#)
+        let range = NSRange(text.startIndex..., in: text)
+        text = keyRegex.stringByReplacingMatches(
+            in: text, range: range, withTemplate: #"$1"$2"$3"#)
+
+        // Try parsing as-is first (handles already-wrapped files)
+        if let fixedData = text.data(using: .utf8),
+           (try? JSONSerialization.jsonObject(with: fixedData)) != nil {
+            return fixedData
+        }
+
+        // File is bare rows (no outer [...]): wrap it, then validate
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let stripped = trimmed.hasSuffix(",") ? String(trimmed.dropLast()) : trimmed
+        text = "[\(stripped)]"
+
+        guard let result = text.data(using: .utf8),
+              (try? JSONSerialization.jsonObject(with: result)) != nil else {
+            throw KLEParseError.invalidFormat
+        }
+        return result
+    }
+
+    /// Replace HTML markup inside KLE labels with plain-text equivalents.
+    private static func cleanLabel(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
+           .replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
+    }
+
+    /// Extract Double from Any (JSONSerialization gives Int or Double for numbers).
     private static func doubleValue(_ v: Any?) -> Double {
         switch v {
         case let d as Double: return d
