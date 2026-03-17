@@ -459,8 +459,11 @@ struct HeatmapExportView: View {
         case .pangaea:     return CGFloat(KeyboardHeatmapView.pangaeaLeftRows.count) * rowH - keySpacing + 16
         case .ortholinear: return CGFloat(KeyboardHeatmapView.ortholinearRows.count) * rowH - keySpacing + 16
         case .custom:
+            let refMaxX = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
+            let refUnitW = 800.0 / CGFloat(refMaxX)   // estimate at reference 800px width
+            let refCellH = max(20, refUnitW - keySpacing)
             let maxY = customKeys.map(\.cy).max() ?? 2
-            return CGFloat(maxY) * rowH + keyHeight + keySpacing + 16
+            return CGFloat(maxY) * refUnitW + refCellH + keySpacing + 16
         }
     }
 
@@ -517,8 +520,10 @@ struct HeatmapExportView: View {
                             let maxX  = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
                             let maxY  = customKeys.map(\.cy).max() ?? 0
                             let unitW = availableWidth / CGFloat(maxX)
-                            let unitH = keyHeight + keySpacing
-                            let frameH = CGFloat(maxY) * unitH + keyHeight + keySpacing
+                            // KLE uses square units (1u = same size in both axes)
+                            let unitH = unitW
+                            let cellH = max(20, unitW - keySpacing)
+                            let frameH = CGFloat(maxY) * unitH + cellH + keySpacing
                             ZStack(alignment: .topLeading) {
                                 Color.clear.frame(width: availableWidth, height: frameH)
                                 ForEach(Array(customKeys.enumerated()), id: \.offset) { idx, key in
@@ -530,11 +535,12 @@ struct HeatmapExportView: View {
                                         count: displayCount,
                                         max: displayMax,
                                         width: cellW,
+                                        height: cellH,
                                         tooltipStyle: mode == .strain ? .strain : .count
                                     )
                                     .rotationEffect(.degrees(key.r))
                                     .offset(x: CGFloat(key.cx) * unitW - cellW / 2,
-                                            y: CGFloat(key.cy) * unitH - keyHeight / 2)
+                                            y: CGFloat(key.cy) * unitH - cellH / 2)
                                 }
                             }
                         }
@@ -601,6 +607,7 @@ struct HeatmapExportView: View {
         count: Int,
         max: Int,
         width: CGFloat,
+        height: CGFloat? = nil,
         tooltipStyle: HeatmapTooltipStyle
     ) -> some View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
@@ -619,7 +626,7 @@ struct HeatmapExportView: View {
                 .minimumScaleFactor(0.6)
                 .padding(.horizontal, 2)
         }
-        .frame(width: width, height: keyHeight)
+        .frame(width: width, height: height ?? keyHeight)
 
         guard let selectedCellID else { return AnyView(cell) }
 
