@@ -111,9 +111,18 @@ struct KLEParser {
                     let cx = ax + dx * cos(rRad) - dy * sin(rRad)
                     let cy = ay + dx * sin(rRad) + dy * cos(rRad)
 
-                    // Empty-label keys (e.g. ErgoDox thumb cluster) are real physical
-                    // keys with no printed legend. Emit them with keyName = "" so they
-                    // render as gray cells but never match any count data.
+                    // Normalise keyName so it matches KeyCountStore keys:
+                    //   - Single ASCII letter: lowercase ("Q" → "q")
+                    //   - Everything else: keep as-is
+                    // Empty-label keys get keyName = "" (render gray, match nothing).
+                    let keyName: String
+                    if trimmed.count == 1, let c = trimmed.unicodeScalars.first,
+                       CharacterSet.letters.contains(c) {
+                        keyName = trimmed.lowercased()
+                    } else {
+                        keyName = trimmed
+                    }
+
                     keys.append(KLEAbsoluteKey(
                         cx: cx,
                         cy: cy,
@@ -121,7 +130,7 @@ struct KLEParser {
                         h: currentH,
                         r: currentR,
                         label: trimmed,
-                        keyName: trimmed  // "" for unlabeled keys
+                        keyName: keyName
                     ))
 
                     currentX += currentW
