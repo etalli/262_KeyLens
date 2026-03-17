@@ -44,6 +44,3 @@ Finally, all metrics are aggregated into a single score out of 100:
 
 **Summary**:
 Rather than simply counting "which key was pressed how many times," KeyLens simulates the physical strain based on "which finger was used, how far it had to stretch, and how much it was used consecutively."
-
----
-*If you are interested in more detailed logic, such as the handling of specific keys like Space or Cmd, please let us know.*
