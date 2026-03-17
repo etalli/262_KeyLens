@@ -51,19 +51,41 @@ struct KLEParser {
 
         var keys: [KLEAbsoluteKey] = []
         var currentBaseY: Double = 0
+        var lastAnchorX: Double = 0       // last rx seen; resets cursor X at row start
+        var lastAnchorY: Double? = nil    // last ry seen; nil = no rotation active yet
 
         for element in outer {
             // Skip top-level metadata dicts
             guard let kleRow = element as? [Any] else { continue }
 
-            var currentX: Double = 0
+            // In a rotated group, each row resets its cursor X to the anchor
+            var currentX: Double = lastAnchorX
             var currentW: Double = 1.0
             var rowDeltaY: Double = 0  // accumulated y offset for this row
 
             for item in kleRow {
                 if let props = item as? [String: Any] {
+                    let hasRx = props["rx"] != nil
+                    let hasRy = props["ry"] != nil
+
+                    // New rotation group (rx set) without a new ry:
+                    // inherit the last ry anchor so the group starts at the same
+                    // vertical base (e.g. ErgoDox right thumb reuses left thumb's ry)
+                    if hasRx && !hasRy, let lastRy = lastAnchorY {
+                        currentBaseY = lastRy
+                    }
+                    if hasRx {
+                        let newRx = doubleValue(props["rx"])
+                        currentX = newRx        // reset cursor to anchor
+                        lastAnchorX = newRx
+                    }
+                    if hasRy {
+                        let newRy = doubleValue(props["ry"])
+                        currentBaseY = newRy    // reset row base to anchor
+                        lastAnchorY  = newRy
+                    }
                     rowDeltaY += doubleValue(props["y"])
-                    currentX  += doubleValue(props["x"])
+                    currentX  += doubleValue(props["x"])   // x offset from anchor
                     if let w = props["w"] { currentW = doubleValue(w) }
                 } else if let rawLabel = item as? String {
                     let cleaned   = cleanLabel(rawLabel)
