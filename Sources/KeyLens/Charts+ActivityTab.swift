@@ -64,7 +64,7 @@ extension ChartsView {
                     AxisGridLine()
                     AxisValueLabel {
                         if let d = value.as(String.self) {
-                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                            Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
                                 .font(.footnote)
                         }
                     }
@@ -118,7 +118,7 @@ extension ChartsView {
                     AxisGridLine()
                     AxisValueLabel {
                         if let d = value.as(String.self) {
-                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                            Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
                                 .font(.footnote)
                         }
                     }
@@ -172,7 +172,7 @@ extension ChartsView {
                     AxisGridLine()
                     AxisValueLabel {
                         if let d = value.as(String.self) {
-                            Text(String(d.dropFirst(5)))  // "yyyy-MM-dd" → "MM-dd"
+                            Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
                                 .font(.footnote)
                         }
                     }
