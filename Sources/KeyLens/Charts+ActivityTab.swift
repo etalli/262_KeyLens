@@ -315,6 +315,21 @@ extension ChartsView {
                     .foregroundStyle(theme.accentColor)
                     .cornerRadius(3)
                 }
+                .chartXAxis {
+                    let stride = max(2, model.sessionSummaries.count / 5)
+                    AxisMarks(values: model.sessionSummaries.enumerated()
+                        .filter { $0.offset % stride == 0 }
+                        .map { $0.element.date }
+                    ) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let d = value.as(String.self) {
+                                Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
+                                    .font(.footnote)
+                            }
+                        }
+                    }
+                }
                 .frame(height: 140)
 
                 // Longest session per day (bar chart)
@@ -334,6 +349,21 @@ extension ChartsView {
                     )
                     .foregroundStyle(theme.accentColor)
                     .symbolSize(30)
+                }
+                .chartXAxis {
+                    let stride = max(2, model.sessionSummaries.count / 5)
+                    AxisMarks(values: model.sessionSummaries.enumerated()
+                        .filter { $0.offset % stride == 0 }
+                        .map { $0.element.date }
+                    ) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let d = value.as(String.self) {
+                                Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
+                                    .font(.footnote)
+                            }
+                        }
+                    }
                 }
                 .frame(height: 140)
                 Text("● \(L10n.shared.avgSessionLabel)")
