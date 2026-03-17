@@ -1055,6 +1055,31 @@ final class L10n {
         )
     }
 
+    // MARK: - Issue #60: Session detection
+
+    var chartTitleSessions: String {
+        ja("セッション", en: "Sessions")
+    }
+
+    var helpSessions: String {
+        ja(
+            "5分以上キー入力がなかった場合にセッションの区切りとして検出します。セッション数・最長セッション時間・平均セッション時間を日別に表示します。",
+            en: "A session boundary is detected when there is no keystroke for 5 or more minutes. Shows daily session count, longest session duration, and average session duration."
+        )
+    }
+
+    var sessionsPerDay: String {
+        ja("日別セッション数", en: "Sessions per Day")
+    }
+
+    var longestSessionLabel: String {
+        ja("最長セッション (分)", en: "Longest Session (min)")
+    }
+
+    var avgSessionLabel: String {
+        ja("平均セッション (分)", en: "Avg Session (min)")
+    }
+
     // MARK: - Chart Theme
 
     var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }

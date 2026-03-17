@@ -213,6 +213,19 @@ struct KeyTransitionEntry: Identifiable {
     }
 }
 
+// MARK: - Issue #60: Session detection data types
+
+/// Per-day summary of detected typing sessions.
+/// 日別タイピングセッションの集計。
+struct DailySessionSummary: Identifiable {
+    let id: String            // date key (yyyy-MM-dd)
+    let date: String
+    let sessionCount: Int
+    let totalMinutes: Double
+    let longestMinutes: Double
+    var avgMinutes: Double { sessionCount > 0 ? totalMinutes / Double(sessionCount) : 0 }
+}
+
 // MARK: - Issue #168: Mouse tab data types
 
 struct MouseDailyEntry: Identifiable {

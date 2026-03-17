@@ -100,6 +100,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Finalize the open typing session so it is included in the flush.
+        KeyCountStore.shared.finalizeCurrentSession()
         // Flush pending keystroke data to keylens.db before exit.
         KeyCountStore.shared.flushSync()
         // Flush pending mouse distance data to mouse.db before exit.

@@ -13,6 +13,7 @@ extension ChartsView {
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                 chartSection("Daily Totals", helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
                 chartSection("Monthly Totals", helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
+                chartSection(L10n.shared.chartTitleSessions, helpText: L10n.shared.helpSessions) { sessionsChart }
             }
             .padding(24)
         }
@@ -276,6 +277,54 @@ extension ChartsView {
                 }
             }
             .frame(height: 180)
+        }
+    }
+
+    // MARK: - Issue #60: Sessions chart
+
+    @ViewBuilder
+    var sessionsChart: some View {
+        if model.sessionSummaries.isEmpty {
+            emptyState
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
+                // Sessions per day (bar chart)
+                Text(L10n.shared.sessionsPerDay)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Chart(model.sessionSummaries) { item in
+                    BarMark(
+                        x: .value("Date", item.date),
+                        y: .value("Sessions", item.sessionCount)
+                    )
+                    .foregroundStyle(theme.accentColor)
+                    .cornerRadius(3)
+                }
+                .frame(height: 140)
+
+                // Longest session per day (bar chart)
+                Text(L10n.shared.longestSessionLabel)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Chart(model.sessionSummaries) { item in
+                    BarMark(
+                        x: .value("Date", item.date),
+                        y: .value("Minutes", item.longestMinutes)
+                    )
+                    .foregroundStyle(theme.accentColor.opacity(0.7))
+                    .cornerRadius(3)
+                    PointMark(
+                        x: .value("Date", item.date),
+                        y: .value("Minutes", item.avgMinutes)
+                    )
+                    .foregroundStyle(theme.accentColor)
+                    .symbolSize(30)
+                }
+                .frame(height: 140)
+                Text("● \(L10n.shared.avgSessionLabel)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
