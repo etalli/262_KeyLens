@@ -51,8 +51,46 @@ enum KLEParseError: LocalizedError {
 /// counts keys).
 struct KLEParser {
 
+    // Normalise KLE text so JSONSerialization can parse it:
+    //   1. Quote bare identifier keys: {w:1.25} → {"w":1.25}
+    //   2. Wrap bare rows in an outer array when the file has no top-level [...]
+    private static func normalise(_ data: Data) throws -> Data {
+        guard var text = String(data: data, encoding: .utf8) else {
+            throw KLEParseError.invalidFormat
+        }
+
+        // Quote unquoted property names (e.g. {w:, a:, x:, f:, c: …)
+        // Only matches bare word chars immediately after { or , (not already-quoted keys)
+        let keyRegex = try! NSRegularExpression(pattern: #"([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)"#)
+        let range = NSRange(text.startIndex..., in: text)
+        text = keyRegex.stringByReplacingMatches(in: text, range: range,
+                                                  withTemplate: #"$1"$2"$3"#)
+
+        // Try parsing as-is first (handles already-wrapped files)
+        if let d = text.data(using: .utf8),
+           JSONSerialization.isValidJSONObject(try JSONSerialization.jsonObject(with: d) as AnyObject) {
+            return d
+        }
+
+        // File is bare rows (no outer [...]): wrap it
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Remove any trailing comma left over from the last row
+        let stripped = trimmed.hasSuffix(",") ? String(trimmed.dropLast()) : trimmed
+        text = "[\(stripped)]"
+
+        guard let result = text.data(using: .utf8) else { throw KLEParseError.invalidFormat }
+        return result
+    }
+
+    // Strip HTML tags from a KLE key label (e.g. "Back<br>Space" → "Back\nSpace")
+    private static func cleanLabel(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
+           .replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
+    }
+
     static func parse(_ data: Data) throws -> [[KeyDef]] {
-        guard let outer = try? JSONSerialization.jsonObject(with: data) as? [Any] else {
+        let normalised = try normalise(data)
+        guard let outer = try? JSONSerialization.jsonObject(with: normalised) as? [Any] else {
             throw KLEParseError.invalidFormat
         }
 
@@ -71,8 +109,9 @@ struct KLEParser {
                     pendingX += doubleValue(props["x"])
                     if let w = props["w"] { currentW = doubleValue(w) }
                 } else if let rawLabel = item as? String {
-                    // First legend line = primary label / keyName
-                    let firstLine = rawLabel.components(separatedBy: "\n").first ?? ""
+                    // First legend line = primary label / keyName; strip HTML tags
+                    let cleaned   = cleanLabel(rawLabel)
+                    let firstLine = cleaned.components(separatedBy: "\n").first ?? ""
                     let trimmed   = firstLine.trimmingCharacters(in: .whitespaces)
 
                     // Insert invisible spacer key for the x gap
