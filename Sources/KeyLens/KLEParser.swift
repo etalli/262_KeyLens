@@ -70,19 +70,17 @@ struct KLEParser {
                     let firstLine = cleaned.components(separatedBy: "\n").first ?? ""
                     let trimmed   = firstLine.trimmingCharacters(in: .whitespaces)
 
-                    let label   = trimmed.isEmpty ? firstLine : trimmed
-                    let keyName = trimmed.isEmpty ? "_spacer_" : trimmed
-
-                    // Only emit real keys; silently drop empty/spacer slots
-                    if keyName != "_spacer_" {
-                        keys.append(KLEAbsoluteKey(
-                            x: currentX,
-                            y: currentBaseY + rowDeltaY,
-                            w: currentW,
-                            label: label,
-                            keyName: keyName
-                        ))
-                    }
+                    // Empty-label keys (e.g. ErgoDox thumb cluster) are real physical
+                    // keys with no printed legend. Emit them with keyName = "" so they
+                    // render as gray cells but never match any count data.
+                    // x-gaps are handled by absolute positions — no spacer keys needed.
+                    keys.append(KLEAbsoluteKey(
+                        x: currentX,
+                        y: currentBaseY + rowDeltaY,
+                        w: currentW,
+                        label: trimmed,
+                        keyName: trimmed  // "" for unlabeled keys
+                    ))
 
                     currentX += currentW
                     currentW  = 1.0  // reset after consuming

@@ -203,7 +203,7 @@ struct KeyboardHeatmapView: View {
         case .ortholinear:
             defs = Self.ortholinearRows.flatMap { $0 }
         case .custom:
-            return Set(customKeys.map(\.keyName)).subtracting(["_spacer_"])
+            return Set(customKeys.map(\.keyName)).subtracting(["_spacer_", ""])
         }
         return Set(defs.map(\.keyName)).subtracting(["_spacer_"])
     }
