@@ -461,9 +461,8 @@ struct HeatmapExportView: View {
         case .custom:
             let refMaxX = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
             let refUnitW = 800.0 / CGFloat(refMaxX)   // estimate at reference 800px width
-            let refCellH = max(20, refUnitW - keySpacing)
             let maxY = customKeys.map(\.cy).max() ?? 2
-            return CGFloat(maxY) * refUnitW + refCellH + keySpacing + 16
+            return CGFloat(maxY) * refUnitW + refUnitW + keySpacing + 16
         }
     }
 
@@ -522,12 +521,12 @@ struct HeatmapExportView: View {
                             let unitW = availableWidth / CGFloat(maxX)
                             // KLE uses square units (1u = same size in both axes)
                             let unitH = unitW
-                            let cellH = max(20, unitW - keySpacing)
-                            let frameH = CGFloat(maxY) * unitH + cellH + keySpacing
+                            let frameH = CGFloat(maxY) * unitH + unitH + keySpacing
                             ZStack(alignment: .topLeading) {
                                 Color.clear.frame(width: availableWidth, height: frameH)
                                 ForEach(Array(customKeys.enumerated()), id: \.offset) { idx, key in
                                     let cellW = max(4, CGFloat(key.w) * unitW - keySpacing)
+                                    let cellH = max(20, CGFloat(key.h) * unitW - keySpacing)
                                     let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
                                     heatCell(
                                         cellID: "custom-\(idx)-\(key.keyName)",

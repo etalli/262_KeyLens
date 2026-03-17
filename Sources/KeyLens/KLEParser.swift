@@ -7,6 +7,7 @@ struct KLEAbsoluteKey: Codable {
     let cx: Double      // rotated center x in KLE units
     let cy: Double      // rotated center y in KLE units
     let w: Double       // width in KLE units (1.0 = standard key)
+    let h: Double       // height in KLE units (1.0 = standard key)
     let r: Double       // visual rotation in degrees (0 = upright)
     let label: String   // display label
     let keyName: String // key used to look up counts (matches KeyCountStore keys)
@@ -117,6 +118,7 @@ struct KLEParser {
                         cx: cx,
                         cy: cy,
                         w: currentW,
+                        h: currentH,
                         r: currentR,
                         label: trimmed,
                         keyName: trimmed  // "" for unlabeled keys
