@@ -1094,6 +1094,23 @@ final class L10n {
         )
     }
 
+    var chartTitleMouseDailyDirection: String {
+        ja("日別方向内訳", en: "Daily Direction Breakdown")
+    }
+
+    var helpMouseDailyDirection: String {
+        ja(
+            "日別の上下左右マウス移動量です。右 (→) と左 (←) はほぼ同量になりますが、わずかな差が利き手傾向を示します。",
+            en: "Per-day mouse movement by direction. Right and left are naturally close, but small differences reveal handedness or monitor bias."
+        )
+    }
+
+    var mouseColRight: String { ja("右 →",  en: "Right →") }
+    var mouseColLeft:  String { ja("左 ←",  en: "Left ←") }
+    var mouseColDown:  String { ja("下 ↓",  en: "Down ↓") }
+    var mouseColUp:    String { ja("上 ↑",  en: "Up ↑") }
+    var dateLabel:     String { ja("日付",   en: "Date") }
+
     // MARK: - Issue #60: Session detection
 
     var chartTitleSessions: String {

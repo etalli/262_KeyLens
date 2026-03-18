@@ -201,6 +201,27 @@ final class MouseStore {
         }
     }
 
+    /// Per-day directional breakdown for the last N days, most recent first.
+    func dailyDirectionBreakdown(days: Int = 30) -> [(date: String, dxPos: Double, dxNeg: Double, dyPos: Double, dyNeg: Double)] {
+        queue.sync {
+            guard let db = dbQueue else { return [] }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, dx_pos, dx_neg, dy_pos, dy_neg
+                    FROM mouse_daily
+                    ORDER BY date DESC LIMIT ?
+                    """, arguments: [days])
+            }) ?? []
+            return rows.map { (
+                date:  $0["date"]   as String? ?? "",
+                dxPos: $0["dx_pos"] as Double? ?? 0,
+                dxNeg: $0["dx_neg"] as Double? ?? 0,
+                dyPos: $0["dy_pos"] as Double? ?? 0,
+                dyNeg: $0["dy_neg"] as Double? ?? 0
+            )}
+        }
+    }
+
     /// All-time directional movement totals: right, left, down, up (all non-negative).
     func directionBreakdown() -> (right: Double, left: Double, down: Double, up: Double) {
         queue.sync {

@@ -16,6 +16,9 @@ extension ChartsView {
                 chartSection(l.chartTitleMouseDirection, helpText: l.helpMouseDirection) {
                     mouseDirectionChart
                 }
+                chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
+                    mouseDailyDirectionTable
+                }
             }
             .padding(24)
         }
@@ -126,6 +129,58 @@ extension ChartsView {
             }
             .chartLegend(.hidden)
             .frame(height: 180)
+        }
+    }
+
+    // MARK: - Daily Direction Table
+
+    @ViewBuilder
+    var mouseDailyDirectionTable: some View {
+        let l = L10n.shared
+        if model.mouseDailyDirectionEntries.isEmpty {
+            emptyState
+        } else {
+            VStack(spacing: 0) {
+                // Header row
+                HStack(spacing: 0) {
+                    Text(l.dateLabel)
+                        .frame(width: 100, alignment: .leading)
+                    Text(l.mouseColRight)
+                        .frame(width: 80, alignment: .trailing)
+                    Text(l.mouseColLeft)
+                        .frame(width: 80, alignment: .trailing)
+                    Text(l.mouseColDown)
+                        .frame(width: 80, alignment: .trailing)
+                    Text(l.mouseColUp)
+                        .frame(width: 80, alignment: .trailing)
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+
+                Divider()
+
+                ForEach(Array(model.mouseDailyDirectionEntries.enumerated()), id: \.element.id) { idx, entry in
+                    HStack(spacing: 0) {
+                        Text(entry.date)
+                            .frame(width: 100, alignment: .leading)
+                        Text(formatPts(entry.right))
+                            .frame(width: 80, alignment: .trailing)
+                        Text(formatPts(entry.left))
+                            .frame(width: 80, alignment: .trailing)
+                        Text(formatPts(entry.down))
+                            .frame(width: 80, alignment: .trailing)
+                        Text(formatPts(entry.up))
+                            .frame(width: 80, alignment: .trailing)
+                    }
+                    .font(.system(size: 12, design: .monospaced))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(idx % 2 == 0 ? Color.clear : Color.primary.opacity(0.04))
+                }
+            }
+            .frame(maxWidth: 440, alignment: .leading)
         }
     }
 
