@@ -119,6 +119,11 @@ extension ChartsView {
                         .foregroundStyle(.secondary)
                 }
             }
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel()
+                }
+            }
             .chartLegend(.hidden)
             .frame(height: 180)
         }
