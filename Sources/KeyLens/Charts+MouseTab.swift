@@ -239,10 +239,20 @@ extension ChartsView {
                 let stride = max(1, ratioEntries.count / 6)
                 AxisMarks(values: ratioEntries.enumerated().compactMap { i, e in
                     i % stride == 0 ? e.date : nil
-                }) { _ in
+                }) { value in
                     AxisGridLine()
                     AxisTick()
-                    AxisValueLabel()
+                    AxisValueLabel {
+                        if let s = value.as(String.self) {
+                            // "yyyy-MM-dd" → "MM/dd"
+                            let parts = s.split(separator: "-")
+                            if parts.count == 3 {
+                                Text("\(parts[1])/\(parts[2])")
+                            } else {
+                                Text(s)
+                            }
+                        }
+                    }
                 }
             }
             .chartYAxis {
