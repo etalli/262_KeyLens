@@ -75,7 +75,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Top app today** | Frontmost application with the most keystrokes today |
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
-| **Overlay** | Toggles the real-time keystroke overlay |
+| **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
 | **Settings…** | Customize Menu display, language, notifications, reset, export CSV, backup/restore data, open log folder |
 
 ### Charts window
@@ -105,6 +105,23 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Backspace Rate** | Daily backspace/correction rate over time |
 | **Hourly Distribution** | Aggregate keystroke count by hour of day (0–23) |
 | **Monthly Totals** | Keystroke count per calendar month |
+
+#### Summary tab
+| Section | What it shows |
+|---------|---------------|
+| **Activity Calendar** | GitHub-style heatmap of daily keystroke activity |
+| **Weekly Report** | Last 7 days vs prior 7 days with trend arrows |
+| **Intelligence** | Inferred typing style and fatigue risk level |
+| **Mouse vs Keyboard Balance** | Daily ratio line showing whether you leaned toward mouse or keyboard (0% = keyboard-only, 100% = mouse-only) |
+
+#### Mouse tab
+| Section | What it shows |
+|---------|---------------|
+| **Daily Distance** | Total mouse travel distance per day (px) |
+| **Hourly Distribution** | Mouse activity by hour of day |
+| **Direction Breakdown** | Proportion of movement in each direction (left/right/up/down) |
+| **Daily Direction Table** | Per-day breakdown of directional mouse movement |
+| **Mouse Click Count** | Total left, middle, and right button click counts |
 
 ### AI Analysis
 
@@ -141,7 +158,7 @@ The default prompt asks the AI to compute same-finger rates, hand alternation ra
 </table>
 </div>
 
-Toggle via **Overlay** in the menu. Shows recent keystrokes in a floating window that fades after 3 seconds of inactivity. Position and size are configurable via the gear icon (⚙).
+Toggle via **Overlay** in the menu, or press the global hotkey **⌃⌥O** from anywhere. Shows recent keystrokes in a floating window that fades after 3 seconds of inactivity. Position, size, and hotkey are configurable via the gear icon (⚙).
 
 ---
 
