@@ -1134,8 +1134,9 @@ final class L10n {
         )
     }
 
-    var mouseKeyboardBalanceMouseLabel: String { ja("マウス距離 (px)", en: "Mouse Distance (px)") }
-    var mouseKeyboardBalanceKeysLabel:  String { ja("キー入力数",       en: "Keystrokes") }
+    var mouseKeyboardBalanceMouseLabel: String { ja("マウス", en: "Mouse") }
+    var mouseKeyboardBalanceKeysLabel:  String { ja("キーボード", en: "Keyboard") }
+    var mouseKeyboardBalanceBalanced:   String { ja("均等", en: "Balanced") }
 
     // MARK: - Issue #60: Session detection
 

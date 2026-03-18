@@ -195,23 +195,45 @@ extension ChartsView {
             let entries = model.mouseKeyboardBalance
             let maxDist = entries.map(\.distancePts).max() ?? 1
             let maxKeys = entries.map(\.keystrokes).max().map(Double.init) ?? 1
-            Chart(entries) { entry in
-                BarMark(
-                    x: .value("Date", entry.date),
-                    y: .value(l.mouseKeyboardBalanceMouseLabel, entry.distancePts / maxDist),
-                    width: .ratio(0.4)
-                )
-                .offset(x: -4)
-                .foregroundStyle(theme.accentColor)
-                .cornerRadius(2)
-                BarMark(
-                    x: .value("Date", entry.date),
-                    y: .value(l.mouseKeyboardBalanceKeysLabel, Double(entry.keystrokes) / maxKeys),
-                    width: .ratio(0.4)
-                )
-                .offset(x: 4)
-                .foregroundStyle(Color.orange)
-                .cornerRadius(2)
+            // ratio = mousePct / (mousePct + keysPct): 0% = keyboard-only, 100% = mouse-only
+            let ratioEntries = entries.map { entry -> (date: String, ratio: Double) in
+                let m = entry.distancePts / maxDist
+                let k = Double(entry.keystrokes) / maxKeys
+                let total = m + k
+                return (date: entry.date, ratio: total > 0 ? m / total : 0.5)
+            }
+            Chart {
+                // 50% reference line
+                RuleMark(y: .value("Balanced", 0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                    .foregroundStyle(Color.secondary.opacity(0.5))
+                    .annotation(position: .trailing, alignment: .center) {
+                        Text(l.mouseKeyboardBalanceBalanced)
+                            .font(.system(size: 9))
+                            .foregroundStyle(.secondary)
+                    }
+                ForEach(ratioEntries, id: \.date) { point in
+                    AreaMark(
+                        x: .value("Date", point.date),
+                        yStart: .value("Ratio", 0.5),
+                        yEnd:   .value("Ratio", point.ratio)
+                    )
+                    .foregroundStyle(
+                        (point.ratio >= 0.5 ? theme.accentColor : Color.orange).opacity(0.25)
+                    )
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Ratio", point.ratio)
+                    )
+                    .foregroundStyle(point.ratio >= 0.5 ? theme.accentColor : Color.orange)
+                    .interpolationMethod(.catmullRom)
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Ratio", point.ratio)
+                    )
+                    .foregroundStyle(point.ratio >= 0.5 ? theme.accentColor : Color.orange)
+                    .symbolSize(20)
+                }
             }
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 6)) { _ in
@@ -220,11 +242,23 @@ extension ChartsView {
                     AxisValueLabel()
                 }
             }
-            .chartYAxis(.hidden)
-            .chartForegroundStyleScale([
-                l.mouseKeyboardBalanceMouseLabel: theme.accentColor,
-                l.mouseKeyboardBalanceKeysLabel:  Color.orange,
-            ])
+            .chartYAxis {
+                AxisMarks(values: [0.0, 0.5, 1.0]) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            if v == 0.0 {
+                                Text(l.mouseKeyboardBalanceKeysLabel).font(.system(size: 9))
+                            } else if v == 1.0 {
+                                Text(l.mouseKeyboardBalanceMouseLabel).font(.system(size: 9))
+                            } else {
+                                Text("50%").font(.system(size: 9))
+                            }
+                        }
+                    }
+                }
+            }
+            .chartYScale(domain: 0...1)
             .frame(height: 200)
         }
     }
