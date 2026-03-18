@@ -140,10 +140,10 @@ final class ChartDataModel: ObservableObject {
         mouseHourlyActivity = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
         let dir = ms.directionBreakdown()
         mouseDirectionEntries = [
-            MouseDirectionEntry(id: "right", direction: "Right →", distancePts: dir.right),
             MouseDirectionEntry(id: "left",  direction: "Left ←",  distancePts: dir.left),
-            MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
+            MouseDirectionEntry(id: "right", direction: "Right →", distancePts: dir.right),
             MouseDirectionEntry(id: "up",    direction: "Up ↑",    distancePts: dir.up),
+            MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
         ].filter { $0.distancePts > 0 }
     }
 
