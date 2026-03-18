@@ -354,6 +354,42 @@ final class L10n {
         ja("CSV 書き出し…", en: "Export CSV…")
     }
 
+    var exportSummaryCardMenuItem: String {
+        ja("週次サマリーカードを書き出し…", en: "Export Weekly Summary Card…")
+    }
+
+    var weeklySummaryCardTitle: String {
+        ja("KeyLens 週次サマリー", en: "KeyLens Weekly Summary")
+    }
+
+    var weeklySummaryCardTotalKeys: String {
+        ja("総打鍵数", en: "Total Keystrokes")
+    }
+
+    var weeklySummaryCardTopKeys: String {
+        ja("よく使うキー TOP 5", en: "Top 5 Keys")
+    }
+
+    var weeklySummaryCardErgonomicScore: String {
+        ja("エルゴノミクススコア", en: "Ergonomic Score")
+    }
+
+    var weeklySummaryCardStreak: String {
+        ja("継続日数", en: "Streak")
+    }
+
+    var weeklySummaryCardWPM: String {
+        ja("推定 WPM", en: "Est. WPM")
+    }
+
+    var weeklySummaryCardAutoSaved: String {
+        ja("週次サマリーカードを保存しました", en: "Weekly summary card saved")
+    }
+
+    var weeklySummaryCardSaveFailed: String {
+        ja("週次サマリーカードの保存に失敗しました", en: "Failed to save weekly summary card")
+    }
+
     var exportSQLiteMenuItem: String {
         ja("SQLite 書き出し…", en: "Export SQLite…")
     }

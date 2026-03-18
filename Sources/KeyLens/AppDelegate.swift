@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         detectHardware()
         setupHIDHotPlug()
         setupHealthCheck()
+        autoGenerateWeeklySummaryIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -138,5 +139,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         hidManager = manager
+    }
+
+    // MARK: - Weekly Summary Auto-Generation
+
+    @MainActor
+    private func autoGenerateWeeklySummaryIfNeeded() {
+        guard WeeklySummaryGenerator.shouldAutoGenerate else { return }
+        WeeklySummaryGenerator.generate()
+        KeyLens.log("Weekly summary card auto-generated")
     }
 }
