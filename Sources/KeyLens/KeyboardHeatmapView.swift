@@ -17,6 +17,12 @@ enum HeatmapTemplate: String, CaseIterable {
     case ortholinear = "Ortho"
     case jis         = "JIS"
     case custom      = "Custom"
+
+    // Pangaea is kept for internal .auto resolution but excluded from the layout picker.
+    // Custom keyboards should use the Custom slot with an imported KLE JSON file.
+    static var allCases: [HeatmapTemplate] {
+        [.auto, .ansi, .ortholinear, .jis, .custom]
+    }
 }
 
 private enum HeatmapTooltipStyle {
@@ -47,6 +53,7 @@ struct KeyboardHeatmapView: View {
     @State private var selectedCellID: String?
     @State private var showModeHelp: Bool = false
     @State private var showStrainLegendHelp: Bool = false
+    @State private var showKLEHelp: Bool = false
     @State private var copyConfirmed = false
     @State private var showImportError = false
     @State private var importErrorMessage = ""
@@ -347,6 +354,17 @@ struct KeyboardHeatmapView: View {
                         Button(L10n.shared.importKLEButton, action: importKLELayout)
                             .buttonStyle(.bordered)
                             .controlSize(.small)
+                        Image(systemName: "info.circle")
+                            .font(.body)
+                            .foregroundStyle(showKLEHelp ? .primary : .secondary)
+                            .onHover { showKLEHelp = $0 }
+                            .popover(isPresented: $showKLEHelp, arrowEdge: .bottom) {
+                                Text(L10n.shared.helpKLECustom)
+                                    .font(.callout)
+                                    .padding(10)
+                                    .frame(width: 320)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                     }
 
                     Spacer()

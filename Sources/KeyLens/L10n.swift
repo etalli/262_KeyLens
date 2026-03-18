@@ -432,6 +432,27 @@ final class L10n {
            en: "No custom layout imported yet.\nClick \"Import Layout…\" to load a KLE JSON file.")
     }
 
+    var helpKLECustom: String {
+        ja(
+            """
+            カスタムレイアウトを使うには:
+            1. keyboard-layout-editor.com にアクセスする
+            2. キーボードレイアウトを作成または読み込む
+            3. 「Raw data」タブをクリックして JSON をコピーする
+            4. テキストエディタに貼り付けて .json 形式で保存する
+            5. 「レイアウトをインポート…」ボタンで保存したファイルを選択する
+            """,
+            en: """
+            To use a custom layout:
+            1. Go to keyboard-layout-editor.com
+            2. Design or load your keyboard layout
+            3. Click the "Raw data" tab and copy the JSON
+            4. Paste it into a text editor and save with a .json extension
+            5. Click "Import Layout…" and select the saved file
+            """
+        )
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }
