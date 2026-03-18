@@ -190,6 +190,7 @@ extension KeyboardMonitor {
             let dx = event.getDoubleValueField(.mouseEventDeltaX)
             let dy = event.getDoubleValueField(.mouseEventDeltaY)
             MouseStore.shared.addMovement(dx: dx, dy: dy)
+            ScreenLayoutPredictor.feedMovement(dx: dx, dy: dy)
             return Unmanaged.passRetained(event)
         }
 
