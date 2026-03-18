@@ -1111,6 +1111,20 @@ final class L10n {
     var mouseColUp:    String { ja("上 ↑",  en: "Up ↑") }
     var dateLabel:     String { ja("日付",   en: "Date") }
 
+    var chartTitleMouseKeyboardBalance: String {
+        ja("マウス vs キーボード バランス", en: "Mouse vs Keyboard Balance")
+    }
+
+    var helpMouseKeyboardBalance: String {
+        ja(
+            "1日あたりのマウス移動量 (px) とキー入力数を重ねて表示します。マウス寄りの日とキーボード寄りの日のパターンを把握できます。",
+            en: "Daily mouse distance (px) and keystroke count overlaid. Reveals whether you lean toward mouse or keyboard on a given day."
+        )
+    }
+
+    var mouseKeyboardBalanceMouseLabel: String { ja("マウス距離 (px)", en: "Mouse Distance (px)") }
+    var mouseKeyboardBalanceKeysLabel:  String { ja("キー入力数",       en: "Keystrokes") }
+
     // MARK: - Issue #60: Session detection
 
     var chartTitleSessions: String {

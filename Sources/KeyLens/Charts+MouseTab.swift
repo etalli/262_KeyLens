@@ -19,6 +19,9 @@ extension ChartsView {
                 chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
                     mouseDailyDirectionTable
                 }
+                chartSection(l.chartTitleMouseKeyboardBalance, helpText: l.helpMouseKeyboardBalance) {
+                    mouseKeyboardBalanceChart
+                }
             }
             .padding(24)
         }
@@ -181,6 +184,51 @@ extension ChartsView {
                 }
             }
             .frame(maxWidth: 440, alignment: .leading)
+        }
+    }
+
+    // MARK: - Mouse vs Keyboard Balance Chart
+
+    @ViewBuilder
+    var mouseKeyboardBalanceChart: some View {
+        let l = L10n.shared
+        if model.mouseKeyboardBalance.isEmpty {
+            emptyState
+        } else {
+            let entries = model.mouseKeyboardBalance
+            let maxDist = entries.map(\.distancePts).max() ?? 1
+            let maxKeys = entries.map(\.keystrokes).max().map(Double.init) ?? 1
+            Chart(entries) { entry in
+                BarMark(
+                    x: .value("Date", entry.date),
+                    y: .value(l.mouseKeyboardBalanceMouseLabel, entry.distancePts / maxDist),
+                    width: .ratio(0.4)
+                )
+                .offset(x: -4)
+                .foregroundStyle(theme.accentColor.opacity(0.85))
+                .cornerRadius(2)
+                BarMark(
+                    x: .value("Date", entry.date),
+                    y: .value(l.mouseKeyboardBalanceKeysLabel, Double(entry.keystrokes) / maxKeys),
+                    width: .ratio(0.4)
+                )
+                .offset(x: 4)
+                .foregroundStyle(theme.accentColor.opacity(0.4))
+                .cornerRadius(2)
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel()
+                }
+            }
+            .chartYAxis(.hidden)
+            .chartForegroundStyleScale([
+                l.mouseKeyboardBalanceMouseLabel: theme.accentColor.opacity(0.85),
+                l.mouseKeyboardBalanceKeysLabel:  theme.accentColor.opacity(0.4),
+            ])
+            .frame(height: 200)
         }
     }
 
