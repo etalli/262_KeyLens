@@ -6,6 +6,19 @@ extension ChartsView {
     var summaryTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.weeklySummaryCardTitle) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        WeeklySummaryCardView(data: .current(), embedded: true)
+                        HStack {
+                            Spacer()
+                            Button(L10n.shared.exportSummaryCardMenuItem) {
+                                (NSApp.delegate as? AppDelegate)?.exportWeeklySummaryCard()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    }
+                }
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection("Weekly Report", helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
                 chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }

@@ -6,25 +6,35 @@ import SwiftUI
 /// Rendered off-screen via ImageRenderer and saved as PNG.
 struct WeeklySummaryCardView: View {
     let data: WeeklySummaryData
+    /// When true, renders without card background/border — for embedding inside existing windows.
+    var embedded: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let content = VStack(alignment: .leading, spacing: 0) {
             headerSection
             Divider().padding(.vertical, 12)
             statsRow
             Divider().padding(.vertical, 12)
             topKeysSection
-            Divider().padding(.vertical, 12)
-            footerRow
+            if !embedded {
+                Divider().padding(.vertical, 12)
+                footerRow
+            }
         }
-        .padding(24)
-        .frame(width: 480)
-        .background(Color(NSColor.windowBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
+        .padding(embedded ? 0 : 24)
+        .frame(width: embedded ? nil : 480)
+
+        if embedded {
+            content
+        } else {
+            content
+                .background(Color(NSColor.windowBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                )
+        }
     }
 
     // MARK: - Header
