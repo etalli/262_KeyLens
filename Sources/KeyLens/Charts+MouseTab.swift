@@ -236,7 +236,10 @@ extension ChartsView {
                 }
             }
             .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                let stride = max(1, ratioEntries.count / 6)
+                AxisMarks(values: ratioEntries.enumerated().compactMap { i, e in
+                    i % stride == 0 ? e.date : nil
+                }) { _ in
                     AxisGridLine()
                     AxisTick()
                     AxisValueLabel()
