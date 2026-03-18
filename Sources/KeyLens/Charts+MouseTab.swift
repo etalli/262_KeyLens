@@ -19,9 +19,6 @@ extension ChartsView {
                 chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
                     mouseDailyDirectionTable
                 }
-                chartSection(l.chartTitleMouseKeyboardBalance, helpText: l.helpMouseKeyboardBalance) {
-                    mouseKeyboardBalanceChart
-                }
             }
             .padding(24)
         }
