@@ -40,6 +40,31 @@ extension AppDelegate {
         objectWillChange.send()
     }
 
+    @MainActor
+    func exportWeeklySummaryCard() {
+        let l = L10n.shared
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let tag = dateFmt.string(from: Date())
+
+        let panel = NSSavePanel()
+        panel.title = l.exportSummaryCardMenuItem
+        panel.nameFieldStringValue = "KeyLens_weekly_\(tag).png"
+        panel.allowedContentTypes = [.png]
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            if WeeklySummaryGenerator.generate(to: url) != nil {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            } else {
+                let alert = NSAlert()
+                alert.messageText = l.weeklySummaryCardSaveFailed
+                alert.runModal()
+            }
+        }
+    }
+
     func exportCSV() {
         let store = KeyCountStore.shared
         let summary = store.exportSummaryCSV()
