@@ -231,6 +231,12 @@ private struct OverlayRow: View {
             }
             .buttonStyle(.plain)
 
+            // Hotkey badge
+            Text(OverlayHotkeyManager.shared.displayString)
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+                .padding(.trailing, 4)
+
             // ギアボタン：チェックマークの左、ホバー時のみ表示
             Button(action: { appDelegate.showOverlaySettings() }) {
                 Image(systemName: "gearshape")

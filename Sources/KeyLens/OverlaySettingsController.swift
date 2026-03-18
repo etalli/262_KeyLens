@@ -90,6 +90,8 @@ extension Notification.Name {
 
 struct OverlaySettingsView: View {
     @State private var config: OverlayConfig = .current
+    @State private var hotkeyLabel: String = OverlayHotkeyManager.shared.displayString
+    @State private var isRecording: Bool = false
     @StateObject private var previewVM: OverlayViewModel = {
         let vm = OverlayViewModel()
         vm.keys = [
@@ -109,12 +111,13 @@ struct OverlaySettingsView: View {
                 positionSection
                 fadeDelaySection
                 sizeAndCodeSection
+                shortcutSection
                 appearanceSection
                 previewSection
             }
             .padding(20)
         }
-        .frame(width: 380, height: 500)
+        .frame(width: 380, height: 560)
         .onChange(of: config) { newConfig in
             newConfig.save()
             previewVM.config = newConfig
@@ -256,6 +259,28 @@ struct OverlaySettingsView: View {
         }
     }
 
+    private var shortcutSection: some View {
+        let l = L10n.shared
+        return GroupBox(label: Text(l.overlaySettingsShortcut).fontWeight(.medium)) {
+            HStack {
+                Text(isRecording ? l.overlaySettingsRecording : hotkeyLabel)
+                    .font(.system(size: 13, design: .monospaced))
+                    .foregroundStyle(isRecording ? Color.accentColor : Color.primary)
+                    .frame(minWidth: 60, alignment: .leading)
+                Spacer()
+                Button(isRecording ? l.overlaySettingsRecording : l.overlaySettingsChangeShortcut) {
+                    isRecording = true
+                    OverlayHotkeyManager.shared.recordNextHotkey { newLabel in
+                        hotkeyLabel = newLabel
+                        isRecording = false
+                    }
+                }
+                .disabled(isRecording)
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
     private var previewSection: some View {
         let l = L10n.shared
         return GroupBox(label: Text(l.overlaySettingsPreview).fontWeight(.medium)) {
@@ -284,7 +309,7 @@ final class OverlaySettingsController: NSWindowController {
         let window = NSWindow(contentViewController: hostVC)
         window.title = L10n.shared.overlaySettingsWindowTitle
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 380, height: 500))
+        window.setContentSize(NSSize(width: 380, height: 560))
         window.center()
         window.setFrameAutosaveName("OverlaySettingsWindow")
         super.init(window: window)
