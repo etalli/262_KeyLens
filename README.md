@@ -38,6 +38,7 @@ KeyLens is designed so that **typed content cannot be reconstructed** from the s
 - **Global recording** — Counts all keystrokes regardless of the active application
 - **Menu bar statistics** — Today's count, total count, average keystroke interval; customizable display (toggle and reorder widgets)
 - **Charts** — Keyboard Heatmap, Top Keys, Bigrams, Apps, Devices, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
+- **Weekly Summary Card** — Auto-generates a shareable PNG snapshot of your weekly stats every Saturday; also available via Data menu at any time
 - **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
 
 ---
@@ -76,7 +77,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
-| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, backup/restore data, open log folder |
+| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), backup/restore data, open log folder |
 
 ### Charts window
 
