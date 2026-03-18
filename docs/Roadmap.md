@@ -27,10 +27,12 @@ Optimization is designed around split keyboards with active use of thumb keys.
 
 | Priority | Issues | Theme |
 |----------|--------|-------|
-| **Close (resolved)** | #144, #145, #146 | Bugs resolved in v0.56 |
-| **P1 — High** | #85, #104, #103, #98, #61 | Phase 1: Measurement & Scoring |
-| **P2 — Training chain** | #83 → #87 → #86 → #84 → #90 → #89 → #88 → #82 | Drill generation (needs #85 first) |
-| **P3 — Future** | #72, #76, #63, #64, #60, #75, #47, #43 | Low priority / research |
+| **Closed (resolved)** | #144, #145, #146 | Bugs resolved in v0.56 |
+| **Closed (resolved)** | #61, #85, #98, #103, #104 | Phase 1: Measurement & Scoring — all done |
+| **Closed (resolved)** | #60 | Session detection |
+| **P2 — Training chain** | #83 → #87 → #86 → #84 → #90 → #89 → #88 → #82 | Drill generation |
+| **P3 — Future** | #72, #76, #63, #64, #75 | Low priority / research |
+| **P3 — UX / Polish** | #169, #170, #174 | UI tests, icon design, Keyboard tab UX |
 | **Deferred** | #115, #99, #78, #70, #74, #62 | Visualization (intentionally postponed) |
 
 ---
@@ -75,7 +77,7 @@ Establish accurate and reproducible keystroke logging.
 
 ---
 
-# Phase 1 – Unified Ergonomic Model 🔄 (in progress)
+# Phase 1 – Unified Ergonomic Model ✅
 
 ## Goal
 
@@ -107,13 +109,13 @@ Build a unified ergonomic scoring engine.
   > Individual metrics miss compound strain — a sequence can look acceptable on each axis yet be highly taxing when all three stress factors coincide. Detection requires pattern-level analysis.
   > 各指標を個別に見ても複合的な負荷は見えない。3つのストレス要因が同時に重なるパターンは、パターン単位の分析でしか検出できない。
 
-### Next — P1 Issues (priority: high)
+### Completed — P1 Issues ✅
 
-* [#85] Define scoring formula for slowness and frequency prioritization — **gate for training chain**
-* [#104] IKI per finger — data already in `keylens.db`, needs analysis slice
-* [#103] IKI per bigram — `bigram_iki` table exists, needs aggregation
-* [#98] Latency analysis for key-to-key transitions
-* [#61] Layout efficiency score (same-finger rate / hand alternation by layout)
+* [#85] ✅ Define scoring formula for slowness and frequency prioritization
+* [#104] ✅ IKI per finger
+* [#103] ✅ IKI per bigram
+* [#98] ✅ Latency analysis for key-to-key transitions
+* [#61] ✅ Layout efficiency score (same-finger rate / hand alternation by layout)
 
 ### Differentiating Additions
 
@@ -208,7 +210,6 @@ AI is introduced here. ML features follow.
 ### Other Future
 
 * [#64] iCloud sync across multiple Macs
-* [#60] Session detection
 * [#75] Obsidian / Daily Journal integration
 * [#47] Auto-detect keyboard type from device name
 * [#43] KLE JSON import for custom heatmap layout templates

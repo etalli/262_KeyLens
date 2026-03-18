@@ -11,9 +11,11 @@ enum HeatmapMode: String, CaseIterable {
 // MARK: - HeatmapTemplate
 
 enum HeatmapTemplate: String, CaseIterable {
+    case auto        = "Auto"
     case ansi        = "ANSI"
     case pangaea     = "Pangaea"
     case ortholinear = "Ortho"
+    case jis         = "JIS"
     case custom      = "Custom"
 }
 
@@ -181,6 +183,64 @@ struct KeyboardHeatmapView: View {
          .init("⌘", "⌘Cmd",    1), .init("⌥", "⌥Option", 1), .init("⌃", "⌃Ctrl", 1)],
     ]
 
+    // MARK: JIS (Japanese Industrial Standard) layout
+    // Differences from ANSI:
+    //   Row 0: ^ and ¥ replace = and `, BS is 1U
+    //   Row 1: @ and [ replace [ and ], L-shaped Return (top half: 1.5U)
+    //   Row 2: : and ] added, L-shaped Return (bottom half: 1.25U)
+    //   Row 3: ¥ added at right end, both Shifts are narrower
+    //   Row 4: 英数 and かな flank Space
+    // Note: JIS-specific key names (^, @, :, 英数, かな) may show 0 count if
+    // the keyboard monitor does not yet track those keycodes.
+    static let jisRows: [[KeyDef]] = [
+        // Row 0: Number row (15U) — esc(1) + 13 × 1 + del(1)
+        [
+            .init("⎋",    "Escape",  1.0),
+            .init("1",    "1",       1.0), .init("2", "2", 1.0), .init("3", "3", 1.0),
+            .init("4",    "4",       1.0), .init("5", "5", 1.0), .init("6", "6", 1.0),
+            .init("7",    "7",       1.0), .init("8", "8", 1.0), .init("9", "9", 1.0),
+            .init("0",    "0",       1.0), .init("-", "-", 1.0), .init("^", "^", 1.0),
+            .init("¥",    "\\",      1.0), .init("⌫", "Delete", 1.0),
+        ],
+        // Row 1: QWERTY row (15U) — tab(1.5) + 10 alpha + @(1) + [(1) + ret(1.5)
+        [
+            .init("⇥",    "Tab",     1.5),
+            .init("Q",    "q",       1.0), .init("W", "w", 1.0), .init("E", "e", 1.0),
+            .init("R",    "r",       1.0), .init("T", "t", 1.0), .init("Y", "y", 1.0),
+            .init("U",    "u",       1.0), .init("I", "i", 1.0), .init("O", "o", 1.0),
+            .init("P",    "p",       1.0), .init("@", "@", 1.0), .init("[", "[", 1.0),
+            .init("↩",    "Return",  1.5),
+        ],
+        // Row 2: Home row (15U) — caps(1.75) + 11 alpha + :(1) + ](1) + ret(1.25)
+        [
+            .init("⇪",    "CapsLock", 1.75),
+            .init("A",    "a",        1.0), .init("S", "s", 1.0), .init("D", "d", 1.0),
+            .init("F",    "f",        1.0), .init("G", "g", 1.0), .init("H", "h", 1.0),
+            .init("J",    "j",        1.0), .init("K", "k", 1.0), .init("L", "l", 1.0),
+            .init(";",    ";",        1.0), .init(":", ":", 1.0), .init("]", "]", 1.0),
+            .init("↩",    "Return",   1.25),
+        ],
+        // Row 3: Shift row (15U) — lshift(2) + 10 alpha + ¥(1) + /(1) + rshift(2)
+        [
+            .init("⇧",    "⇧Shift",  2.0),
+            .init("Z",    "z",        1.0), .init("X", "x", 1.0), .init("C", "c", 1.0),
+            .init("V",    "v",        1.0), .init("B", "b", 1.0), .init("N", "n", 1.0),
+            .init("M",    "m",        1.0), .init(",", ",", 1.0), .init(".", ".", 1.0),
+            .init("/",    "/",        1.0), .init("\\","\\",      1.0),
+            .init("⇧",    "⇧Shift",  2.0),
+        ],
+        // Row 4: Bottom row (15U) — ctrl(1.5) + 英数(1.5) + opt(1) + spc(6) + opt(1) + かな(1.5) + ctrl(1.5)
+        [
+            .init("⌃",    "⌃Ctrl",   1.5),
+            .init("英数",  "英数",    1.5),
+            .init("⌥",    "⌥Option", 1.0),
+            .init("Space", "Space",   6.0),
+            .init("⌥",    "⌥Option", 1.0),
+            .init("かな",  "かな",    1.5),
+            .init("⌃",    "⌃Ctrl",   1.5),
+        ],
+    ]
+
     // Decodes the persisted KLE JSON string into absolute keys.
     // Returns [] when nothing has been imported yet.
     private var customKeys: [KLEAbsoluteKey] {
@@ -192,24 +252,34 @@ struct KeyboardHeatmapView: View {
     }
 
     // キーボードキー名をテンプレートに応じて動的に計算する（instance computed property）
-    // Template-aware keyboard key names; computed per-render from active template.
+    // Template-aware keyboard key names; computed per-render from effective template.
     private var keyboardKeyNames: Set<String> {
         let defs: [KeyDef]
-        switch template {
-        case .ansi:
-            defs = Self.ansiRows.flatMap { $0 }
-        case .pangaea:
-            defs = (Self.pangaeaLeftRows + Self.pangaeaRightRows).flatMap { $0 }
-        case .ortholinear:
-            defs = Self.ortholinearRows.flatMap { $0 }
-        case .custom:
-            return Set(customKeys.map(\.keyName)).subtracting(["_spacer_", ""])
+        switch effectiveTemplate {
+        case .auto:        defs = Self.ansiRows.flatMap { $0 }           // unreachable; fallback
+        case .ansi:        defs = Self.ansiRows.flatMap { $0 }
+        case .pangaea:     defs = (Self.pangaeaLeftRows + Self.pangaeaRightRows).flatMap { $0 }
+        case .ortholinear: defs = Self.ortholinearRows.flatMap { $0 }
+        case .jis:         defs = Self.jisRows.flatMap { $0 }
+        case .custom:      return Set(customKeys.map(\.keyName)).subtracting(["_spacer_", ""])
         }
         return Set(defs.map(\.keyName)).subtracting(["_spacer_"])
     }
 
     // 接続中キーボード名（ウィンドウ表示時に一度だけ取得）
     private let deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
+
+    // Resolves the `auto` template to a concrete layout based on connected keyboard names.
+    // `.auto` → Pangaea for split/ergo keyboards, JIS for Japanese keyboards, ANSI otherwise.
+    private var effectiveTemplate: HeatmapTemplate {
+        guard template == .auto else { return template }
+        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
+        let jisKeywords   = ["jis", "japanese"]
+        let lower = deviceNames.map { $0.lowercased() }
+        if lower.contains(where: { n in splitKeywords.contains { n.contains($0) } }) { return .pangaea }
+        if lower.contains(where: { n in jisKeywords.contains   { n.contains($0) } }) { return .jis }
+        return .ansi
+    }
 
     private var maxKeyCount: Int {
         counts.filter { keyboardKeyNames.contains($0.key) }.values.max() ?? 1
@@ -265,13 +335,13 @@ struct KeyboardHeatmapView: View {
             VStack(alignment: .leading, spacing: 6) {
                 // Layout template selector
                 HStack {
-                    Picker("", selection: $template) {
+                    Picker(L10n.shared.heatmapLayoutLabel, selection: $template) {
                         ForEach(HeatmapTemplate.allCases, id: \.self) { t in
                             Text(t.rawValue).tag(t)
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 260)
+                    .pickerStyle(.menu)
+                    .fixedSize()
 
                     if template == .custom {
                         Button(L10n.shared.importKLEButton, action: importKLELayout)
@@ -318,11 +388,11 @@ struct KeyboardHeatmapView: View {
                     .controlSize(.small)
 
                     Button(action: copyToClipboard) {
-                        Label(copyConfirmed ? L10n.shared.copiedConfirmation : L10n.shared.copyHeatmap,
-                              systemImage: copyConfirmed ? "checkmark" : "doc.on.doc")
+                        Image(systemName: copyConfirmed ? "checkmark" : "doc.on.doc")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .help(copyConfirmed ? L10n.shared.copiedConfirmation : L10n.shared.copyHeatmap)
 
                     Spacer()
 
@@ -337,7 +407,7 @@ struct KeyboardHeatmapView: View {
             HeatmapExportView(
                 counts: counts,
                 mode: mode,
-                template: template,
+                template: effectiveTemplate,
                 keyboardKeyNames: keyboardKeyNames,
                 strainScores: strainScores,
                 selectedCellID: $selectedCellID,
@@ -353,7 +423,7 @@ struct KeyboardHeatmapView: View {
         let view = HeatmapExportView(
             counts: counts,
             mode: mode,
-            template: template,
+            template: effectiveTemplate,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
             customKeys: customKeys
@@ -402,7 +472,7 @@ struct KeyboardHeatmapView: View {
         let view = HeatmapExportView(
             counts: counts,
             mode: mode,
-            template: template,
+            template: effectiveTemplate,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
             customKeys: customKeys
@@ -455,9 +525,11 @@ struct HeatmapExportView: View {
     private var keyboardFrameHeight: CGFloat {
         let rowH = keyHeight + keySpacing
         switch template {
+        case .auto:        return CGFloat(KeyboardHeatmapView.ansiRows.count) * rowH - keySpacing + 16
         case .ansi:        return CGFloat(KeyboardHeatmapView.ansiRows.count) * rowH - keySpacing + 16
         case .pangaea:     return CGFloat(KeyboardHeatmapView.pangaeaLeftRows.count) * rowH - keySpacing + 16
         case .ortholinear: return CGFloat(KeyboardHeatmapView.ortholinearRows.count) * rowH - keySpacing + 16
+        case .jis:         return CGFloat(KeyboardHeatmapView.jisRows.count) * rowH - keySpacing + 16
         case .custom:
             let refMaxX = customKeys.map { $0.cx + $0.w / 2 }.max() ?? 1
             let refUnitW = 800.0 / CGFloat(refMaxX)   // estimate at reference 800px width
@@ -470,6 +542,16 @@ struct HeatmapExportView: View {
         switch mode {
         case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
         case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        }
+    }
+
+    // Returns the row definitions for the current template.
+    // .auto falls back to ANSI (HeatmapExportView always receives a resolved template).
+    private var rowsForTemplate: [[KeyDef]] {
+        switch template {
+        case .ortholinear: return KeyboardHeatmapView.ortholinearRows
+        case .jis:         return KeyboardHeatmapView.jisRows
+        default:           return KeyboardHeatmapView.ansiRows
         }
     }
 
@@ -493,9 +575,8 @@ struct HeatmapExportView: View {
                 let availableWidth = geo.size.width - 16
                 VStack(alignment: .leading, spacing: keySpacing) {
                     switch template {
-                    case .ansi, .ortholinear:
-                        let activeRows = template == .ansi ? KeyboardHeatmapView.ansiRows : KeyboardHeatmapView.ortholinearRows
-                        ForEach(Array(activeRows.enumerated()), id: \.offset) { rowIndex, row in
+                    case .auto, .ansi, .ortholinear, .jis:
+                        ForEach(Array(rowsForTemplate.enumerated()), id: \.offset) { rowIndex, row in
                             rowView(row, rowID: "row-\(rowIndex)", availableWidth: availableWidth)
                         }
                     case .pangaea:

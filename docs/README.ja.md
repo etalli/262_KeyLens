@@ -15,7 +15,7 @@
 
 KeyLens は、あなたのタイピングの癖をローカルで分析し、あなたの入力パターンに最適化されたエルゴノミックな配列改善を提案する強力な macOS ツールです。
 
-[**公式サイト（ランディングページ）を見る**](https://etalli.github.io/262_KeyLens/landing-page/) - ビジュアルツアーと最適化エンジンの詳細を確認できます。
+[**公式サイトを見る**](https://etalli.github.io/262_KeyLens/landing-page/) - ビジュアルツアーと最適化エンジンの詳細を確認できます。
 
 <table>
   <tr>
@@ -129,7 +129,7 @@ KeyLens は、あなたのタイピングの癖をローカルで分析し、あ
 <table>
   <tr>
     <td><img src="../images/keystroke_overlay_settings.png" width="280"/></td>
-    <td><img src="../images/KeyStorokeOverlay-screenshot.png" width="400"/></td>
+    <td><img src="../images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
   </tr>
   <tr>
     <td align="center">設定</td>
