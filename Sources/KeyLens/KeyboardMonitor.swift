@@ -215,6 +215,11 @@ extension KeyboardMonitor {
             DispatchQueue.main.async { WPMHotkeyManager.shared.toggle() }
         }
 
+        // Check Overlay hotkey (Issue #179)
+        if type == .keyDown, OverlayHotkeyManager.shared.matches(event: event) {
+            OverlayHotkeyManager.shared.toggle()
+        }
+
         let now = Date()
         let appName = NSWorkspace.shared.frontmostApplication?.localizedName
         let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)

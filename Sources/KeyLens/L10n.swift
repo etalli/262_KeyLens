@@ -300,6 +300,18 @@ final class L10n {
         ja("キーコードを表示", en: "Show Key Code")
     }
 
+    var overlaySettingsShortcut: String {
+        ja("ショートカット", en: "Shortcut")
+    }
+
+    var overlaySettingsChangeShortcut: String {
+        ja("ショートカットを変更", en: "Change Shortcut")
+    }
+
+    var overlaySettingsRecording: String {
+        ja("キーを押してください…", en: "Press a key…")
+    }
+
     var avgIntervalFormat: String {
         ja("平均間隔: %.0f ms", en: "Avg interval: %.0f ms")
     }
