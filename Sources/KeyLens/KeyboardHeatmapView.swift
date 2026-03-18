@@ -688,7 +688,6 @@ struct HeatmapExportView: View {
             }
             .frame(height: keyboardFrameHeight)
 
-            mouseSection
             legend
         }
         .padding(10)

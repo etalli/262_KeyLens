@@ -1138,6 +1138,15 @@ final class L10n {
     var mouseKeyboardBalanceKeysLabel:  String { ja("キーボード", en: "Keyboard") }
     var mouseKeyboardBalanceBalanced:   String { ja("均等", en: "Balanced") }
 
+    var chartTitleMouseClickCount: String {
+        ja("マウスクリック数", en: "Mouse Click Count")
+    }
+
+    var helpMouseClickCount: String {
+        ja("左・中・右ボタンのクリック総数を表示します。",
+           en: "Total click counts for left, middle, and right mouse buttons.")
+    }
+
     // MARK: - Issue #60: Session detection
 
     var chartTitleSessions: String {

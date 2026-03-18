@@ -19,6 +19,9 @@ extension ChartsView {
                 chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
                     mouseDailyDirectionTable
                 }
+                chartSection(l.chartTitleMouseClickCount, helpText: l.helpMouseClickCount) {
+                    mouseClickCountView
+                }
             }
             .padding(24)
         }
@@ -274,6 +277,41 @@ extension ChartsView {
             .chartYScale(domain: 0...1)
             .frame(height: 200)
         }
+    }
+
+    // MARK: - Mouse Click Count
+
+    var mouseClickCountView: some View {
+        let counts = model.keyCounts
+        let buttons: [(label: String, key: String)] = [
+            (label: "🖱 Left",   key: "🖱Left"),
+            (label: "🖱 Middle", key: "🖱Middle"),
+            (label: "🖱 Right",  key: "🖱Right"),
+        ]
+        let maxCount = buttons.map { counts[$0.key] ?? 0 }.max() ?? 1
+        return HStack(spacing: 16) {
+            ForEach(buttons, id: \.key) { btn in
+                let count = counts[btn.key] ?? 0
+                VStack(spacing: 6) {
+                    Text(btn.label)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                    Text("\(count)")
+                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(theme.accentColor)
+                    GeometryReader { geo in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(theme.accentColor.opacity(0.25))
+                            .frame(width: geo.size.width,
+                                   height: max(4, geo.size.height * CGFloat(count) / CGFloat(maxCount)))
+                            .frame(maxHeight: .infinity, alignment: .bottom)
+                    }
+                    .frame(height: 40)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.vertical, 8)
     }
 
     // MARK: - Helpers
