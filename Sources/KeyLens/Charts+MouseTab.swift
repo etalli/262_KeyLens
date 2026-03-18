@@ -205,7 +205,7 @@ extension ChartsView {
                     width: .ratio(0.4)
                 )
                 .offset(x: -4)
-                .foregroundStyle(theme.accentColor.opacity(0.85))
+                .foregroundStyle(theme.accentColor)
                 .cornerRadius(2)
                 BarMark(
                     x: .value("Date", entry.date),
@@ -213,7 +213,7 @@ extension ChartsView {
                     width: .ratio(0.4)
                 )
                 .offset(x: 4)
-                .foregroundStyle(theme.accentColor.opacity(0.4))
+                .foregroundStyle(Color.orange)
                 .cornerRadius(2)
             }
             .chartXAxis {
@@ -225,8 +225,8 @@ extension ChartsView {
             }
             .chartYAxis(.hidden)
             .chartForegroundStyleScale([
-                l.mouseKeyboardBalanceMouseLabel: theme.accentColor.opacity(0.85),
-                l.mouseKeyboardBalanceKeysLabel:  theme.accentColor.opacity(0.4),
+                l.mouseKeyboardBalanceMouseLabel: theme.accentColor,
+                l.mouseKeyboardBalanceKeysLabel:  Color.orange,
             ])
             .frame(height: 200)
         }
