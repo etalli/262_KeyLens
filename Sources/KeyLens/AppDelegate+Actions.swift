@@ -52,8 +52,7 @@ extension AppDelegate {
         panel.nameFieldStringValue = "KeyLens_weekly_\(tag).png"
         panel.allowedContentTypes = [.png]
 
-        NSApp.activate(ignoringOtherApps: true)
-        panel.begin { response in
+        let complete: (NSApplication.ModalResponse) -> Void = { response in
             guard response == .OK, let url = panel.url else { return }
             if WeeklySummaryGenerator.generate(to: url) != nil {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -62,6 +61,14 @@ extension AppDelegate {
                 alert.messageText = l.weeklySummaryCardSaveFailed
                 alert.runModal()
             }
+        }
+
+        let window = NSApp.keyWindow ?? ChartsWindowController.shared.window
+        if let window {
+            panel.beginSheetModal(for: window, completionHandler: complete)
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+            panel.begin(completionHandler: complete)
         }
     }
 

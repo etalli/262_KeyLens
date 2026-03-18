@@ -359,7 +359,7 @@ final class L10n {
     }
 
     var weeklySummaryCardTitle: String {
-        ja("KeyLens 週次サマリー", en: "KeyLens Weekly Summary")
+        ja("週次サマリー", en: "Weekly Summary")
     }
 
     var weeklySummaryCardTotalKeys: String {
