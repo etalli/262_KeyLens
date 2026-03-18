@@ -59,6 +59,7 @@ struct KeyboardHeatmapView: View {
     @State private var importErrorMessage = ""
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
+    @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
     @ObservedObject private var theme = ThemeStore.shared
     @Environment(\.colorScheme) private var colorScheme
 
@@ -277,15 +278,36 @@ struct KeyboardHeatmapView: View {
     private let deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
 
     // Resolves the `auto` template to a concrete layout based on connected keyboard names.
-    // `.auto` → Pangaea for split/ergo keyboards, JIS for Japanese keyboards, ANSI otherwise.
+    // Priority: Custom keywords → split/ergo (Pangaea) → JIS → ANSI
     private var effectiveTemplate: HeatmapTemplate {
         guard template == .auto else { return template }
+        let lower = deviceNames.map { $0.lowercased() }
+        // Custom keywords take priority when a KLE layout is imported
+        if !kleCustomLayoutJSON.isEmpty {
+            let customKWs = kleCustomKeywords
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+                .filter { !$0.isEmpty }
+            if !customKWs.isEmpty && lower.contains(where: { n in customKWs.contains { n.contains($0) } }) {
+                return .custom
+            }
+        }
         let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
         let jisKeywords   = ["jis", "japanese"]
-        let lower = deviceNames.map { $0.lowercased() }
         if lower.contains(where: { n in splitKeywords.contains { n.contains($0) } }) { return .pangaea }
         if lower.contains(where: { n in jisKeywords.contains   { n.contains($0) } }) { return .jis }
         return .ansi
+    }
+
+    // Returns the matched device name when `.auto` resolves to Custom via keyword match.
+    private var autoMatchedCustomName: String? {
+        guard template == .auto, !kleCustomLayoutJSON.isEmpty else { return nil }
+        let customKWs = kleCustomKeywords
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+            .filter { !$0.isEmpty }
+        guard !customKWs.isEmpty else { return nil }
+        return deviceNames.first { n in customKWs.contains { n.lowercased().contains($0) } }
     }
 
     private var maxKeyCount: Int {
@@ -373,6 +395,24 @@ struct KeyboardHeatmapView: View {
                     Button("OK", role: .cancel) {}
                 } message: {
                     Text(importErrorMessage)
+                }
+                // Device keywords field (only when Custom layout is selected)
+                if template == .custom {
+                    HStack(spacing: 6) {
+                        Text(L10n.shared.kleKeywordsLabel)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextField(L10n.shared.kleKeywordsPlaceholder, text: $kleCustomKeywords)
+                            .font(.caption)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: 220)
+                    }
+                }
+                // Auto-match info (only when .auto resolved to Custom via keyword)
+                if let matchedName = autoMatchedCustomName {
+                    Text(L10n.shared.autoMatchedCustom(matchedName))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 // Mode toggle + connected keyboard names
                 HStack {

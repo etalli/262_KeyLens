@@ -453,6 +453,20 @@ final class L10n {
         )
     }
 
+    // MARK: - Issue #176: Custom layout keyword matching
+
+    var kleKeywordsLabel: String {
+        ja("デバイスキーワード:", en: "Device keywords:")
+    }
+
+    var kleKeywordsPlaceholder: String {
+        ja("例: corne, my keyboard", en: "e.g. corne, my keyboard")
+    }
+
+    func autoMatchedCustom(_ name: String) -> String {
+        ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }
