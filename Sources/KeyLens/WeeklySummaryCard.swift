@@ -181,11 +181,10 @@ enum WeeklySummaryGenerator {
     /// Returns true if today is Monday and a card hasn't been generated yet this week.
     static var shouldAutoGenerate: Bool {
         let cal = Calendar.current
-        guard cal.component(.weekday, from: Date()) == 2 else { return false } // 2 = Monday
-        let monday = cal.date(from: cal.dateComponents(
-            [.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+        guard cal.component(.weekday, from: Date()) == 7 else { return false } // 7 = Saturday
+        let today = Date()
         let lastDate = UserDefaults.standard.object(forKey: lastGenerationKey) as? Date
-        if let last = lastDate, cal.isDate(last, inSameDayAs: monday) { return false }
+        if let last = lastDate, cal.isDate(last, inSameDayAs: today) { return false }
         return true
     }
 
