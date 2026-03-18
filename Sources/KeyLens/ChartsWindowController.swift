@@ -61,9 +61,12 @@ final class ChartDataModel: ObservableObject {
     // Issue #60: Session detection
     @Published var sessionSummaries:      [DailySessionSummary]   = []
     // Issue #168: Mouse tab
-    @Published var mouseDailyDistances:   [MouseDailyEntry]       = []
-    @Published var mouseHourlyActivity:   [MouseHourEntry]        = []
-    @Published var mouseDirectionEntries: [MouseDirectionEntry]   = []
+    @Published var mouseDailyDistances:        [MouseDailyEntry]            = []
+    @Published var mouseHourlyActivity:        [MouseHourEntry]             = []
+    @Published var mouseDirectionEntries:      [MouseDirectionEntry]        = []
+    @Published var mouseDailyDirectionEntries: [MouseDailyDirectionEntry]   = []
+    // Issue #182: Mouse vs Keyboard balance
+    @Published var mouseKeyboardBalance:       [MouseKeyboardBalanceEntry]  = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -145,6 +148,18 @@ final class ChartDataModel: ObservableObject {
             MouseDirectionEntry(id: "up",    direction: "Up ↑",    distancePts: dir.up),
             MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
         ].filter { $0.distancePts > 0 }
+        mouseDailyDirectionEntries = ms.dailyDirectionBreakdown().map {
+            MouseDailyDirectionEntry(id: $0.date, date: $0.date,
+                                     right: $0.dxPos, left: $0.dxNeg,
+                                     down: $0.dyPos,  up:   $0.dyNeg)
+        }
+        // Issue #182: join mouse distance + keystroke totals by date
+        let keystrokesByDate = Dictionary(uniqueKeysWithValues: rawDailyTotals.map { ($0.date, $0.total) })
+        mouseKeyboardBalance = ms.dailyDistances().compactMap { entry -> MouseKeyboardBalanceEntry? in
+            guard let keys = keystrokesByDate[entry.date], entry.distancePts > 0 || keys > 0 else { return nil }
+            return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
+                                             distancePts: entry.distancePts, keystrokes: keys)
+        }.sorted { $0.date < $1.date }
     }
 
     /// Reloads key transition data for the given target key (Issue #98).

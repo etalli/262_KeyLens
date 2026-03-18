@@ -248,3 +248,19 @@ struct MouseDirectionEntry: Identifiable {
     let direction: String
     let distancePts: Double
 }
+
+struct MouseDailyDirectionEntry: Identifiable {
+    let id: String       // date string
+    let date: String
+    let right: Double    // dx_pos
+    let left: Double     // dx_neg
+    let down: Double     // dy_pos
+    let up: Double       // dy_neg
+}
+
+struct MouseKeyboardBalanceEntry: Identifiable {
+    let id: String       // date string
+    let date: String
+    let distancePts: Double
+    let keystrokes: Int
+}
