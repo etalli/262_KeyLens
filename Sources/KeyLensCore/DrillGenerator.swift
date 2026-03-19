@@ -83,9 +83,6 @@ public enum DrillGenerator {
     /// Converts a stored bigram key ("t→h") to a typeable display string ("th").
     private static func display(for key: String) -> String? {
         guard let bigram = Bigram.parse(key) else { return nil }
-        // Skip bigrams involving special keys (e.g. "Delete", "Return") — they are
-        // not typeable in a drill and would produce misleading text like "eDelete".
-        guard bigram.from.count == 1, bigram.to.count == 1 else { return nil }
         return bigram.from + bigram.to
     }
 }

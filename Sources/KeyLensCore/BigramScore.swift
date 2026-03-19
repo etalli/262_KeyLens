@@ -28,6 +28,13 @@ public struct BigramScore: Equatable {
     public var score: Double {
         meanIKI * log2(Double(count) + 1)
     }
+
+    /// True when both keys of the bigram are single printable characters (i.e. typeable in a drill).
+    /// Bigrams involving special keys like Delete, Return, or Space are excluded.
+    public var isTypeable: Bool {
+        guard let b = Bigram.parse(bigram) else { return false }
+        return b.from.count == 1 && b.to.count == 1
+    }
 }
 
 // MARK: - Ranking
@@ -47,7 +54,7 @@ extension BigramScore {
         topK: Int = 10
     ) -> [BigramScore] {
         candidates
-            .filter { $0.count >= minCount }
+            .filter { $0.count >= minCount && $0.isTypeable }
             .sorted {
                 if $0.score != $1.score { return $0.score > $1.score }
                 return $0.count > $1.count
