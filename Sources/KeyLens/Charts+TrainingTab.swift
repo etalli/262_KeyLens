@@ -40,16 +40,16 @@ extension ChartsView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnBigram)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 80, alignment: .leading)
                     Text(L10n.shared.trainingColumnIKI)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 120, alignment: .trailing)
                     Text(L10n.shared.trainingColumnCount)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 90, alignment: .trailing)
                     Text(L10n.shared.trainingColumnTier)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .trailing)
                 }
                 .padding(.horizontal, 10)
@@ -69,7 +69,7 @@ extension ChartsView {
                             .frame(width: 120, alignment: .trailing)
                         Text("\(score.count)")
                             .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.primary.opacity(0.75))
                             .frame(width: 90, alignment: .trailing)
                         Text(tier.label)
                             .font(.caption)
@@ -81,7 +81,7 @@ extension ChartsView {
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.03))
+                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.06))
                 }
             }
         } else {
@@ -148,23 +148,23 @@ extension ChartsView {
                 // Header
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingHistoryDate)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 140, alignment: .leading)
                     Text(L10n.shared.trainingHistoryTargets)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 120, alignment: .leading)
                     Text(L10n.shared.trainingHistoryLength)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .leading)
                     Text(L10n.shared.trainingColumnIKI.components(separatedBy: " ").first ?? "Acc")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 60, alignment: .trailing)
                         .help("Accuracy %")
                     Text("WPM")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 55, alignment: .trailing)
                     Text("Time")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 55, alignment: .trailing)
                 }
                 .padding(.horizontal, 10)
@@ -176,14 +176,13 @@ extension ChartsView {
                     HStack(spacing: 0) {
                         Text(formatDate(record.completedAt))
                             .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
                             .frame(width: 140, alignment: .leading)
                         Text(record.targetDisplayStrings.joined(separator: " "))
                             .font(.system(.caption, design: .monospaced))
                             .frame(width: 120, alignment: .leading)
                         Text(record.sessionLength)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.primary.opacity(0.75))
                             .frame(width: 70, alignment: .leading)
                         Text("\(record.accuracy)%")
                             .font(.system(.caption, design: .monospaced))
@@ -199,7 +198,7 @@ extension ChartsView {
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.03))
+                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.06))
                 }
 
                 Divider().padding(.top, 4)
