@@ -1263,6 +1263,11 @@ final class L10n {
     var trainingHistoryDate: String    { ja("日時", en: "Date") }
     var trainingHistoryTargets: String { ja("対象", en: "Targets") }
     var trainingHistoryLength: String  { ja("長さ", en: "Length") }
+    var trainingHistoryClear: String   { ja("履歴をリセット", en: "Reset History") }
+    var trainingHistoryClearConfirm: String {
+        ja("すべてのトレーニング履歴を削除しますか?この操作は取り消せません。",
+           en: "Delete all training history? This cannot be undone.")
+    }
 
     // MARK: - Chart Axis Labels
 

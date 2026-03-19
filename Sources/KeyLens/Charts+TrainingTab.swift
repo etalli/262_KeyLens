@@ -201,6 +201,32 @@ extension ChartsView {
                     .padding(.vertical, 5)
                     .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.03))
                 }
+
+                Divider().padding(.top, 4)
+
+                HStack {
+                    Spacer()
+                    Button(role: .destructive) {
+                        showClearHistoryAlert = true
+                    } label: {
+                        Text(L10n.shared.trainingHistoryClear)
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                }
+                .alert(L10n.shared.trainingHistoryClear, isPresented: $showClearHistoryAlert) {
+                    Button(L10n.shared.trainingHistoryClear, role: .destructive) {
+                        KeyCountStore.shared.clearTrainingHistory {
+                            model.reload()
+                        }
+                    }
+                    Button(L10n.shared.cancel, role: .cancel) {}
+                } message: {
+                    Text(L10n.shared.trainingHistoryClearConfirm)
+                }
             }
         }
     }

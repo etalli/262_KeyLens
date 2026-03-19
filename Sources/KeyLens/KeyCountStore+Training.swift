@@ -55,6 +55,20 @@ extension KeyCountStore {
         }
     }
 
+    /// Deletes all training history records from the database.
+    func clearTrainingHistory(completion: @escaping () -> Void = {}) {
+        queue.async { [weak self] in
+            guard let self, let db = self.dbQueue else {
+                DispatchQueue.main.async { completion() }
+                return
+            }
+            try? db.write { db in
+                try db.execute(sql: "DELETE FROM training_results")
+            }
+            DispatchQueue.main.async { completion() }
+        }
+    }
+
     /// Returns the most recent training results, newest first.
     ///
     /// - Parameter limit: Maximum number of records to return (default: 20).
