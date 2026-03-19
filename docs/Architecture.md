@@ -80,11 +80,17 @@ graph TD
 │   │   ├── Charts+AppsTab.swift
 │   │   ├── Charts+ShortcutsTab.swift
 │   │   ├── Charts+LiveTab.swift
+│   │   ├── Charts+MouseTab.swift
+│   │   ├── Charts+TrainingTab.swift
 │   │   ├── ActivityCalendarView.swift
 │   │   ├── KeyboardHeatmapView.swift
+│   │   ├── WeeklySummaryCard.swift
+│   │   ├── KLEParser.swift
 │   │   ├── KeyboardDeviceInfo.swift
 │   │   ├── KeystrokeOverlayController.swift
 │   │   ├── OverlaySettingsController.swift
+│   │   ├── OverlayHotkeyManager.swift
+│   │   ├── WPMHotkeyManager.swift
 │   │   ├── ThemeStore.swift
 │   │   ├── AIPromptStore.swift
 │   │   └── L10n.swift
@@ -109,7 +115,13 @@ graph TD
 │       ├── FullErgonomicOptimizer.swift  # Phase 2: hill-climb optimizer using unified score (#41)
 │       ├── FatigueRiskModel.swift        # Phase 3: fatigue risk estimation from speed/strain trends
 │       ├── ThumbRecommendationEngine.swift # Phase 3: recommends keys to relocate to thumb positions
-│       └── TypingStyleAnalyzer.swift     # Phase 3: infers typing context (prose / code / chat)
+│       ├── TypingStyleAnalyzer.swift     # Phase 3: infers typing context (prose / code / chat)
+│       ├── Bigram.swift                  # Typed (from, to) bigram value type
+│       ├── BigramScore.swift             # Ranks bigrams by IKI × log(frequency) difficulty score
+│       ├── AlternativeLayouts.swift      # Colemak and Dvorak layout implementations (#61)
+│       ├── DrillGenerator.swift          # Generates typing drills from slow bigrams
+│       ├── TrainingSession.swift         # Session config and tier-based repetition rules
+│       └── PracticeSequence.swift        # Ordered practice steps for drill UI
 └── Tests/
     └── KeyLensTests/
         ├── KeyboardLayoutTests.swift
@@ -336,7 +348,7 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
-`ChartsView` is organised into 7 tabs, each implemented as a `ChartsView` extension in its own file:
+`ChartsView` is organised into 9 tabs, each implemented as a `ChartsView` extension in its own file:
 
 | Tab file | Contents |
 |----------|----------|
@@ -346,7 +358,9 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram |
 | `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
 | `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
-| `Charts+LiveTab.swift` | Recent IKI scatter chart, live typing rhythm view |
+| `Charts+LiveTab.swift` | Recent IKI bar chart, manual WPM measurement |
+| `Charts+MouseTab.swift` | Daily mouse distance, hourly mouse activity, mouse/keyboard balance |
+| `Charts+TrainingTab.swift` | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 
 Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
 
@@ -367,6 +381,30 @@ Defines overlay configuration types and manages the settings panel for `Keystrok
 - **`OverlayPosition`** — enum (`topLeft`, `topRight`, `bottomLeft`, `bottomRight`) for screen corner placement; preferences persisted in `UserDefaults`
 - **`OverlayFontSize`** — enum (`small`, `medium`, `large`, `extraLarge`) for keystroke text size
 - **`OverlaySettingsController`** — shows a SwiftUI settings panel (position picker, font size picker, display count slider); opened via the gear icon (⚙) in `MenuView`'s Overlay row
+
+---
+
+### [OverlayHotkeyManager.swift](Sources/KeyLens/OverlayHotkeyManager.swift)
+
+Manages the global hotkey for toggling the Keystroke Overlay (Issue #179). Default hotkey: ⌃⌥O. Hotkey is detected inside the existing `CGEventTap` (no separate event monitor needed). Key code and modifier flags are persisted in `UserDefaults`.
+
+---
+
+### [WPMHotkeyManager.swift](Sources/KeyLens/WPMHotkeyManager.swift)
+
+Manages the global hotkey for toggling manual WPM measurement (Issue #151). Default hotkey: ⌃⌥M. Same architecture as `OverlayHotkeyManager` — detected in `CGEventTap`, persisted in `UserDefaults`.
+
+---
+
+### [KLEParser.swift](Sources/KeyLens/KLEParser.swift)
+
+Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON into `KLEAbsoluteKey` structs with center-position, size, rotation, and key-name fields. Used by `KeyboardHeatmapView` to support custom physical keyboard layouts beyond the built-in ANSI template.
+
+---
+
+### [WeeklySummaryCard.swift](Sources/KeyLens/WeeklySummaryCard.swift)
+
+Self-contained `WeeklySummaryCardView` that renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone.
 
 ---
 
@@ -430,6 +468,22 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 | `ThumbRecommendationEngine` | `ThumbRecommendationEngine.swift` | Recommends which high-burden keys (on weak fingers) should be relocated to thumb positions; accounts for left/right thumb imbalance when assigning slots |
 | `TravelDistanceEstimator` | `TravelDistanceEstimator.swift` | Estimates total finger travel distance from bigram data using Euclidean key-grid distances; `projectedTravel` wraps `RemappedLayout` for before/after comparison |
 | `FullErgonomicOptimizer` | `FullErgonomicOptimizer.swift` | Hill-climb optimizer that maximises the unified `ErgonomicScoreEngine` score; considers all five Phase 1 metrics (SFB, high-strain, alternation, thumb, travel) rather than SFB alone |
+
+#### Shared value types
+
+| Type | File | Description |
+|------|------|-------------|
+| `Bigram` | `Bigram.swift` | Typed `(from: String, to: String)` value type; serialises as `"a→s"` for JSON/dict keys |
+| `BigramScore` | `BigramScore.swift` | Ranks bigrams by `meanIKI × log2(count + 1)`; used to surface the slowest/most-impactful pairs for training |
+| `ColemakLayout` / `DvorakLayout` | `AlternativeLayouts.swift` | Colemak and Dvorak `KeyboardLayout` implementations derived from physical ANSI positions (#61) |
+
+#### Training (Phase 1 — Issues #83–#87)
+
+| Type | File | Description |
+|------|------|-------------|
+| `DrillKind` / `DrillGenerator` | `DrillGenerator.swift` | Generates word-list drills (`repeated`, `alternating`, `mixed`) from a ranked list of slow bigrams |
+| `SessionConfig` / `TrainingSession` | `TrainingSession.swift` | Session parameters (target count, tier boundaries, repetitions) and the assembled drill sequence |
+| `PracticeStep` / `PracticeSequence` | `PracticeSequence.swift` | Ordered sequence of typed tokens; consumed by the Training tab UI to advance linearly through a drill |
 
 ---
 
