@@ -29,11 +29,17 @@ public struct BigramScore: Equatable {
         meanIKI * log2(Double(count) + 1)
     }
 
-    /// True when both keys of the bigram are single printable characters (i.e. typeable in a drill).
-    /// Bigrams involving special keys like Delete, Return, or Space are excluded.
+    /// True when both keys of the bigram are single printable ASCII characters (U+0020–U+007E).
+    /// Excludes special keys (Delete, Return, Space stored as "Space") and non-ASCII keys
+    /// like arrow keys (↑ U+2191, ↓ U+2193, ← U+2190) which cannot be typed in a drill.
     public var isTypeable: Bool {
         guard let b = Bigram.parse(bigram) else { return false }
-        return b.from.count == 1 && b.to.count == 1
+        return isPrintableASCII(b.from) && isPrintableASCII(b.to)
+    }
+
+    private func isPrintableASCII(_ s: String) -> Bool {
+        guard s.count == 1, let scalar = s.unicodeScalars.first else { return false }
+        return scalar.value >= 0x20 && scalar.value <= 0x7E
     }
 }
 
