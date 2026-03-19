@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import KeyLensCore
 
 extension ChartsView {
@@ -27,7 +28,6 @@ extension ChartsView {
     private var trainingTargetsSection: some View {
         if let session = model.trainingSession, !session.targets.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                // Header row
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnBigram)
                         .font(.caption).foregroundStyle(.secondary)
@@ -73,38 +73,22 @@ extension ChartsView {
                     .padding(.vertical, 5)
                     .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.03))
                 }
-
-                Divider().padding(.top, 4)
-
-                Button(L10n.shared.trainingRegenerateButton) {
-                    model.reload()
-                }
-                .buttonStyle(.bordered)
-                .padding(.top, 10)
             }
         } else {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(L10n.shared.trainingNoData)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
-                Button(L10n.shared.trainingRegenerateButton) {
-                    model.reload()
-                }
-                .buttonStyle(.bordered)
-            }
+            Text(L10n.shared.trainingNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
         }
     }
 
-    // MARK: - Drills
+    // MARK: - Drills (interactive)
 
     @ViewBuilder
     private var practiceDrillsSection: some View {
         if let session = model.trainingSession, !session.drills.isEmpty {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(Array(session.drills.enumerated()), id: \.offset) { index, drill in
-                    DrillRowView(index: index + 1, drill: drill)
-                }
-            }
+            InteractivePracticeView(session: session, onNewSession: { model.reload() })
+                // Re-create the view (reset all state) whenever the session targets change.
+                .id(session.targets.map { $0.bigram }.joined())
         } else {
             emptyState
         }
@@ -142,55 +126,202 @@ extension ChartsView {
     }
 }
 
-// MARK: - DrillRowView
+// MARK: - InteractivePracticeView
 
-private struct DrillRowView: View {
-    let index: Int
-    let drill: DrillSequence
+private struct InteractivePracticeView: View {
+    let session: TrainingSession
+    let onNewSession: () -> Void
 
-    @State private var copied = false
+    // results[i] = true/false for each character typed in the current drill.
+    // results.count is always equal to the current cursor position.
+    @State private var results: [Bool] = []
+    @State private var drillIndex: Int = 0
+    @State private var sessionComplete: Bool = false
+    @State private var totalCorrect: Int = 0
+    @State private var totalTyped: Int = 0
 
-    var kindLabel: String {
-        drill.kind == .repeated
-            ? L10n.shared.trainingDrillRepeated
-            : L10n.shared.trainingDrillAlternating
-    }
+    private var currentDrill: DrillSequence { session.drills[drillIndex] }
+    private var expectedChars: [Character]  { Array(currentDrill.text) }
+    private var cursorIndex: Int            { results.count }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Text("\(index).")
-                    .font(.caption).foregroundStyle(.secondary)
-                Text(drill.targets.joined(separator: " + "))
-                    .font(.caption.bold())
-                Text("— \(kindLabel)")
-                    .font(.caption).foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(drill.text, forType: .string)
-                    copied = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
-                } label: {
-                    Image(systemName: copied ? "checkmark" : "clipboard")
+        VStack(alignment: .leading, spacing: 16) {
+            if sessionComplete {
+                sessionCompleteView
+            } else {
+                progressHeader
+                drillLabel
+                drillTextView
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.primary.opacity(0.05))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                HStack {
+                    Text("Click the text above to focus, then start typing")
+                        .font(.caption2).foregroundStyle(.tertiary)
+                    Spacer()
+                    Button("Skip") { advanceDrill() }
+                        .buttonStyle(.plain)
                         .font(.caption)
-                        .foregroundStyle(copied ? .green : .secondary)
+                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
-                .help("Copy drill text")
-                .animation(.easeInOut(duration: 0.2), value: copied)
+                // Invisible key capture view — steals first responder from KeySilencer.
+                KeyCapture(onChar: handleChar, onBackspace: handleBackspace)
+                    .frame(width: 1, height: 1).opacity(0)
             }
-
-            Text(drill.text)
-                .font(.system(.title3, design: .monospaced))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.primary.opacity(0.05))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
         }
+    }
+
+    // MARK: - Sub-views
+
+    private var progressHeader: some View {
+        HStack {
+            Text("Drill \(drillIndex + 1) of \(session.drills.count)")
+                .font(.caption).foregroundStyle(.secondary)
+            Spacer()
+            if totalTyped > 0 {
+                let pct = Int(Double(totalCorrect) / Double(totalTyped) * 100)
+                Text("Accuracy: \(pct)%")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var drillLabel: some View {
+        HStack(spacing: 6) {
+            ForEach(currentDrill.targets, id: \.self) { target in
+                Text(target)
+                    .font(.caption.bold())
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Color.accentColor.opacity(0.12))
+                    .clipShape(Capsule())
+            }
+            Text("—")
+                .font(.caption).foregroundStyle(.secondary)
+            Text(currentDrill.kind == .repeated
+                 ? L10n.shared.trainingDrillRepeated
+                 : L10n.shared.trainingDrillAlternating)
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Builds the drill text with per-character coloring.
+    /// - Typed correctly : green
+    /// - Typed incorrectly: red
+    /// - Current cursor   : primary + underline
+    /// - Not yet typed    : dimmed secondary
+    private var drillTextView: Text {
+        expectedChars.enumerated().reduce(Text("")) { acc, pair in
+            let (i, char) = pair
+            let t: Text
+            if i < cursorIndex {
+                t = Text(String(char))
+                    .foregroundColor(results[i] ? .green : .red)
+            } else if i == cursorIndex {
+                t = Text(String(char))
+                    .underline()
+                    .foregroundColor(.primary)
+            } else {
+                t = Text(String(char))
+                    .foregroundColor(Color.secondary.opacity(0.35))
+            }
+            return acc + t
+        }
+        .font(.system(.title2, design: .monospaced))
+    }
+
+    private var sessionCompleteView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Session Complete!")
+                .font(.title3.bold())
+            if totalTyped > 0 {
+                let pct = Int(Double(totalCorrect) / Double(totalTyped) * 100)
+                Text("Accuracy: \(pct)%  (\(totalCorrect) / \(totalTyped) keystrokes)")
+                    .foregroundStyle(.secondary)
+            }
+            Button(L10n.shared.trainingRegenerateButton) { onNewSession() }
+                .buttonStyle(.bordered)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: - Input handling
+
+    private func handleChar(_ char: Character) {
+        guard !sessionComplete, cursorIndex < expectedChars.count else { return }
+        let correct = char == expectedChars[cursorIndex]
+        results.append(correct)
+        if correct { totalCorrect += 1 }
+        totalTyped += 1
+        if results.count >= expectedChars.count { advanceDrill() }
+    }
+
+    private func handleBackspace() {
+        guard !sessionComplete, !results.isEmpty else { return }
+        let wasCorrect = results.removeLast()
+        totalTyped -= 1
+        if wasCorrect { totalCorrect -= 1 }
+    }
+
+    private func advanceDrill() {
+        if drillIndex + 1 < session.drills.count {
+            drillIndex += 1
+            results = []
+        } else {
+            sessionComplete = true
+        }
+    }
+}
+
+// MARK: - KeyCapture (NSViewRepresentable)
+
+/// Captures raw keystrokes and reports them to SwiftUI callbacks.
+/// Uses `viewDidMoveToWindow` + a deferred `makeFirstResponder` call so it
+/// wins the race against `KeySilencer` (which also calls `makeFirstResponder`
+/// synchronously on appear).
+private final class KeyCaptureNSView: NSView {
+    var onChar: ((Character) -> Void)?
+    var onBackspace: (() -> Void)?
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // Defer so we fire after KeySilencer's synchronous makeFirstResponder call.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let window = self.window else { return }
+            window.makeFirstResponder(self)
+        }
+    }
+
+    override func keyDown(with event: NSEvent) {
+        // Backspace / Delete
+        if event.keyCode == 51 {
+            onBackspace?()
+            return
+        }
+        // Ignore modifier combos (cmd, ctrl, option)
+        guard event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
+              let chars = event.characters,
+              let char = chars.first,
+              !char.isNewline,
+              char != "\t"
+        else { return }
+        onChar?(char)
+    }
+}
+
+private struct KeyCapture: NSViewRepresentable {
+    let onChar: (Character) -> Void
+    let onBackspace: () -> Void
+
+    func makeNSView(context: Context) -> KeyCaptureNSView { KeyCaptureNSView() }
+
+    func updateNSView(_ nsView: KeyCaptureNSView, context: Context) {
+        nsView.onChar      = onChar
+        nsView.onBackspace = onBackspace
     }
 }
