@@ -23,6 +23,10 @@ extension ChartsView {
                              helpText: L10n.shared.helpPracticeDrills) {
                     practiceDrillsSection
                 }
+                chartSection(L10n.shared.trainingHistoryTitle,
+                             helpText: L10n.shared.helpTrainingHistory) {
+                    trainingHistorySection
+                }
             }
             .padding(24)
         }
@@ -104,9 +108,23 @@ extension ChartsView {
             if let session = currentTrainingSession, !session.drills.isEmpty {
                 InteractivePracticeView(
                     session: session,
+                    sessionLengthName: sessionLength.rawValue,
                     onNewSession: {
                         model.reload()
                         trainingResetToken = UUID()
+                    },
+                    onSessionComplete: { result in
+                        KeyCountStore.shared.saveTrainingResult(
+                            targets: result.targets,
+                            sessionLength: result.sessionLength,
+                            accuracy: result.accuracy,
+                            wpm: result.wpm,
+                            duration: result.duration,
+                            totalTyped: result.totalTyped,
+                            totalCorrect: result.totalCorrect
+                        ) {
+                            model.reload()
+                        }
                     }
                 )
                 // Reset interactive state when length or "New Session" changes.
@@ -115,6 +133,82 @@ extension ChartsView {
                 emptyState
             }
         }
+    }
+
+    // MARK: - History
+
+    @ViewBuilder
+    private var trainingHistorySection: some View {
+        if model.trainingHistory.isEmpty {
+            Text(L10n.shared.trainingHistoryEmpty)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                HStack(spacing: 0) {
+                    Text(L10n.shared.trainingHistoryDate)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 140, alignment: .leading)
+                    Text(L10n.shared.trainingHistoryTargets)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 120, alignment: .leading)
+                    Text(L10n.shared.trainingHistoryLength)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 70, alignment: .leading)
+                    Text(L10n.shared.trainingColumnIKI.components(separatedBy: " ").first ?? "Acc")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                        .help("Accuracy %")
+                    Text("WPM")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 55, alignment: .trailing)
+                    Text("Time")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 55, alignment: .trailing)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+
+                Divider()
+
+                ForEach(Array(model.trainingHistory.enumerated()), id: \.element.id) { index, record in
+                    HStack(spacing: 0) {
+                        Text(formatDate(record.completedAt))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 140, alignment: .leading)
+                        Text(record.targetDisplayStrings.joined(separator: " "))
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(width: 120, alignment: .leading)
+                        Text(record.sessionLength)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                        Text("\(record.accuracy)%")
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(record.accuracy >= 90 ? .green : record.accuracy >= 70 ? .orange : .red)
+                            .frame(width: 60, alignment: .trailing)
+                        Text("\(record.wpm)")
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(width: 55, alignment: .trailing)
+                        Text(String(format: "%.0fs", record.durationSeconds))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 55, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.03))
+                }
+            }
+        }
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "MM/dd HH:mm"
+        return f.string(from: date)
     }
 
     // MARK: - Helpers
@@ -151,9 +245,21 @@ extension ChartsView {
 
 // MARK: - InteractivePracticeView
 
+struct TrainingCompletionResult {
+    let targets: [String]
+    let sessionLength: String
+    let accuracy: Int
+    let wpm: Int
+    let duration: Double
+    let totalTyped: Int
+    let totalCorrect: Int
+}
+
 private struct InteractivePracticeView: View {
     let session: TrainingSession
+    let sessionLengthName: String
     let onNewSession: () -> Void
+    let onSessionComplete: (TrainingCompletionResult) -> Void
 
     // results[i] = true/false for each character typed in the current drill.
     // results.count is always equal to the current cursor position.
@@ -318,8 +424,20 @@ private struct InteractivePracticeView: View {
             drillIndex += 1
             results = []
         } else {
-            sessionDuration = sessionStartTime.map { Date().timeIntervalSince($0) } ?? 0
+            let duration = sessionStartTime.map { Date().timeIntervalSince($0) } ?? 0
+            sessionDuration = duration
             sessionComplete = true
+            let pct = totalTyped > 0 ? Int(Double(totalCorrect) / Double(totalTyped) * 100) : 0
+            let wpm = duration > 0 ? Int(Double(totalTyped) / 5.0 / (duration / 60.0)) : 0
+            onSessionComplete(TrainingCompletionResult(
+                targets: session.targets.map { $0.bigram },
+                sessionLength: sessionLengthName,
+                accuracy: pct,
+                wpm: wpm,
+                duration: duration,
+                totalTyped: totalTyped,
+                totalCorrect: totalCorrect
+            ))
         }
     }
 }
