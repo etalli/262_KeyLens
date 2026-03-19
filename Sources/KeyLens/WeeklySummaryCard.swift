@@ -68,7 +68,7 @@ struct WeeklySummaryCardView: View {
             statCell(
                 icon: "flame",
                 label: L10n.shared.weeklySummaryCardStreak,
-                value: "\(data.streak)"
+                value: data.goalIsSet ? "\(data.streak)" : "—"
             )
             Divider().frame(height: 48)
             statCell(
@@ -126,6 +126,7 @@ struct WeeklySummaryData {
     let totalKeystrokes: Int
     let estimatedWPM: Double?
     let streak: Int
+    let goalIsSet: Bool
     let ergonomicScore: Double
     let topKeys: [(key: String, count: Int)]
 
@@ -153,6 +154,7 @@ struct WeeklySummaryData {
             totalKeystrokes: weekTotal,
             estimatedWPM: store.estimatedWPM,
             streak: store.currentStreak(),
+            goalIsSet: store.dailyGoal > 0,
             ergonomicScore: store.currentErgonomicScore,
             topKeys: store.topKeys(limit: 5)
         )

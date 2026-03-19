@@ -1028,6 +1028,11 @@ final class L10n {
 
     // MARK: - Streak & Daily Goal
 
+    /// Shown when no daily goal is configured — streak cannot be tracked.
+    var streakNoGoalHint: String {
+        ja("🔥 目標打鍵数を設定するとStreakが始まります", en: "🔥 Set a daily goal to start your streak")
+    }
+
     /// Streak display string. n=0 shows a "no streak" placeholder.
     func streakDisplay(_ n: Int) -> String {
         n > 0

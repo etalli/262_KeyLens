@@ -101,7 +101,7 @@ struct MenuView: View {
                     let streak = KeyCountStore.shared.currentStreak()
                     let today  = KeyCountStore.shared.todayCount
                     VStack(alignment: .leading, spacing: 0) {
-                        infoRow(l.streakDisplay(streak))
+                        infoRow(goal > 0 ? l.streakDisplay(streak) : l.streakNoGoalHint)
                         if goal > 0 {
                             infoRow(l.goalProgress(today: today, goal: goal))
                         }
