@@ -13,7 +13,10 @@ struct MenuView: View {
         VStack(alignment: .leading, spacing: 0) {
             statusRow
             divider
-            statsSection
+            ScrollView {
+                statsSection
+            }
+            .frame(maxHeight: 300)
             divider
             actionRow
             divider
