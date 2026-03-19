@@ -148,13 +148,13 @@ extension ChartsView {
                 HStack(spacing: 0) {
                     Text(l.dateLabel)
                         .frame(width: 100, alignment: .leading)
-                    Text(l.mouseColRight)
-                        .frame(width: 80, alignment: .trailing)
                     Text(l.mouseColLeft)
                         .frame(width: 80, alignment: .trailing)
-                    Text(l.mouseColDown)
+                    Text(l.mouseColRight)
                         .frame(width: 80, alignment: .trailing)
                     Text(l.mouseColUp)
+                        .frame(width: 80, alignment: .trailing)
+                    Text(l.mouseColDown)
                         .frame(width: 80, alignment: .trailing)
                 }
                 .font(.caption.weight(.semibold))
@@ -168,13 +168,13 @@ extension ChartsView {
                     HStack(spacing: 0) {
                         Text(entry.date)
                             .frame(width: 100, alignment: .leading)
-                        Text(formatPts(entry.right))
-                            .frame(width: 80, alignment: .trailing)
                         Text(formatPts(entry.left))
                             .frame(width: 80, alignment: .trailing)
-                        Text(formatPts(entry.down))
+                        Text(formatPts(entry.right))
                             .frame(width: 80, alignment: .trailing)
                         Text(formatPts(entry.up))
+                            .frame(width: 80, alignment: .trailing)
+                        Text(formatPts(entry.down))
                             .frame(width: 80, alignment: .trailing)
                     }
                     .font(.system(size: 12, design: .monospaced))
