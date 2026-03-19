@@ -67,6 +67,8 @@ final class ChartDataModel: ObservableObject {
     @Published var mouseDailyDirectionEntries: [MouseDailyDirectionEntry]   = []
     // Issue #182: Mouse vs Keyboard balance
     @Published var mouseKeyboardBalance:       [MouseKeyboardBalanceEntry]  = []
+    // Issue #90: Training session derived from ranked bigrams
+    @Published var trainingSession:            TrainingSession?              = nil
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -160,6 +162,9 @@ final class ChartDataModel: ObservableObject {
             return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
                                              distancePts: entry.distancePts, keystrokes: keys)
         }.sorted { $0.date < $1.date }
+        // Issue #90: Training session
+        let trainingScores = store.rankedBigramsForTraining(minCount: 5, topK: 10)
+        trainingSession = trainingScores.isEmpty ? nil : SessionBuilder.build(from: trainingScores)
     }
 
     /// Reloads key transition data for the given target key (Issue #98).
