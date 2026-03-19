@@ -242,16 +242,16 @@ private struct InteractivePracticeView: View {
                 .font(.title3.bold())
             HStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(wpm)")
-                        .font(.system(.largeTitle, design: .monospaced).bold())
-                    Text("WPM")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                VStack(alignment: .leading, spacing: 2) {
                     Text("\(pct)%")
                         .font(.system(.largeTitle, design: .monospaced).bold())
                         .foregroundStyle(pct >= 90 ? .green : pct >= 70 ? .orange : .red)
                     Text("Accuracy")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(wpm)")
+                        .font(.system(.largeTitle, design: .monospaced).bold())
+                    Text("WPM")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 2) {
