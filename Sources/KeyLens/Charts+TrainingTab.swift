@@ -139,6 +139,8 @@ private struct InteractivePracticeView: View {
     @State private var sessionComplete: Bool = false
     @State private var totalCorrect: Int = 0
     @State private var totalTyped: Int = 0
+    @State private var sessionStartTime: Date? = nil
+    @State private var sessionDuration: TimeInterval = 0
 
     private var currentDrill: DrillSequence { session.drills[drillIndex] }
     private var expectedChars: [Character]  { Array(currentDrill.text) }
@@ -231,16 +233,37 @@ private struct InteractivePracticeView: View {
     }
 
     private var sessionCompleteView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let pct = totalTyped > 0 ? Int(Double(totalCorrect) / Double(totalTyped) * 100) : 0
+        // WPM: standard formula — (characters / 5) / minutes
+        let wpm = sessionDuration > 0 ? Int(Double(totalTyped) / 5.0 / (sessionDuration / 60.0)) : 0
+
+        return VStack(alignment: .leading, spacing: 12) {
             Text("Session Complete!")
                 .font(.title3.bold())
-            if totalTyped > 0 {
-                let pct = Int(Double(totalCorrect) / Double(totalTyped) * 100)
-                Text("Accuracy: \(pct)%  (\(totalCorrect) / \(totalTyped) keystrokes)")
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(wpm)")
+                        .font(.system(.largeTitle, design: .monospaced).bold())
+                    Text("WPM")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(pct)%")
+                        .font(.system(.largeTitle, design: .monospaced).bold())
+                        .foregroundStyle(pct >= 90 ? .green : pct >= 70 ? .orange : .red)
+                    Text("Accuracy")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(String(format: "%.0fs", sessionDuration))
+                        .font(.system(.largeTitle, design: .monospaced).bold())
+                    Text("Time")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             Button(L10n.shared.trainingRegenerateButton) { onNewSession() }
                 .buttonStyle(.bordered)
+                .padding(.top, 4)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -252,6 +275,7 @@ private struct InteractivePracticeView: View {
 
     private func handleChar(_ char: Character) {
         guard !sessionComplete, cursorIndex < expectedChars.count else { return }
+        if sessionStartTime == nil { sessionStartTime = Date() }
         let correct = char == expectedChars[cursorIndex]
         results.append(correct)
         if correct { totalCorrect += 1 }
@@ -271,6 +295,7 @@ private struct InteractivePracticeView: View {
             drillIndex += 1
             results = []
         } else {
+            sessionDuration = sessionStartTime.map { Date().timeIntervalSince($0) } ?? 0
             sessionComplete = true
         }
     }
