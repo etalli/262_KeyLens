@@ -1213,6 +1213,14 @@ final class L10n {
         ja("平均セッション (分)", en: "Avg Session (min)")
     }
 
+    // MARK: - Chart Axis Labels
+
+    var axisLabelKeys: String     { ja("キー数", en: "Keys") }
+    var axisLabelWPM: String      { ja("WPM", en: "WPM") }
+    var axisLabelPercent: String  { ja("%", en: "%") }
+    var axisLabelSessions: String { ja("セッション数", en: "Sessions") }
+    var axisLabelMinutes: String  { ja("分", en: "min") }
+
     // MARK: - Chart Theme
 
     var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }

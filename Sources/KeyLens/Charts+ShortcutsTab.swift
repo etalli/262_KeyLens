@@ -36,6 +36,7 @@ extension ChartsView {
             }
             .chartYScale(domain: domain)
             .chartLegend(.hidden)
+            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: CGFloat(model.shortcuts.count * 26 + 24))
         }
     }
@@ -74,6 +75,7 @@ extension ChartsView {
                 }
                 .chartYScale(domain: domain)
                 .chartLegend(.hidden)
+                .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
                 .frame(height: CGFloat(model.allCombos.count * 26 + 24))
 
                 // 凡例

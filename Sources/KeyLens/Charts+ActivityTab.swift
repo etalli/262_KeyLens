@@ -70,6 +70,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: 200)
         }
     }
@@ -124,6 +125,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelWPM, alignment: .trailing)
             .frame(height: 200)
         }
     }
@@ -178,6 +180,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelPercent, alignment: .trailing)
             .frame(height: 200)
         }
     }
@@ -205,6 +208,7 @@ extension ChartsView {
                     AxisGridLine()
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: 160)
         }
     }
@@ -242,6 +246,7 @@ extension ChartsView {
                     AxisGridLine()
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: 180)
         }
     }
@@ -291,6 +296,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: 180)
         }
     }
@@ -330,6 +336,7 @@ extension ChartsView {
                         }
                     }
                 }
+                .chartYAxisLabel(L10n.shared.axisLabelSessions, alignment: .trailing)
                 .frame(height: 140)
 
                 // Longest session per day (bar chart)
@@ -365,6 +372,7 @@ extension ChartsView {
                         }
                     }
                 }
+                .chartYAxisLabel(L10n.shared.axisLabelMinutes, alignment: .trailing)
                 .frame(height: 140)
                 Text("● \(L10n.shared.avgSessionLabel)")
                     .font(.caption)

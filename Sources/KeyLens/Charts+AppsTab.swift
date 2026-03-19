@@ -161,6 +161,7 @@ extension ChartsView {
             }
             .chartYScale(domain: domain)
             .chartLegend(.hidden)
+            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: CGFloat(model.topApps.count * 28 + 24))
         }
     }
@@ -188,6 +189,7 @@ extension ChartsView {
             }
             .chartYScale(domain: domain)
             .chartLegend(.hidden)
+            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: CGFloat(model.todayTopApps.count * 28 + 24))
         }
     }
@@ -215,6 +217,7 @@ extension ChartsView {
             }
             .chartYScale(domain: domain)
             .chartLegend(.hidden)
+            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: CGFloat(model.topDevices.count * 28 + 24))
         }
     }
@@ -242,6 +245,7 @@ extension ChartsView {
             }
             .chartYScale(domain: domain)
             .chartLegend(.hidden)
+            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: CGFloat(model.todayTopDevices.count * 28 + 24))
         }
     }
