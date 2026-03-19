@@ -29,6 +29,10 @@ struct ChartsView: View {
     @State var isRecordingHotkey: Bool = false
     /// Target key for the Key Transition analysis section (Issue #98).
     @State var keyTransitionTarget: String = ""
+    /// Selected training session length — persisted across launches.
+    @AppStorage("trainingSessionLength") var sessionLength: SessionLength = .normal
+    /// Changed each time the user taps "New Session" to force InteractivePracticeView to reset.
+    @State var trainingResetToken = UUID()
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

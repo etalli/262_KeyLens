@@ -6,6 +6,12 @@ extension ChartsView {
 
     // MARK: - Training Tab
 
+    /// Session built from the model's ranked scores + the user's chosen length config.
+    private var currentTrainingSession: TrainingSession? {
+        guard !model.trainingScores.isEmpty else { return nil }
+        return SessionBuilder.build(from: model.trainingScores, config: sessionLength.config)
+    }
+
     var trainingTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
@@ -26,7 +32,7 @@ extension ChartsView {
 
     @ViewBuilder
     private var trainingTargetsSection: some View {
-        if let session = model.trainingSession, !session.targets.isEmpty {
+        if let session = currentTrainingSession, !session.targets.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnBigram)
@@ -85,12 +91,29 @@ extension ChartsView {
 
     @ViewBuilder
     private var practiceDrillsSection: some View {
-        if let session = model.trainingSession, !session.drills.isEmpty {
-            InteractivePracticeView(session: session, onNewSession: { model.reload() })
-                // Re-create the view (reset all state) whenever the session targets change.
-                .id(session.targets.map { $0.bigram }.joined())
-        } else {
-            emptyState
+        VStack(alignment: .leading, spacing: 16) {
+            // Length picker
+            Picker("", selection: $sessionLength) {
+                ForEach(SessionLength.allCases, id: \.self) { length in
+                    Text(length.rawValue).tag(length)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 220)
+
+            if let session = currentTrainingSession, !session.drills.isEmpty {
+                InteractivePracticeView(
+                    session: session,
+                    onNewSession: {
+                        model.reload()
+                        trainingResetToken = UUID()
+                    }
+                )
+                // Reset interactive state when length or "New Session" changes.
+                .id(sessionLength.rawValue + trainingResetToken.uuidString)
+            } else {
+                emptyState
+            }
         }
     }
 

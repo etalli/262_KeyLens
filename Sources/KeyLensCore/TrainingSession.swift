@@ -7,10 +7,9 @@ import Foundation
 /// Tier boundaries split the selected targets into priority groups.
 /// Higher-priority targets receive more repetitions.
 ///
-/// Example with defaults (maxTargets=5):
-///   Rank 1–2  → highReps  (8) — hardest, needs most practice
-///   Rank 3–4  → midReps   (5)
-///   Rank 5    → lowReps   (3)
+/// Default (Normal):
+///   Rank 1–2  → highReps  (5) — hardest, needs most practice
+///   Rank 3    → midReps   (3)
 public struct SessionConfig: Equatable {
     /// Maximum number of target bigrams in one session.
     public let maxTargets: Int
@@ -28,12 +27,12 @@ public struct SessionConfig: Equatable {
     public let includeAlternating: Bool
 
     public init(
-        maxTargets: Int = 5,
-        highReps: Int = 8,
-        midReps: Int = 5,
-        lowReps: Int = 3,
+        maxTargets: Int = 3,
+        highReps: Int = 5,
+        midReps: Int = 3,
+        lowReps: Int = 2,
         highTierSize: Int = 2,
-        midTierSize: Int = 2,
+        midTierSize: Int = 1,
         includeAlternating: Bool = true
     ) {
         self.maxTargets        = max(1, maxTargets)
@@ -45,8 +44,36 @@ public struct SessionConfig: Equatable {
         self.includeAlternating = includeAlternating
     }
 
-    /// Default session configuration.
+    /// Default session configuration (Normal length).
     public static let `default` = SessionConfig()
+}
+
+// MARK: - SessionLength
+
+/// User-selectable session length presets.
+///
+/// | Length | Targets | ~Words |
+/// |--------|---------|--------|
+/// | short  |    2    |    6   |
+/// | normal |    3    |   23   |
+/// | long   |    5    |   55   |
+public enum SessionLength: String, CaseIterable {
+    case short  = "Short"
+    case normal = "Normal"
+    case long   = "Long"
+
+    public var config: SessionConfig {
+        switch self {
+        case .short:
+            return SessionConfig(maxTargets: 2, highReps: 3, midReps: 2, lowReps: 2,
+                                 highTierSize: 2, midTierSize: 0, includeAlternating: false)
+        case .normal:
+            return SessionConfig()   // matches SessionConfig.default
+        case .long:
+            return SessionConfig(maxTargets: 5, highReps: 8, midReps: 5, lowReps: 3,
+                                 highTierSize: 2, midTierSize: 2, includeAlternating: true)
+        }
+    }
 }
 
 // MARK: - TrainingSession
