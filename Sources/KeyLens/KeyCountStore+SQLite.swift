@@ -117,6 +117,22 @@ extension KeyCountStore {
                 }
                 try db.create(index: "sessions_date_idx", on: "sessions", columns: ["date"], ifNotExists: true)
             }
+            // Issue #88: training result history
+            migrator.registerMigration("v3") { db in
+                try db.create(table: "training_results", ifNotExists: true) { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("completed_at", .double).notNull()
+                    t.column("targets", .text).notNull()          // JSON array of raw bigram keys
+                    t.column("session_length", .text).notNull()   // "Short" / "Normal" / "Long"
+                    t.column("accuracy", .integer).notNull()
+                    t.column("wpm", .integer).notNull()
+                    t.column("duration_seconds", .double).notNull()
+                    t.column("total_typed", .integer).notNull()
+                    t.column("total_correct", .integer).notNull()
+                }
+                try db.create(index: "training_results_date_idx",
+                              on: "training_results", columns: ["completed_at"], ifNotExists: true)
+            }
             try migrator.migrate(db)
 
             dbQueue = db

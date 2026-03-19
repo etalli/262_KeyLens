@@ -1252,6 +1252,18 @@ final class L10n {
 
     var trainingRegenerateButton: String { ja("セッションを更新", en: "New Session") }
 
+    var trainingHistoryTitle: String { ja("トレーニング履歴", en: "Training History") }
+    var helpTrainingHistory: String {
+        ja("過去のトレーニングセッションの結果を新しい順に表示します。",
+           en: "Past training session results, newest first.")
+    }
+    var trainingHistoryEmpty: String {
+        ja("まだ完了したセッションがありません。", en: "No completed sessions yet.")
+    }
+    var trainingHistoryDate: String    { ja("日時", en: "Date") }
+    var trainingHistoryTargets: String { ja("対象", en: "Targets") }
+    var trainingHistoryLength: String  { ja("長さ", en: "Length") }
+
     // MARK: - Chart Axis Labels
 
     var axisLabelKeys: String     { ja("キー数", en: "Keys") }
