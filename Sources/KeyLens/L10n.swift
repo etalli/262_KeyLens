@@ -1213,6 +1213,45 @@ final class L10n {
         ja("平均セッション (分)", en: "Avg Session (min)")
     }
 
+    // MARK: - Training Tab
+
+    var trainingTargetsTitle: String {
+        ja("練習対象バイグラム", en: "Training Targets")
+    }
+
+    var practiceDrillsTitle: String {
+        ja("ドリル", en: "Practice Drills")
+    }
+
+    var helpTrainingTargets: String {
+        ja("打鍵速度が遅く頻出するバイグラムを優先度スコア順に表示します。スコア = 平均IKI × log2(出現回数 + 1)。",
+           en: "Bigrams ranked by training priority: score = mean IKI × log2(count + 1). Slower and more frequent combinations rank higher.")
+    }
+
+    var helpPracticeDrills: String {
+        ja("生成されたドリルを上から順に打鍵してください。高優先度のバイグラムほど多くの繰り返しが割り当てられます。",
+           en: "Type each drill line from top to bottom. High-priority bigrams get more repetitions.")
+    }
+
+    var trainingNoData: String {
+        ja("データ不足 — 各バイグラムに5回以上の入力が必要です。",
+           en: "Not enough data — bigrams need at least 5 observations each.")
+    }
+
+    var trainingColumnBigram: String  { ja("バイグラム", en: "Bigram") }
+    var trainingColumnIKI: String     { ja("平均 IKI (ms)", en: "Avg IKI (ms)") }
+    var trainingColumnCount: String   { ja("出現回数", en: "Count") }
+    var trainingColumnTier: String    { ja("優先度", en: "Priority") }
+
+    var trainingTierHigh: String  { ja("高", en: "High") }
+    var trainingTierMid: String   { ja("中", en: "Mid") }
+    var trainingTierLow: String   { ja("低", en: "Low") }
+
+    var trainingDrillRepeated: String    { ja("繰り返し", en: "Repeated") }
+    var trainingDrillAlternating: String { ja("交互", en: "Alternating") }
+
+    var trainingRegenerateButton: String { ja("セッションを更新", en: "New Session") }
+
     // MARK: - Chart Axis Labels
 
     var axisLabelKeys: String     { ja("キー数", en: "Keys") }
