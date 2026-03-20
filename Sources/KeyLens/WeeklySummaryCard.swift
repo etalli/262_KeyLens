@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - WeeklySummaryCardView
 
-/// A self-contained card view that summarises one week of typing activity.
+/// A self-contained card view that summarizes one week of typing activity.
 /// Rendered off-screen via ImageRenderer and saved as PNG.
 struct WeeklySummaryCardView: View {
     let data: WeeklySummaryData

@@ -1323,6 +1323,21 @@ final class L10n {
            en: "Delete all training history? This cannot be undone.")
     }
 
+    // Interactive practice UI strings
+    var trainingColumnDrill: String    { ja("ドリル", en: "Drill") }
+    var trainingDrillProgress: String  { ja("ドリル %d / %d", en: "Drill %d of %d") }
+    var trainingDrillAccuracy: String  { ja("正確さ: %d%%", en: "Accuracy: %d%%") }
+    var trainingDrillSkip: String      { ja("スキップ", en: "Skip") }
+    var trainingDrillHint: String {
+        ja("上のテキストをクリックしてフォーカスし、入力を開始してください",
+           en: "Click the text above to focus, then start typing")
+    }
+    var trainingSessionComplete: String  { ja("セッション完了!", en: "Session Complete!") }
+    var trainingResultAccuracy: String   { ja("正確さ", en: "Accuracy") }
+    var trainingResultWPM: String        { ja("WPM", en: "WPM") }
+    var trainingResultTime: String       { ja("時間", en: "Time") }
+    var trainingAccuracyHelp: String     { ja("正確さ %", en: "Accuracy %") }
+
     // MARK: - Chart Axis Labels
 
     var axisLabelKeys: String     { ja("キー数", en: "Keys") }

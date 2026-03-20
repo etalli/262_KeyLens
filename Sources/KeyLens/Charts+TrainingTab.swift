@@ -77,19 +77,19 @@ extension ChartsView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnBigram)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 80, alignment: .leading)
                     Text(L10n.shared.trainingColumnIKI)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 120, alignment: .trailing)
                     Text(L10n.shared.trainingColumnCount)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 90, alignment: .trailing)
                     Text(L10n.shared.trainingColumnTier)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .trailing)
                     Text(L10n.shared.trainingColumnHistory)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 110, alignment: .trailing)
                 }
                 .padding(.horizontal, 10)
@@ -113,7 +113,7 @@ extension ChartsView {
                             .foregroundStyle(.primary.opacity(0.75))
                             .frame(width: 90, alignment: .trailing)
                         Text(tier.label)
-                            .font(.caption)
+                            .font(.footnote)
                             .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(tier.color.opacity(0.15))
                             .foregroundStyle(tier.color)
@@ -128,13 +128,13 @@ extension ChartsView {
                                 .foregroundColor(.secondary)
                              + Text(String(format: "%+.0f", delta))
                                 .foregroundColor(delta < -5 ? .green : delta > 5 ? .red : .secondary))
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .frame(width: 110, alignment: .trailing)
                             .help(String(format: L10n.shared.trainingHistoryAnnotationHelp,
                                          h.beforeIKI, score.meanIKI, formatDate(h.date)))
                         } else {
                             Text("—")
-                                .font(.caption).foregroundStyle(.tertiary)
+                                .font(.footnote).foregroundStyle(.tertiary)
                                 .frame(width: 110, alignment: .trailing)
                         }
                     }
@@ -163,19 +163,19 @@ extension ChartsView {
                 // Header
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnTrigram)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 80, alignment: .leading)
                     Text(L10n.shared.trainingColumnEstIKI)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 120, alignment: .trailing)
                     Text(L10n.shared.trainingColumnCount)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 90, alignment: .trailing)
                     Text(L10n.shared.trainingColumnTier)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .trailing)
-                    Text("Drill")
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                    Text(L10n.shared.trainingColumnDrill)
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(minWidth: 120, alignment: .leading)
                         .padding(.leading, 16)
                 }
@@ -201,14 +201,14 @@ extension ChartsView {
                             .foregroundStyle(.primary.opacity(0.75))
                             .frame(width: 90, alignment: .trailing)
                         Text(tier.label)
-                            .font(.caption)
+                            .font(.footnote)
                             .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(tier.color.opacity(0.15))
                             .foregroundStyle(tier.color)
                             .clipShape(Capsule())
                             .frame(width: 70, alignment: .trailing)
                         Text(drillText)
-                            .font(.system(.caption, design: .monospaced, weight: .medium))
+                            .font(.system(.footnote, design: .monospaced, weight: .medium))
                             .foregroundStyle(.primary)
                             .frame(minWidth: 120, alignment: .leading)
                             .padding(.leading, 16)
@@ -295,27 +295,27 @@ extension ChartsView {
                 // Header
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingHistoryDate)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 130, alignment: .leading)
                     Text(L10n.shared.trainingHistoryTargets)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 110, alignment: .leading)
                     Text(L10n.shared.trainingHistoryLength)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 60, alignment: .leading)
                     Text(L10n.shared.trainingColumnIKI.components(separatedBy: " ").first ?? "Acc")
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 55, alignment: .trailing)
-                        .help("Accuracy %")
+                        .help(L10n.shared.trainingAccuracyHelp)
                     Text("WPM")
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 50, alignment: .trailing)
                     Text(L10n.shared.trainingHistoryBefore)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .trailing)
                         .help(L10n.shared.trainingHistoryBefore)
                     Text(L10n.shared.trainingHistoryDelta)
-                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .font(.footnote).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 65, alignment: .trailing)
                         .help(L10n.shared.trainingHistoryDelta)
                 }
@@ -329,43 +329,43 @@ extension ChartsView {
                     let avgNow    = avgIKI(model.bigramIKIMap, targets: record.targets)
                     HStack(spacing: 0) {
                         Text(formatDate(record.completedAt))
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .frame(width: 130, alignment: .leading)
                         Text(record.allTargetDisplayStrings.joined(separator: " "))
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .frame(width: 110, alignment: .leading)
                         Text(record.sessionLength)
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(.primary.opacity(0.75))
                             .frame(width: 60, alignment: .leading)
                         Text("\(record.accuracy)%")
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .foregroundStyle(record.accuracy >= 90 ? .green : record.accuracy >= 70 ? .orange : .red)
                             .frame(width: 55, alignment: .trailing)
                         Text("\(record.wpm)")
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .frame(width: 50, alignment: .trailing)
                         // Before IKI (ms avg at session time)
                         if let before = avgBefore {
                             Text(String(format: "%.0f ms", before))
-                                .font(.system(.caption, design: .monospaced))
+                                .font(.system(.footnote, design: .monospaced))
                                 .foregroundStyle(.secondary)
                                 .frame(width: 70, alignment: .trailing)
                         } else {
                             Text("—")
-                                .font(.caption).foregroundStyle(.tertiary)
+                                .font(.footnote).foregroundStyle(.tertiary)
                                 .frame(width: 70, alignment: .trailing)
                         }
                         // Δ IKI: positive value = slower now (regression), negative = faster (improvement)
                         if let before = avgBefore, let now = avgNow {
                             let delta = now - before
                             Text(String(format: "%+.0f ms", delta))
-                                .font(.system(.caption, design: .monospaced))
+                                .font(.system(.footnote, design: .monospaced))
                                 .foregroundStyle(delta < -5 ? .green : delta > 5 ? .red : .secondary)
                                 .frame(width: 65, alignment: .trailing)
                         } else {
                             Text("—")
-                                .font(.caption).foregroundStyle(.tertiary)
+                                .font(.footnote).foregroundStyle(.tertiary)
                                 .frame(width: 65, alignment: .trailing)
                         }
                     }
@@ -382,7 +382,7 @@ extension ChartsView {
                         showClearHistoryAlert = true
                     } label: {
                         Text(L10n.shared.trainingHistoryClear)
-                            .font(.caption)
+                            .font(.footnote)
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.red)
@@ -498,12 +498,12 @@ private struct InteractivePracticeView: View {
                     .background(Color.primary.opacity(0.05))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 HStack {
-                    Text("Click the text above to focus, then start typing")
-                        .font(.caption2).foregroundStyle(.tertiary)
+                    Text(L10n.shared.trainingDrillHint)
+                        .font(.caption).foregroundStyle(.tertiary)
                     Spacer()
-                    Button("Skip") { advanceDrill() }
+                    Button(L10n.shared.trainingDrillSkip) { advanceDrill() }
                         .buttonStyle(.plain)
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 // Invisible key capture view — steals first responder from KeySilencer.
@@ -517,13 +517,13 @@ private struct InteractivePracticeView: View {
 
     private var progressHeader: some View {
         HStack {
-            Text("Drill \(drillIndex + 1) of \(session.drills.count)")
-                .font(.caption).foregroundStyle(.secondary)
+            Text(String(format: L10n.shared.trainingDrillProgress, drillIndex + 1, session.drills.count))
+                .font(.footnote).foregroundStyle(.secondary)
             Spacer()
             if totalTyped > 0 {
                 let pct = Int(Double(totalCorrect) / Double(totalTyped) * 100)
-                Text("Accuracy: \(pct)%")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text(String(format: L10n.shared.trainingDrillAccuracy, pct))
+                    .font(.footnote).foregroundStyle(.secondary)
             }
         }
     }
@@ -532,17 +532,17 @@ private struct InteractivePracticeView: View {
         HStack(spacing: 6) {
             ForEach(currentDrill.targets, id: \.self) { target in
                 Text(target)
-                    .font(.caption.bold())
+                    .font(.footnote.bold())
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Color.accentColor.opacity(0.12))
                     .clipShape(Capsule())
             }
             Text("—")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.footnote).foregroundStyle(.secondary)
             Text(currentDrill.kind == .repeated
                  ? L10n.shared.trainingDrillRepeated
                  : L10n.shared.trainingDrillAlternating)
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.footnote).foregroundStyle(.secondary)
         }
     }
 
@@ -568,7 +568,7 @@ private struct InteractivePracticeView: View {
             }
             return acc + t
         }
-        .font(.system(.title2, design: .monospaced))
+        .font(.system(.title, design: .monospaced))
     }
 
     private var sessionCompleteView: some View {
@@ -577,26 +577,26 @@ private struct InteractivePracticeView: View {
         let wpm = sessionDuration > 0 ? Int(Double(totalTyped) / 5.0 / (sessionDuration / 60.0)) : 0
 
         return VStack(alignment: .leading, spacing: 12) {
-            Text("Session Complete!")
+            Text(L10n.shared.trainingSessionComplete)
                 .font(.title3.bold())
             HStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(pct)%")
                         .font(.system(.largeTitle, design: .monospaced).bold())
                         .foregroundStyle(pct >= 90 ? .green : pct >= 70 ? .orange : .red)
-                    Text("Accuracy")
+                    Text(L10n.shared.trainingResultAccuracy)
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(wpm)")
                         .font(.system(.largeTitle, design: .monospaced).bold())
-                    Text("WPM")
+                    Text(L10n.shared.trainingResultWPM)
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(format: "%.0fs", sessionDuration))
                         .font(.system(.largeTitle, design: .monospaced).bold())
-                    Text("Time")
+                    Text(L10n.shared.trainingResultTime)
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
