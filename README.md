@@ -90,6 +90,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Top 20 Keys** | Horizontal bar chart coloured by key type |
 | **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
 | **Ergonomic Learning Curve** | Same-finger rate, hand alternation rate, high-strain rate over time |
+| **Today's Fatigue Curve** | Hourly WPM and ergonomic rates for today; shows how typing speed and strain change across the day |
 | **Weekly Delta Report** | Last 7 days vs prior 7 days — keystrokes and ergonomic rates with trend arrows |
 | **Key Categories** | Donut chart of key-type distribution |
 | **Keyboard Shortcuts** | Top modifier+key combinations |
@@ -114,6 +115,14 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Weekly Report** | Last 7 days vs prior 7 days with trend arrows |
 | **Intelligence** | Inferred typing style and fatigue risk level |
 | **Mouse vs Keyboard Balance** | Daily ratio line showing whether you leaned toward mouse or keyboard (0% = keyboard-only, 100% = mouse-only) |
+
+#### Training tab
+| Section | What it shows |
+|---------|---------------|
+| **Practice Drills** | Interactive typing drills generated from your slowest bigrams and trigrams; select Short / Normal / Long session length |
+| **Training History** | Past session results with accuracy, WPM, and before/after IKI comparison per target |
+| **Training Targets** | Top bigrams ranked by training priority (mean IKI × log-frequency score) with tier labels and prior training annotations |
+| **Trigram Training Targets** | Top 3-key sequences ranked by estimated latency (sum of constituent bigram IKIs) with drill preview |
 
 #### Mouse tab
 | Section | What it shows |
