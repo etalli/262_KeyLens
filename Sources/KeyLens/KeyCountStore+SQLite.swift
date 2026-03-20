@@ -15,6 +15,8 @@ struct PendingStore {
     var ikiBuckets:    [String: [Int: Int]]    = [:]  // date → bucket → delta
     // Issue #60: completed typing sessions waiting to be flushed to SQLite
     var pendingSessions: [SessionRecord]       = []
+    // Issue #63: hourly fatigue data (IKI + ergonomics per hour)
+    var hourlySlices:  [String: [Int: HourlySlice]] = [:]  // date → hour → slice
 
     struct SessionRecord {
         var date: String        // yyyy-MM-dd of sessionStart
@@ -23,10 +25,20 @@ struct PendingStore {
         var keystrokeCount: Int
     }
 
+    /// Per-hour accumulator for fatigue detection (Issue #63).
+    struct HourlySlice {
+        var ikiSum:   Double = 0   // sum of IKI samples (ms) in this hour
+        var ikiCount: Int    = 0   // number of IKI samples in this hour
+        var ergTotal: Int    = 0   // total bigrams in this hour
+        var ergSF:    Int    = 0   // same-finger bigrams in this hour
+        var ergHS:    Int    = 0   // high-strain bigrams in this hour
+    }
+
     var isEmpty: Bool {
         dailyKeys.isEmpty && dailyBigrams.isEmpty && dailyTrigrams.isEmpty &&
         dailyApps.isEmpty && dailyDevices.isEmpty && hourly.isEmpty &&
-        bigramIKI.isEmpty && ikiBuckets.isEmpty && pendingSessions.isEmpty
+        bigramIKI.isEmpty && ikiBuckets.isEmpty && pendingSessions.isEmpty &&
+        hourlySlices.isEmpty
     }
 }
 
@@ -139,6 +151,19 @@ extension KeyCountStore {
                     t.add(column: "before_iki_json", .text).notNull().defaults(to: "{}")
                 }
             }
+            // Issue #63: per-hour fatigue data (IKI + ergonomic rates)
+            migrator.registerMigration("v5") { db in
+                try db.create(table: "hourly_ergonomics", ifNotExists: true) { t in
+                    t.column("date",      .text).notNull()
+                    t.column("hour",      .integer).notNull()
+                    t.column("iki_sum",   .double).notNull().defaults(to: 0)
+                    t.column("iki_count", .integer).notNull().defaults(to: 0)
+                    t.column("erg_total", .integer).notNull().defaults(to: 0)
+                    t.column("erg_sf",    .integer).notNull().defaults(to: 0)
+                    t.column("erg_hs",    .integer).notNull().defaults(to: 0)
+                    t.primaryKey(["date", "hour"])
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db
@@ -228,6 +253,23 @@ extension KeyCountStore {
                             """, arguments: [date, bucket, delta])
                     }
                 }
+                // Issue #63: flush hourly fatigue slices
+                for (date, hours) in p.hourlySlices {
+                    for (hour, sl) in hours where sl.ikiCount > 0 || sl.ergTotal > 0 {
+                        try db.execute(sql: """
+                            INSERT INTO hourly_ergonomics
+                                (date, hour, iki_sum, iki_count, erg_total, erg_sf, erg_hs)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(date, hour) DO UPDATE SET
+                                iki_sum   = iki_sum   + excluded.iki_sum,
+                                iki_count = iki_count + excluded.iki_count,
+                                erg_total = erg_total + excluded.erg_total,
+                                erg_sf    = erg_sf    + excluded.erg_sf,
+                                erg_hs    = erg_hs    + excluded.erg_hs
+                            """, arguments: [date, hour, sl.ikiSum, sl.ikiCount,
+                                             sl.ergTotal, sl.ergSF, sl.ergHS])
+                    }
+                }
                 // Issue #60: flush completed typing sessions
                 for s in p.pendingSessions where s.endTime > s.startTime && s.keystrokeCount > 0 {
                     try db.execute(sql: """
@@ -261,6 +303,14 @@ extension KeyCountStore {
         }
         for (d, bkts) in source.ikiBuckets { for (b,v) in bkts { r.ikiBuckets[d, default:[:]][b, default:0] += v } }
         r.pendingSessions.append(contentsOf: source.pendingSessions)
+        for (d, hours) in source.hourlySlices {
+            for (h, sl) in hours {
+                var e = r.hourlySlices[d, default: [:]][h, default: PendingStore.HourlySlice()]
+                e.ikiSum   += sl.ikiSum;   e.ikiCount += sl.ikiCount
+                e.ergTotal += sl.ergTotal; e.ergSF    += sl.ergSF; e.ergHS += sl.ergHS
+                r.hourlySlices[d, default: [:]][h] = e
+            }
+        }
         return r
     }
 }

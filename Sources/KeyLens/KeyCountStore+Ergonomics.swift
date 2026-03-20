@@ -235,6 +235,49 @@ extension KeyCountStore {
         }
     }
 
+    /// Per-hour fatigue curve for today (Issue #63).
+    ///
+    /// Returns hourly WPM and ergonomic rates, merging persisted SQLite data with
+    /// any pending in-memory slices. Hours with no data are omitted.
+    func todayHourlyFatigueCurve() -> [HourlyFatigueEntry] {
+        let today = todayKey
+        return queue.sync {
+            var slices: [Int: (ikiSum: Double, ikiCount: Int, ergTotal: Int, ergSF: Int, ergHS: Int)] = [:]
+
+            // Load persisted data from SQLite
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db,
+                       sql: "SELECT hour, iki_sum, iki_count, erg_total, erg_sf, erg_hs FROM hourly_ergonomics WHERE date = ?",
+                       arguments: [today])
+               }) {
+                for row in rows {
+                    let h: Int = row["hour"]
+                    slices[h] = (row["iki_sum"], row["iki_count"], row["erg_total"], row["erg_sf"], row["erg_hs"])
+                }
+            }
+
+            // Merge pending (current session, not yet flushed)
+            for (h, sl) in pending.hourlySlices[today, default: [:]] {
+                let e = slices[h] ?? (0, 0, 0, 0, 0)
+                slices[h] = (e.ikiSum   + sl.ikiSum,   e.ikiCount + sl.ikiCount,
+                             e.ergTotal + sl.ergTotal, e.ergSF    + sl.ergSF,
+                             e.ergHS    + sl.ergHS)
+            }
+
+            return slices.compactMap { hour, s -> HourlyFatigueEntry? in
+                guard s.ikiCount > 0 || s.ergTotal > 0 else { return nil }
+                let wpm: Double? = s.ikiCount > 0
+                    ? 60_000.0 / ((s.ikiSum / Double(s.ikiCount)) * 5.0)
+                    : nil
+                let sfRate: Double? = s.ergTotal > 0 ? Double(s.ergSF) / Double(s.ergTotal) : nil
+                let hsRate: Double? = s.ergTotal > 0 ? Double(s.ergHS) / Double(s.ergTotal) : nil
+                return HourlyFatigueEntry(id: hour, hour: hour, wpm: wpm, sameFingerRate: sfRate, highStrainRate: hsRate)
+            }
+            .sorted { $0.hour < $1.hour }
+        }
+    }
+
     /// Per-day ergonomic scores for trend tracking (Issue #29).
     var dailyErgonomicScore: [String: Double] {
         queue.sync {

@@ -354,6 +354,11 @@ final class KeyCountStore {
                     // IKI histogram bucket → SQLite pending
                     let bucket = KeyCountStore.ikiBucket(for: intervalMs)
                     pending.ikiBuckets[today, default: [:]][bucket, default: 0] += 1
+                    // Hourly IKI for fatigue detection (Issue #63)
+                    var hs = pending.hourlySlices[today, default: [:]][hour, default: PendingStore.HourlySlice()]
+                    hs.ikiSum   += intervalMs
+                    hs.ikiCount += 1
+                    pending.hourlySlices[today, default: [:]][hour] = hs
                 }
             } else {
                 // First keystroke in session — anchor (iki = 0)
@@ -413,6 +418,13 @@ final class KeyCountStore {
                     }
                 }
                 lastBigramWasHighStrain = highStrain
+
+                // Hourly ergonomics for fatigue detection (Issue #63)
+                var hse = pending.hourlySlices[today, default: [:]][hour, default: PendingStore.HourlySlice()]
+                hse.ergTotal += 1
+                if prevFinger == curFinger && prevHand == curHand { hse.ergSF += 1 }
+                if highStrain { hse.ergHS += 1 }
+                pending.hourlySlices[today, default: [:]][hour] = hse
 
                 // Per-app bigram ergonomics
                 if let app = appName {

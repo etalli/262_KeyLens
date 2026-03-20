@@ -264,3 +264,16 @@ struct MouseKeyboardBalanceEntry: Identifiable {
     let distancePts: Double
     let keystrokes: Int
 }
+
+// MARK: - Issue #63: Hourly fatigue entry
+
+/// One data point in the Fatigue Curve chart: per-hour WPM and ergonomic rates for today.
+struct HourlyFatigueEntry: Identifiable {
+    let id: Int          // hour 0–23
+    let hour: Int
+    let wpm: Double?             // estimated WPM (nil if no IKI samples this hour)
+    let sameFingerRate: Double?  // same-finger bigram rate (nil if no bigrams this hour)
+    let highStrainRate: Double?  // high-strain bigram rate (nil if no bigrams this hour)
+
+    var hourLabel: String { String(format: "%02d:00", hour) }
+}

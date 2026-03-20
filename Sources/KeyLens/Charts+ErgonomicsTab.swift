@@ -13,6 +13,7 @@ extension ChartsView {
                 chartSection(L10n.shared.layoutEfficiencyTitle, helpText: L10n.shared.helpLayoutEfficiency) { layoutEfficiencySection }
                 chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
+                chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
             }
             .padding(24)
@@ -495,6 +496,121 @@ extension ChartsView {
                         HStack(spacing: 4) {
                             Circle().fill(color).frame(width: 8, height: 8)
                             Text(label).font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Fatigue Curve (Issue #63)
+
+    @ViewBuilder
+    var fatigueCurveChart: some View {
+        if model.fatigueCurve.isEmpty {
+            Text(L10n.shared.fatigueNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                // WPM over time
+                let wpmPoints = model.fatigueCurve.compactMap { e -> (hour: Int, wpm: Double)? in
+                    guard let w = e.wpm else { return nil }
+                    return (e.hour, w)
+                }
+                if !wpmPoints.isEmpty {
+                    let hours = wpmPoints.map(\.hour)
+                    Chart {
+                        ForEach(wpmPoints, id: \.hour) { pt in
+                            LineMark(
+                                x: .value("Hour", pt.hour),
+                                y: .value("WPM", pt.wpm)
+                            )
+                            .foregroundStyle(Color.blue)
+                            .interpolationMethod(.catmullRom)
+                            PointMark(
+                                x: .value("Hour", pt.hour),
+                                y: .value("WPM", pt.wpm)
+                            )
+                            .foregroundStyle(Color.blue)
+                            .symbolSize(30)
+                        }
+                    }
+                    .chartXScale(domain: (hours.min() ?? 0)...(hours.max() ?? 23))
+                    .chartXAxis {
+                        AxisMarks(values: wpmPoints.map(\.hour)) { value in
+                            AxisValueLabel {
+                                if let h = value.as(Int.self) {
+                                    Text(String(format: "%02d", h))
+                                        .font(.footnote)
+                                }
+                            }
+                            AxisGridLine()
+                        }
+                    }
+                    .chartYAxisLabel("WPM", alignment: .trailing)
+                    .frame(height: 140)
+                }
+
+                // Ergonomic rates over time
+                let ergPoints: [(hour: Int, value: Double, series: String)] = model.fatigueCurve.flatMap { e -> [(hour: Int, value: Double, series: String)] in
+                    var pts: [(Int, Double, String)] = []
+                    if let sf = e.sameFingerRate { pts.append((e.hour, sf * 100, "Same-finger")) }
+                    if let hs = e.highStrainRate  { pts.append((e.hour, hs * 100, "High-strain")) }
+                    return pts
+                }
+                if !ergPoints.isEmpty {
+                    let hours = model.fatigueCurve.map(\.hour)
+                    Chart {
+                        ForEach(ergPoints, id: \.series) { pt in
+                            LineMark(
+                                x: .value("Hour", pt.hour),
+                                y: .value("%", pt.value)
+                            )
+                            .foregroundStyle(by: .value("Metric", pt.series))
+                            .interpolationMethod(.catmullRom)
+                            PointMark(
+                                x: .value("Hour", pt.hour),
+                                y: .value("%", pt.value)
+                            )
+                            .foregroundStyle(by: .value("Metric", pt.series))
+                            .symbolSize(30)
+                        }
+                    }
+                    .chartForegroundStyleScale([
+                        "Same-finger": Color.orange,
+                        "High-strain": Color.red
+                    ])
+                    .chartXScale(domain: (hours.min() ?? 0)...(hours.max() ?? 23))
+                    .chartXAxis {
+                        AxisMarks(values: model.fatigueCurve.map(\.hour)) { value in
+                            AxisValueLabel {
+                                if let h = value.as(Int.self) {
+                                    Text(String(format: "%02d", h))
+                                        .font(.footnote)
+                                }
+                            }
+                            AxisGridLine()
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let v = value.as(Double.self) {
+                                    Text(String(format: "%.0f%%", v)).font(.footnote)
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: 120)
+
+                    HStack(spacing: 16) {
+                        ForEach([("Same-finger", Color.orange), ("High-strain", Color.red)], id: \.0) { label, color in
+                            HStack(spacing: 4) {
+                                Circle().fill(color).frame(width: 8, height: 8)
+                                Text(label).font(.footnote).foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }

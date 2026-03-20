@@ -590,6 +590,32 @@ final class L10n {
         ja("負荷スコア: \(score.formatted())", en: "Strain: \(score.formatted())")
     }
 
+    // MARK: - Fatigue Detection (Issue #63)
+
+    var fatigueCurveTitle: String {
+        ja("本日の疲労カーブ", en: "Today's Fatigue Curve")
+    }
+
+    var helpFatigueCurve: String {
+        ja(
+            "本日の時間別タイピング速度 (WPM) と人間工学的指標の推移を表示します。\n\n" +
+            "WPM (青)：その時間帯の推定打鍵速度。下降傾向は疲労を示します。\n" +
+            "同指率 (オレンジ)：同じ指で連続するキーペアの割合。疲労すると増加します。\n" +
+            "高負荷率 (赤)：高負荷バイグラムの割合。疲労すると増加します。\n\n" +
+            "データは30秒ごとに更新されます。初回起動後から蓄積されます。",
+            en: "Shows hourly typing speed (WPM) and ergonomic metrics for today.\n\n" +
+            "WPM (blue): estimated typing speed per hour. A downward trend indicates fatigue.\n" +
+            "Same-finger (orange): fraction of same-finger keypairs. Increases with fatigue.\n" +
+            "High-strain (red): fraction of high-strain bigrams. Increases with fatigue.\n\n" +
+            "Updated every 30 seconds. Accumulates from first launch."
+        )
+    }
+
+    var fatigueNoData: String {
+        ja("本日のデータがまだありません。タイピング開始後に表示されます。",
+           en: "No data for today yet. Appears after you start typing.")
+    }
+
     var helpLearningCurve: String {
         ja(
             "3つの人間工学的指標の日次推移を示します。\n\n同指率（オレンジ）：同じ指で連続して打鍵されるペアの割合。低いほど優れています。\n\n交互打鍵率（緑）：左右の手が交互に打鍵する割合。高いほど優れています。\n\n高負荷率（赤）：1行以上をまたぐ同指ビグラムの割合。低いほど優れています。\n\n傾向が改善方向に推移している場合、打鍵習慣が人間工学的に最適化されています。",

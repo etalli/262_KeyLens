@@ -71,6 +71,8 @@ final class ChartDataModel: ObservableObject {
     @Published var trainingScores:             [BigramScore]                 = []
     // Issue #89: Ranked trigrams for training (Phase 2).
     @Published var trainingTrigramScores:      [TrigramScore]                = []
+    // Issue #63: Hourly fatigue curve for today.
+    @Published var fatigueCurve:               [HourlyFatigueEntry]          = []
     // Issue #88: Training result history
     @Published var trainingHistory:            [TrainingRecord]              = []
     // Issue #84: Full bigram → current mean IKI map for before/after comparison in training history.
@@ -172,6 +174,8 @@ final class ChartDataModel: ObservableObject {
         trainingScores = store.rankedBigramsForTraining(minCount: 5, topK: 10)
         // Issue #89: Trigram training targets (Phase 2).
         trainingTrigramScores = store.rankedTrigramsForTraining(minCount: 5, topK: 8)
+        // Issue #63: Today's hourly fatigue curve.
+        fatigueCurve = store.todayHourlyFatigueCurve()
         // Issue #88: Training history
         trainingHistory = store.trainingHistory(limit: 20)
         // Issue #84: Full IKI map for before/after comparison
