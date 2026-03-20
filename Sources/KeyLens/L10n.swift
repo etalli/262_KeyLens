@@ -653,8 +653,8 @@ final class L10n {
 
     var helpSpeedometer: String {
         ja(
-            "直近5秒間のキー入力からリアルタイムでWPM(1分あたりの単語数)を計算します。2秒間入力がないと速度はゼロに戻ります。赤いマーカーはセッション中の最高速度を記録します。",
-            en: "Computes WPM in real time from keystrokes in the last 5 seconds. Speed drops to zero after 2 seconds of inactivity. The red marker holds the session peak speed."
+            "キーを押すたびにメーターが即時更新されます。直近5秒間のキー入力からWPM(1分あたりの単語数)を計算します。2秒間入力がないと速度はゼロに戻ります。赤いマーカーはセッション中の最高速度を記録します。",
+            en: "The needle responds to every keystroke in real time. WPM is computed from keystrokes in the last 5 seconds. Speed drops to zero after 2 seconds of inactivity. The red marker holds the session peak speed."
         )
     }
 
