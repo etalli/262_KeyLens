@@ -13,7 +13,7 @@ struct SpeedometerView: View {
     @State private var currentWPM: Double = 0
     @State private var peakWPM: Double = 0
 
-    // Timer for idle decay only (drops needle to 0 after inactivity).
+    // Timer drives the inertia decay: needle drifts toward 0 slowly when idle.
     private let idleTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -59,10 +59,19 @@ struct SpeedometerView: View {
         }
     }
 
+    // Decay factor applied per 0.5 s idle tick: 0.82^(1/0.5) ≈ halves in ~3 s.
+    private static let decayFactor: Double = 0.82
+
     private func updateWPM() {
-        let wpm = KeyCountStore.shared.rollingWPM()
-        currentWPM = wpm
-        if wpm > peakWPM { peakWPM = wpm }
+        let measured = KeyCountStore.shared.rollingWPM()
+        if measured >= currentWPM {
+            // Snap up instantly — real gauges respond immediately to acceleration.
+            currentWPM = measured
+        } else {
+            // Decay slowly toward the measured value (inertia / coasting effect).
+            currentWPM = max(measured, currentWPM * Self.decayFactor)
+        }
+        if currentWPM > peakWPM { peakWPM = currentWPM }
     }
 
     // MARK: - Geometry helpers
