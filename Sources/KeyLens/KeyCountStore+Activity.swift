@@ -38,7 +38,7 @@ extension KeyCountStore {
     /// Shortcut efficiency for today: shortcuts / (shortcuts + mouse clicks), or nil if no data.
     func shortcutEfficiencyToday() -> Double? {
         queue.sync {
-            let shortcuts = store.dailyModifiedCount[todayKey] ?? 0
+            let shortcuts = store.shortcuts.dailyModifiedCount[todayKey] ?? 0
             let dayCounts = dailyKeyCountsLocked(for: todayKey)
             let mouseClicks = dayCounts.filter { $0.key.hasPrefix("🖱") }.values.reduce(0, +)
             let total = shortcuts + mouseClicks
@@ -51,8 +51,8 @@ extension KeyCountStore {
     func topModifiedKeys(prefix: String = "", limit: Int = 20) -> [(key: String, count: Int)] {
         queue.sync {
             let filtered = prefix.isEmpty
-                ? store.modifiedCounts
-                : store.modifiedCounts.filter { $0.key.hasPrefix(prefix) }
+                ? store.shortcuts.modifiedCounts
+                : store.shortcuts.modifiedCounts.filter { $0.key.hasPrefix(prefix) }
             return topEntries(filtered, limit: limit)
         }
     }
@@ -64,26 +64,26 @@ extension KeyCountStore {
 
     /// Top-N apps by cumulative keystroke count, sorted descending.
     func topApps(limit: Int = 20) -> [(app: String, count: Int)] {
-        queue.sync { topEntries(store.appCounts, limit: limit) }
+        queue.sync { topEntries(store.appTracker.appCounts, limit: limit) }
     }
 
     /// Top-N devices by cumulative keystroke count, sorted descending.
     func topDevices(limit: Int = 20) -> [(device: String, count: Int)] {
-        queue.sync { topEntries(store.deviceCounts, limit: limit) }
+        queue.sync { topEntries(store.appTracker.deviceCounts, limit: limit) }
     }
 
     /// Per-app ergonomic scores for apps with at least minKeystrokes total keystrokes.
     func appErgonomicScores(minKeystrokes: Int = 100) -> [(app: String, score: Double, keystrokes: Int)] {
         queue.sync {
-            store.appCounts
+            store.appTracker.appCounts
                 .filter { $0.value >= minKeystrokes }
                 .compactMap { (app, keystrokes) -> (app: String, score: Double, keystrokes: Int)? in
-                    let bigrams = store.appTotalBigramCount[app] ?? 0
+                    let bigrams = store.appTracker.appTotalBigramCount[app] ?? 0
                     guard bigrams > 0 else { return nil }
                     let score = ergonomicScore(
-                        sfCount:     store.appSameFingerCount[app]       ?? 0,
-                        hsCount:     store.appHighStrainBigramCount[app] ?? 0,
-                        altCount:    store.appHandAlternationCount[app]  ?? 0,
+                        sfCount:     store.appTracker.appSameFingerCount[app]       ?? 0,
+                        hsCount:     store.appTracker.appHighStrainBigramCount[app] ?? 0,
+                        altCount:    store.appTracker.appHandAlternationCount[app]  ?? 0,
                         bigramCount: bigrams
                     )
                     return (app: app, score: score, keystrokes: keystrokes)
@@ -95,15 +95,15 @@ extension KeyCountStore {
     /// Per-device ergonomic scores for devices with at least minKeystrokes total keystrokes.
     func deviceErgonomicScores(minKeystrokes: Int = 100) -> [(device: String, score: Double, keystrokes: Int)] {
         queue.sync {
-            store.deviceCounts
+            store.appTracker.deviceCounts
                 .filter { $0.value >= minKeystrokes }
                 .compactMap { (device, keystrokes) -> (device: String, score: Double, keystrokes: Int)? in
-                    let bigrams = store.deviceTotalBigramCount[device] ?? 0
+                    let bigrams = store.appTracker.deviceTotalBigramCount[device] ?? 0
                     guard bigrams > 0 else { return nil }
                     let score = ergonomicScore(
-                        sfCount:     store.deviceSameFingerCount[device]       ?? 0,
-                        hsCount:     store.deviceHighStrainBigramCount[device] ?? 0,
-                        altCount:    store.deviceHandAlternationCount[device]  ?? 0,
+                        sfCount:     store.appTracker.deviceSameFingerCount[device]       ?? 0,
+                        hsCount:     store.appTracker.deviceHighStrainBigramCount[device] ?? 0,
+                        altCount:    store.appTracker.deviceHandAlternationCount[device]  ?? 0,
                         bigramCount: bigrams
                     )
                     return (device: device, score: score, keystrokes: keystrokes)
@@ -146,7 +146,7 @@ extension KeyCountStore {
 
     /// Full cumulative bigram frequency table. Used by ErgonomicSnapshot / LayoutComparison.
     var allBigramCounts: [String: Int] {
-        queue.sync { store.bigramCounts }
+        queue.sync { store.ergonomics.bigramCounts }
     }
 
     /// Full cumulative per-key keystroke counts.
@@ -156,7 +156,7 @@ extension KeyCountStore {
 
     /// Top-N bigrams by cumulative count.
     func topBigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
-        queue.sync { topEntries(store.bigramCounts, limit: limit) }
+        queue.sync { topEntries(store.ergonomics.bigramCounts, limit: limit) }
     }
 
     /// Today's top bigrams.
@@ -177,7 +177,7 @@ extension KeyCountStore {
 
     /// Top-N trigrams by cumulative frequency.
     func topTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
-        queue.sync { topEntries(store.trigramCounts, limit: limit) }
+        queue.sync { topEntries(store.ergonomics.trigramCounts, limit: limit) }
     }
 
     /// Today's top trigrams.
