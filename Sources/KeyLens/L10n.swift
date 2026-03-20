@@ -602,12 +602,16 @@ final class L10n {
             "WPM (青)：その時間帯の推定打鍵速度。下降傾向は疲労を示します。\n" +
             "同指率 (オレンジ)：同じ指で連続するキーペアの割合。疲労すると増加します。\n" +
             "高負荷率 (赤)：高負荷バイグラムの割合。疲労すると増加します。\n\n" +
-            "データは30秒ごとに更新されます。初回起動後から蓄積されます。",
+            "【表示までの目安】このビルド以降のデータのみ蓄積されます。" +
+            "数秒間タイピングすると最初のデータ点が表示されます。" +
+            "チャートは10秒ごとに自動更新されます。",
             en: "Shows hourly typing speed (WPM) and ergonomic metrics for today.\n\n" +
             "WPM (blue): estimated typing speed per hour. A downward trend indicates fatigue.\n" +
             "Same-finger (orange): fraction of same-finger keypairs. Increases with fatigue.\n" +
             "High-strain (red): fraction of high-strain bigrams. Increases with fatigue.\n\n" +
-            "Updated every 30 seconds. Accumulates from first launch."
+            "Note: only keystrokes typed after this build are recorded. " +
+            "A few seconds of typing is enough to show the first data point. " +
+            "The chart auto-refreshes every 10 seconds."
         )
     }
 
