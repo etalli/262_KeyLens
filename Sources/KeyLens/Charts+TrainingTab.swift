@@ -6,10 +6,29 @@ extension ChartsView {
 
     // MARK: - Training Tab
 
-    /// Session built from the model's ranked scores + the user's chosen length config.
+    /// Session built from ranked bigrams + trigrams for the user's chosen length config.
+    ///
+    /// Bigram drills come first (high-priority → low-priority).
+    /// Trigram drills are appended at the end: one repeated drill per top trigram.
+    /// Trigram targets are not stored in training history (bigram targets only).
     private var currentTrainingSession: TrainingSession? {
         guard !model.trainingScores.isEmpty else { return nil }
-        return SessionBuilder.build(from: model.trainingScores, config: sessionLength.config)
+        let base = SessionBuilder.build(from: model.trainingScores, config: sessionLength.config)
+        let trigramDrills = trigramDrillsForSession()
+        guard !trigramDrills.isEmpty else { return base }
+        return TrainingSession(targets: base.targets,
+                               drills:  base.drills + trigramDrills,
+                               config:  base.config)
+    }
+
+    /// Generates repeated drills from the top trigrams (up to 3, 5 reps each).
+    private func trigramDrillsForSession() -> [DrillSequence] {
+        let reps = sessionLength.config.highReps
+        return model.trainingTrigramScores.prefix(3).compactMap { score -> DrillSequence? in
+            guard let t = Trigram.parse(score.trigram) else { return nil }
+            let text = Array(repeating: t.display, count: reps).joined(separator: " ")
+            return DrillSequence(targets: [t.display], text: text, kind: .repeated)
+        }
     }
 
     var trainingTab: some View {
