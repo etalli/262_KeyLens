@@ -1238,10 +1238,17 @@ final class L10n {
            en: "Not enough data — bigrams need at least 5 observations each.")
     }
 
-    var trainingColumnBigram: String  { ja("バイグラム", en: "Bigram") }
-    var trainingColumnIKI: String     { ja("平均 IKI (ms)", en: "Avg IKI (ms)") }
-    var trainingColumnCount: String   { ja("出現回数", en: "Count") }
-    var trainingColumnTier: String    { ja("優先度", en: "Priority") }
+    var trainingColumnBigram: String   { ja("バイグラム", en: "Bigram") }
+    var trainingColumnIKI: String      { ja("平均 IKI (ms)", en: "Avg IKI (ms)") }
+    var trainingColumnCount: String    { ja("出現回数", en: "Count") }
+    var trainingColumnTier: String     { ja("優先度", en: "Priority") }
+    /// Column header for the training history annotation in the targets table.
+    var trainingColumnHistory: String  { ja("練習前→Δ", en: "Prior→Δ") }
+    /// Tooltip for the history annotation cell. Arguments: beforeIKI, currentIKI, date string.
+    var trainingHistoryAnnotationHelp: String {
+        ja("練習前: %.0f ms → 現在: %.0f ms (最終練習: %@)",
+           en: "Before: %.0f ms → Now: %.0f ms (last trained: %@)")
+    }
 
     var trainingTierHigh: String  { ja("高", en: "High") }
     var trainingTierMid: String   { ja("中", en: "Mid") }

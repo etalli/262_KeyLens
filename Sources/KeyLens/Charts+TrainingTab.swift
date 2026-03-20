@@ -37,6 +37,20 @@ extension ChartsView {
     @ViewBuilder
     private var trainingTargetsSection: some View {
         if let session = currentTrainingSession, !session.targets.isEmpty {
+            // Build a lookup: bigramKey → (beforeIKI, completedAt) from the most recent session
+            // that included each bigram. Used to annotate targets with training history.
+            let historyLookup: [String: (beforeIKI: Double, date: Date)] = {
+                var result: [String: (Double, Date)] = [:]
+                for record in model.trainingHistory {
+                    for key in record.targets {
+                        if result[key] == nil, let iki = record.beforeIKI[key] {
+                            result[key] = (iki, record.completedAt)
+                        }
+                    }
+                }
+                return result
+            }()
+
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingColumnBigram)
@@ -51,6 +65,9 @@ extension ChartsView {
                     Text(L10n.shared.trainingColumnTier)
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
                         .frame(width: 70, alignment: .trailing)
+                    Text(L10n.shared.trainingColumnHistory)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 110, alignment: .trailing)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -58,7 +75,8 @@ extension ChartsView {
                 Divider()
 
                 ForEach(Array(session.targets.enumerated()), id: \.offset) { index, score in
-                    let tier = tierLabel(rank: index, config: session.config)
+                    let tier    = tierLabel(rank: index, config: session.config)
+                    let history = historyLookup[score.bigram]
                     HStack(spacing: 0) {
                         Text(displayBigram(score.bigram))
                             .font(.system(.body, design: .monospaced))
@@ -78,6 +96,24 @@ extension ChartsView {
                             .foregroundStyle(tier.color)
                             .clipShape(Capsule())
                             .frame(width: 70, alignment: .trailing)
+                        // Training history annotation: "was Xms  Δ±Y" or "—" if never trained
+                        if let h = history {
+                            let delta = score.meanIKI - h.beforeIKI
+                            (Text(String(format: "%.0f", h.beforeIKI))
+                                .foregroundColor(.secondary)
+                             + Text("→")
+                                .foregroundColor(.secondary)
+                             + Text(String(format: "%+.0f", delta))
+                                .foregroundColor(delta < -5 ? .green : delta > 5 ? .red : .secondary))
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(width: 110, alignment: .trailing)
+                            .help(String(format: L10n.shared.trainingHistoryAnnotationHelp,
+                                         h.beforeIKI, score.meanIKI, formatDate(h.date)))
+                        } else {
+                            Text("—")
+                                .font(.caption).foregroundStyle(.tertiary)
+                                .frame(width: 110, alignment: .trailing)
+                        }
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
