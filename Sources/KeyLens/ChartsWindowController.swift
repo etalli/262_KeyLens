@@ -71,6 +71,8 @@ final class ChartDataModel: ObservableObject {
     @Published var trainingScores:             [BigramScore]                 = []
     // Issue #88: Training result history
     @Published var trainingHistory:            [TrainingRecord]              = []
+    // Issue #84: Full bigram → current mean IKI map for before/after comparison in training history.
+    @Published var bigramIKIMap:               [String: Double]              = [:]
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -168,6 +170,8 @@ final class ChartDataModel: ObservableObject {
         trainingScores = store.rankedBigramsForTraining(minCount: 5, topK: 10)
         // Issue #88: Training history
         trainingHistory = store.trainingHistory(limit: 20)
+        // Issue #84: Full IKI map for before/after comparison
+        bigramIKIMap = store.allBigramIKI()
     }
 
     /// Reloads key transition data for the given target key (Issue #98).

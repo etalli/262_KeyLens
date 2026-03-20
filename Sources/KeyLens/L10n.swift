@@ -1263,6 +1263,8 @@ final class L10n {
     var trainingHistoryDate: String    { ja("日時", en: "Date") }
     var trainingHistoryTargets: String { ja("対象", en: "Targets") }
     var trainingHistoryLength: String  { ja("長さ", en: "Length") }
+    var trainingHistoryBefore: String  { ja("練習前 IKI", en: "Before IKI") }
+    var trainingHistoryDelta: String   { ja("改善", en: "Δ IKI") }
     var trainingHistoryClear: String   { ja("履歴をリセット", en: "Reset History") }
     var trainingHistoryClearConfirm: String {
         ja("すべてのトレーニング履歴を削除しますか?この操作は取り消せません。",

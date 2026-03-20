@@ -253,6 +253,40 @@ extension KeyCountStore {
         }
     }
 
+    /// Returns a dictionary of all bigram keys to their current mean IKI in milliseconds (Issue #84).
+    ///
+    /// Used to compute the "after" IKI when displaying before/after training history.
+    /// Merges persisted SQLite data with any pending in-memory IKI deltas.
+    ///
+    /// - Returns: `[bigramKey: meanIKI]` for every bigram with at least one observation.
+    func allBigramIKI() -> [String: Double] {
+        queue.sync {
+            var merged: [String: (sum: Double, count: Int)] = [:]
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let key: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    merged[key] = (sum: sum, count: cnt)
+                }
+            }
+
+            for (bigram, p) in pending.bigramIKI {
+                let e = merged[bigram] ?? (sum: 0, count: 0)
+                merged[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+
+            return merged.compactMapValues { data -> Double? in
+                guard data.count > 0 else { return nil }
+                return data.sum / Double(data.count)
+            }
+        }
+    }
+
     /// Average IKI broken down by finger (Issue #104).
     ///
     /// Aggregates `bigram_iki` data by mapping the destination key of each bigram

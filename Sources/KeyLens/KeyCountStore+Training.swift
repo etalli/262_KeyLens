@@ -20,6 +20,7 @@ extension KeyCountStore {
     ///   - duration:      Elapsed seconds from first keystroke to session end.
     ///   - totalTyped:    Total keystrokes typed.
     ///   - totalCorrect:  Correct keystrokes typed.
+    ///   - beforeIKI:     Mean IKI (ms) per target bigram at session creation time (Issue #84).
     ///   - completion:    Called on main thread after the write completes.
     func saveTrainingResult(
         targets: [String],
@@ -29,6 +30,7 @@ extension KeyCountStore {
         duration: Double,
         totalTyped: Int,
         totalCorrect: Int,
+        beforeIKI: [String: Double] = [:],
         completion: @escaping () -> Void = {}
     ) {
         queue.async { [weak self] in
@@ -38,17 +40,21 @@ extension KeyCountStore {
             }
             let targetsJSON = (try? JSONSerialization.data(withJSONObject: targets))
                 .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+            let beforeIKIJSON = (try? JSONSerialization.data(withJSONObject: beforeIKI))
+                .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
             let now = Date().timeIntervalSince1970
             try? db.write { db in
                 try db.execute(
                     sql: """
                         INSERT INTO training_results
                             (completed_at, targets, session_length,
-                             accuracy, wpm, duration_seconds, total_typed, total_correct)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                             accuracy, wpm, duration_seconds, total_typed, total_correct,
+                             before_iki_json)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                     arguments: [now, targetsJSON, sessionLength,
-                                accuracy, wpm, duration, totalTyped, totalCorrect]
+                                accuracy, wpm, duration, totalTyped, totalCorrect,
+                                beforeIKIJSON]
                 )
             }
             DispatchQueue.main.async { completion() }
@@ -78,7 +84,8 @@ extension KeyCountStore {
             let rows = (try? db.read { db in
                 try Row.fetchAll(db, sql: """
                     SELECT id, completed_at, targets, session_length,
-                           accuracy, wpm, duration_seconds, total_typed, total_correct
+                           accuracy, wpm, duration_seconds, total_typed, total_correct,
+                           before_iki_json
                     FROM training_results
                     ORDER BY completed_at DESC
                     LIMIT ?
@@ -86,18 +93,21 @@ extension KeyCountStore {
             }) ?? []
 
             return rows.compactMap { row -> TrainingRecord? in
-                let id: Int64           = row["id"]
-                let completedAt: Double = row["completed_at"]
-                let targetsJSON: String = row["targets"]
+                let id: Int64             = row["id"]
+                let completedAt: Double   = row["completed_at"]
+                let targetsJSON: String   = row["targets"]
                 let sessionLength: String = row["session_length"]
-                let accuracy: Int       = row["accuracy"]
-                let wpm: Int            = row["wpm"]
-                let duration: Double    = row["duration_seconds"]
-                let totalTyped: Int     = row["total_typed"]
-                let totalCorrect: Int   = row["total_correct"]
+                let accuracy: Int         = row["accuracy"]
+                let wpm: Int              = row["wpm"]
+                let duration: Double      = row["duration_seconds"]
+                let totalTyped: Int       = row["total_typed"]
+                let totalCorrect: Int     = row["total_correct"]
+                let beforeIKIJSON: String = row["before_iki_json"] ?? "{}"
 
                 let targets = (try? JSONSerialization.jsonObject(with: Data(targetsJSON.utf8)))
                     .flatMap { $0 as? [String] } ?? []
+                let beforeIKI = (try? JSONSerialization.jsonObject(with: Data(beforeIKIJSON.utf8)))
+                    .flatMap { $0 as? [String: Double] } ?? [:]
 
                 return TrainingRecord(
                     id: id,
@@ -108,7 +118,8 @@ extension KeyCountStore {
                     wpm: wpm,
                     durationSeconds: duration,
                     totalTyped: totalTyped,
-                    totalCorrect: totalCorrect
+                    totalCorrect: totalCorrect,
+                    beforeIKI: beforeIKI
                 )
             }
         }

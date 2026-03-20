@@ -109,6 +109,7 @@ extension ChartsView {
                 InteractivePracticeView(
                     session: session,
                     sessionLengthName: sessionLength.rawValue,
+                    beforeIKI: Dictionary(uniqueKeysWithValues: session.targets.map { ($0.bigram, $0.meanIKI) }),
                     onNewSession: {
                         model.reload()
                         trainingResetToken = UUID()
@@ -121,7 +122,8 @@ extension ChartsView {
                             wpm: result.wpm,
                             duration: result.duration,
                             totalTyped: result.totalTyped,
-                            totalCorrect: result.totalCorrect
+                            totalCorrect: result.totalCorrect,
+                            beforeIKI: result.beforeIKI
                         ) {
                             model.reload()
                         }
@@ -149,23 +151,28 @@ extension ChartsView {
                 HStack(spacing: 0) {
                     Text(L10n.shared.trainingHistoryDate)
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 140, alignment: .leading)
+                        .frame(width: 130, alignment: .leading)
                     Text(L10n.shared.trainingHistoryTargets)
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 120, alignment: .leading)
+                        .frame(width: 110, alignment: .leading)
                     Text(L10n.shared.trainingHistoryLength)
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 70, alignment: .leading)
+                        .frame(width: 60, alignment: .leading)
                     Text(L10n.shared.trainingColumnIKI.components(separatedBy: " ").first ?? "Acc")
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 60, alignment: .trailing)
+                        .frame(width: 55, alignment: .trailing)
                         .help("Accuracy %")
                     Text("WPM")
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 55, alignment: .trailing)
-                    Text("Time")
+                        .frame(width: 50, alignment: .trailing)
+                    Text(L10n.shared.trainingHistoryBefore)
                         .font(.caption).foregroundStyle(.primary.opacity(0.6))
-                        .frame(width: 55, alignment: .trailing)
+                        .frame(width: 70, alignment: .trailing)
+                        .help(L10n.shared.trainingHistoryBefore)
+                    Text(L10n.shared.trainingHistoryDelta)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 65, alignment: .trailing)
+                        .help(L10n.shared.trainingHistoryDelta)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -173,28 +180,49 @@ extension ChartsView {
                 Divider()
 
                 ForEach(Array(model.trainingHistory.enumerated()), id: \.element.id) { index, record in
+                    let avgBefore = avgIKI(record.beforeIKI, targets: record.targets)
+                    let avgNow    = avgIKI(model.bigramIKIMap, targets: record.targets)
                     HStack(spacing: 0) {
                         Text(formatDate(record.completedAt))
                             .font(.system(.caption, design: .monospaced))
-                            .frame(width: 140, alignment: .leading)
+                            .frame(width: 130, alignment: .leading)
                         Text(record.targetDisplayStrings.joined(separator: " "))
                             .font(.system(.caption, design: .monospaced))
-                            .frame(width: 120, alignment: .leading)
+                            .frame(width: 110, alignment: .leading)
                         Text(record.sessionLength)
                             .font(.caption)
                             .foregroundStyle(.primary.opacity(0.75))
-                            .frame(width: 70, alignment: .leading)
+                            .frame(width: 60, alignment: .leading)
                         Text("\(record.accuracy)%")
                             .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(record.accuracy >= 90 ? .green : record.accuracy >= 70 ? .orange : .red)
-                            .frame(width: 60, alignment: .trailing)
+                            .frame(width: 55, alignment: .trailing)
                         Text("\(record.wpm)")
                             .font(.system(.caption, design: .monospaced))
-                            .frame(width: 55, alignment: .trailing)
-                        Text(String(format: "%.0fs", record.durationSeconds))
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 55, alignment: .trailing)
+                            .frame(width: 50, alignment: .trailing)
+                        // Before IKI (ms avg at session time)
+                        if let before = avgBefore {
+                            Text(String(format: "%.0f ms", before))
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 70, alignment: .trailing)
+                        } else {
+                            Text("—")
+                                .font(.caption).foregroundStyle(.tertiary)
+                                .frame(width: 70, alignment: .trailing)
+                        }
+                        // Δ IKI: positive value = slower now (regression), negative = faster (improvement)
+                        if let before = avgBefore, let now = avgNow {
+                            let delta = now - before
+                            Text(String(format: "%+.0f ms", delta))
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(delta < -5 ? .green : delta > 5 ? .red : .secondary)
+                                .frame(width: 65, alignment: .trailing)
+                        } else {
+                            Text("—")
+                                .font(.caption).foregroundStyle(.tertiary)
+                                .frame(width: 65, alignment: .trailing)
+                        }
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
@@ -228,6 +256,14 @@ extension ChartsView {
                 }
             }
         }
+    }
+
+    /// Returns the average IKI (ms) across the given target bigrams using the provided IKI map.
+    /// Returns nil if none of the targets are present in the map.
+    private func avgIKI(_ map: [String: Double], targets: [String]) -> Double? {
+        let values = targets.compactMap { map[$0] }
+        guard !values.isEmpty else { return nil }
+        return values.reduce(0, +) / Double(values.count)
     }
 
     private func formatDate(_ date: Date) -> String {
@@ -278,11 +314,15 @@ struct TrainingCompletionResult {
     let duration: Double
     let totalTyped: Int
     let totalCorrect: Int
+    /// Mean IKI (ms) per target bigram at session creation time (Issue #84).
+    let beforeIKI: [String: Double]
 }
 
 private struct InteractivePracticeView: View {
     let session: TrainingSession
     let sessionLengthName: String
+    /// Pre-training IKI for each target bigram, captured at session creation (Issue #84).
+    let beforeIKI: [String: Double]
     let onNewSession: () -> Void
     let onSessionComplete: (TrainingCompletionResult) -> Void
 
@@ -461,7 +501,8 @@ private struct InteractivePracticeView: View {
                 wpm: wpm,
                 duration: duration,
                 totalTyped: totalTyped,
-                totalCorrect: totalCorrect
+                totalCorrect: totalCorrect,
+                beforeIKI: beforeIKI
             ))
         }
     }

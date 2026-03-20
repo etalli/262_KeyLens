@@ -133,6 +133,12 @@ extension KeyCountStore {
                 try db.create(index: "training_results_date_idx",
                               on: "training_results", columns: ["completed_at"], ifNotExists: true)
             }
+            // Issue #84: store pre-training IKI for before/after comparison
+            migrator.registerMigration("v4") { db in
+                try db.alter(table: "training_results") { t in
+                    t.add(column: "before_iki_json", .text).notNull().defaults(to: "{}")
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db

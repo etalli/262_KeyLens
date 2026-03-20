@@ -23,6 +23,9 @@ public struct TrainingRecord: Identifiable, Equatable {
     public let totalTyped: Int
     /// Correctly typed keystrokes.
     public let totalCorrect: Int
+    /// Mean IKI (ms) for each target bigram at the time of training (Issue #84).
+    /// Key: raw bigram key (e.g. "t→h"). Empty for records created before this field was added.
+    public let beforeIKI: [String: Double]
 
     public init(
         id: Int64,
@@ -33,7 +36,8 @@ public struct TrainingRecord: Identifiable, Equatable {
         wpm: Int,
         durationSeconds: Double,
         totalTyped: Int,
-        totalCorrect: Int
+        totalCorrect: Int,
+        beforeIKI: [String: Double] = [:]
     ) {
         self.id              = id
         self.completedAt     = completedAt
@@ -44,6 +48,7 @@ public struct TrainingRecord: Identifiable, Equatable {
         self.durationSeconds = durationSeconds
         self.totalTyped      = totalTyped
         self.totalCorrect    = totalCorrect
+        self.beforeIKI       = beforeIKI
     }
 
     /// Bigram keys converted to display strings, e.g. "t→h" → "th".
