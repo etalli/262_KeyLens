@@ -46,33 +46,24 @@ struct SpeedometerView: View {
                 .foregroundStyle(.secondary)
                 .opacity(peakWPM > 0 ? 1 : 0)
         }
-        // Update immediately on every keystroke for instant needle response.
+        // On every keystroke: snap needle up to the current measured WPM.
         .onReceive(NotificationCenter.default.publisher(for: .keystrokeInput)) { _ in
-            updateWPM()
+            let measured = KeyCountStore.shared.rollingWPM()
+            if measured > currentWPM { currentWPM = measured }
+            if currentWPM > peakWPM { peakWPM = currentWPM }
         }
-        // Also poll at 0.5s to handle idle decay (drop to 0 after inactivity).
+        // On idle timer: always apply decay — the IKI buffer is stale when idle,
+        // so we ignore rollingWPM() here and just let inertia bring the needle down.
         .onReceive(idleTimer) { _ in
-            updateWPM()
+            currentWPM = max(0, currentWPM * Self.decayFactor)
         }
         .onAppear {
-            updateWPM()
+            currentWPM = KeyCountStore.shared.rollingWPM()
         }
     }
 
-    // Decay factor applied per 0.5 s idle tick: 0.82^(1/0.5) ≈ halves in ~3 s.
+    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
     private static let decayFactor: Double = 0.82
-
-    private func updateWPM() {
-        let measured = KeyCountStore.shared.rollingWPM()
-        if measured >= currentWPM {
-            // Snap up instantly — real gauges respond immediately to acceleration.
-            currentWPM = measured
-        } else {
-            // Decay slowly toward the measured value (inertia / coasting effect).
-            currentWPM = max(measured, currentWPM * Self.decayFactor)
-        }
-        if currentWPM > peakWPM { peakWPM = currentWPM }
-    }
 
     // MARK: - Geometry helpers
 
