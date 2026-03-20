@@ -12,8 +12,12 @@ struct SpeedometerView: View {
 
     @State private var currentWPM: Double = 0
     @State private var peakWPM: Double = 0
+    @State private var lastKeystrokeDate: Date = .distantPast
 
-    // Timer drives the inertia decay: needle drifts toward 0 slowly when idle.
+    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
+    private static let decayFactor: Double = 0.82
+
+    // Timer drives inertia decay when idle.
     private let idleTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -46,24 +50,26 @@ struct SpeedometerView: View {
                 .foregroundStyle(.secondary)
                 .opacity(peakWPM > 0 ? 1 : 0)
         }
-        // On every keystroke: snap needle up to the current measured WPM.
+        // On every keystroke: track time and follow measured WPM exactly.
         .onReceive(NotificationCenter.default.publisher(for: .keystrokeInput)) { _ in
-            let measured = KeyCountStore.shared.rollingWPM()
-            if measured > currentWPM { currentWPM = measured }
+            lastKeystrokeDate = Date()
+            currentWPM = KeyCountStore.shared.rollingWPM()
             if currentWPM > peakWPM { peakWPM = currentWPM }
         }
-        // On idle timer: always apply decay — the IKI buffer is stale when idle,
-        // so we ignore rollingWPM() here and just let inertia bring the needle down.
+        // On timer: if typing is active (< 1s since last key), track measured WPM.
+        // If idle, apply inertia decay so needle coasts slowly to 0.
         .onReceive(idleTimer) { _ in
-            currentWPM = max(0, currentWPM * Self.decayFactor)
+            let idle = Date().timeIntervalSince(lastKeystrokeDate) > 1.0
+            if idle {
+                currentWPM = max(0, currentWPM * Self.decayFactor)
+            } else {
+                currentWPM = KeyCountStore.shared.rollingWPM()
+            }
         }
         .onAppear {
             currentWPM = KeyCountStore.shared.rollingWPM()
         }
     }
-
-    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
-    private static let decayFactor: Double = 0.82
 
     // MARK: - Geometry helpers
 
