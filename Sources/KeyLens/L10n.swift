@@ -966,7 +966,7 @@ final class L10n {
     }
 
     var intelligenceSection: String {
-        ja("インテリジェンス", en: "Intelligence")
+        ja("タイピング診断", en: "Typing Profile")
     }
 
     var helpIntelligence: String {
