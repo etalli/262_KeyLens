@@ -257,7 +257,8 @@ final class ChartDataModel: ObservableObject {
 final class ChartsWindowController: NSWindowController {
     static let shared = ChartsWindowController()
     private let model = ChartDataModel()
-    private var liveTimer: Timer?
+    private var liveTimer:    Timer?
+    private var fatigueTimer: Timer?
 
     private init() {
         let hostVC = NSHostingController(rootView: ChartsView(model: model))
@@ -283,6 +284,10 @@ final class ChartsWindowController: NSWindowController {
         guard liveTimer == nil else { return }
         liveTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.model.refreshLiveData()
+        }
+        // Refresh fatigue curve every 10s so it updates without reopening the window.
+        fatigueTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            self?.model.fatigueCurve = KeyCountStore.shared.todayHourlyFatigueCurve()
         }
     }
 }
