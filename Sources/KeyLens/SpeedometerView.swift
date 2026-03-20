@@ -13,7 +13,8 @@ struct SpeedometerView: View {
     @State private var currentWPM: Double = 0
     @State private var peakWPM: Double = 0
 
-    private let refreshTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    // Timer for idle decay only (drops needle to 0 after inactivity).
+    private let idleTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 6) {
@@ -45,14 +46,23 @@ struct SpeedometerView: View {
                 .foregroundStyle(.secondary)
                 .opacity(peakWPM > 0 ? 1 : 0)
         }
-        .onReceive(refreshTimer) { _ in
-            let wpm = KeyCountStore.shared.rollingWPM()
-            currentWPM = wpm
-            if wpm > peakWPM { peakWPM = wpm }
+        // Update immediately on every keystroke for instant needle response.
+        .onReceive(NotificationCenter.default.publisher(for: .keystrokeInput)) { _ in
+            updateWPM()
+        }
+        // Also poll at 0.5s to handle idle decay (drop to 0 after inactivity).
+        .onReceive(idleTimer) { _ in
+            updateWPM()
         }
         .onAppear {
-            currentWPM = KeyCountStore.shared.rollingWPM()
+            updateWPM()
         }
+    }
+
+    private func updateWPM() {
+        let wpm = KeyCountStore.shared.rollingWPM()
+        currentWPM = wpm
+        if wpm > peakWPM { peakWPM = wpm }
     }
 
     // MARK: - Geometry helpers
