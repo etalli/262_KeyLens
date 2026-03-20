@@ -4,6 +4,55 @@ import GRDB
 import KeyLensCore
 import UserNotifications
 
+// MARK: - Data model sub-structs
+
+/// Inter-keystroke interval and WPM tracking state.
+struct ActivityData {
+    var lastInputTime: Date?
+    var avgIntervalMs: Double = 0          // Welford moving average (ms)
+    var avgIntervalCount: Int = 0          // Welford sample count
+    var dailyMinIntervalMs: [String: Double] = [:]  // "yyyy-MM-dd" -> daily min IKI (ms, ≤1000ms)
+    var dailyAvgIntervalMs: [String: Double] = [:]  // Daily Welford average interval (Issue #59 Phase 2)
+    var dailyAvgIntervalCount: [String: Int] = [:]
+}
+
+/// Same-finger, alternation, high-strain, bigram/trigram ergonomic data.
+struct ErgonomicsData {
+    var sameFingerCount: Int = 0
+    var totalBigramCount: Int = 0
+    var dailySameFingerCount: [String: Int] = [:]
+    var dailyTotalBigramCount: [String: Int] = [:]
+    var handAlternationCount: Int = 0
+    var dailyHandAlternationCount: [String: Int] = [:]
+    var bigramCounts: [String: Int] = [:]   // all-time bigram frequency (small enough to stay in JSON)
+    var trigramCounts: [String: Int] = [:]  // all-time trigram frequency
+    var alternationRewardScore: Double = 0  // Issue #25
+    var highStrainBigramCount: Int = 0      // Issue #28
+    var dailyHighStrainBigramCount: [String: Int] = [:]
+    var highStrainTrigramCount: Int = 0
+    var dailyHighStrainTrigramCount: [String: Int] = [:]
+}
+
+/// Per-app and per-device keystroke and ergonomic counters.
+struct AppTrackerData {
+    var appCounts: [String: Int] = [:]
+    var deviceCounts: [String: Int] = [:]
+    var appSameFingerCount: [String: Int] = [:]
+    var appTotalBigramCount: [String: Int] = [:]
+    var appHandAlternationCount: [String: Int] = [:]
+    var appHighStrainBigramCount: [String: Int] = [:]
+    var deviceSameFingerCount: [String: Int] = [:]
+    var deviceTotalBigramCount: [String: Int] = [:]
+    var deviceHandAlternationCount: [String: Int] = [:]
+    var deviceHighStrainBigramCount: [String: Int] = [:]
+}
+
+/// Modifier+key shortcut tracking (Issue #66).
+struct ShortcutData {
+    var modifiedCounts: [String: Int] = [:]     // "⌘c", "⇧a" modifier+key combos
+    var dailyModifiedCount: [String: Int] = [:]
+}
+
 // MARK: - Data model
 
 /// Persisted scalars and small fixed-size maps. Large per-day dictionaries
@@ -11,47 +60,13 @@ import UserNotifications
 /// 永続化するスカラー値と小規模マップ。大きな日次ディクショナリは keylens.db に移行済み。
 struct CountData: Codable {
     var startedAt: Date
-    var counts: [String: Int]                      // all-time per-key cumulative count
-    var lastInputTime: Date?
-    var avgIntervalMs: Double                      // Welford moving average (ms)
-    var avgIntervalCount: Int                      // Welford sample count
-    var modifiedCounts: [String: Int]              // "⌘c", "⇧a" modifier+key combos
-    var dailyMinIntervalMs: [String: Double]       // "yyyy-MM-dd" -> daily min IKI (ms, ≤1000ms)
-    // Daily Welford average interval (Issue #59 Phase 2)
-    var dailyAvgIntervalMs:    [String: Double]
-    var dailyAvgIntervalCount: [String: Int]
-    // Same-finger bigram tracking (Issue #16)
-    var sameFingerCount: Int
-    var totalBigramCount: Int
-    var dailySameFingerCount:  [String: Int]
-    var dailyTotalBigramCount: [String: Int]
-    // Hand alternation tracking (Issue #17)
-    var handAlternationCount: Int
-    var dailyHandAlternationCount: [String: Int]
-    // All-time bigram / trigram frequency (small enough to stay in JSON)
-    var bigramCounts:  [String: Int]
-    var trigramCounts: [String: Int]
-    // Alternation reward (Issue #25)
-    var alternationRewardScore: Double
-    // High-strain sequence tracking (Issue #28)
-    var highStrainBigramCount: Int
-    var dailyHighStrainBigramCount:  [String: Int]
-    var highStrainTrigramCount: Int
-    var dailyHighStrainTrigramCount: [String: Int]
-    // Per-app / per-device cumulative totals and ergonomic counters
-    var appCounts:    [String: Int]
-    var deviceCounts: [String: Int]
-    var appSameFingerCount:      [String: Int]
-    var appTotalBigramCount:     [String: Int]
-    var appHandAlternationCount: [String: Int]
-    var appHighStrainBigramCount:[String: Int]
-    var deviceSameFingerCount:      [String: Int]
-    var deviceTotalBigramCount:     [String: Int]
-    var deviceHandAlternationCount: [String: Int]
-    var deviceHighStrainBigramCount:[String: Int]
-    // Daily shortcut counts (Issue #66)
-    var dailyModifiedCount: [String: Int]
+    var counts: [String: Int]           // all-time per-key cumulative count
+    var activity: ActivityData
+    var ergonomics: ErgonomicsData
+    var appTracker: AppTrackerData
+    var shortcuts: ShortcutData
 
+    // CodingKeys stay flat for backward-compatible JSON (same keys as before).
     enum CodingKeys: String, CodingKey {
         case startedAt, counts
         case lastInputTime, avgIntervalMs, avgIntervalCount
@@ -73,77 +88,108 @@ struct CountData: Codable {
     }
 
     init(startedAt: Date, counts: [String: Int]) {
-        self.startedAt = startedAt
-        self.counts    = counts
-        self.lastInputTime        = nil
-        self.avgIntervalMs        = 0
-        self.avgIntervalCount     = 0
-        self.modifiedCounts       = [:]
-        self.dailyMinIntervalMs   = [:]
-        self.dailyAvgIntervalMs   = [:]
-        self.dailyAvgIntervalCount = [:]
-        self.sameFingerCount      = 0
-        self.totalBigramCount     = 0
-        self.dailySameFingerCount  = [:]
-        self.dailyTotalBigramCount = [:]
-        self.handAlternationCount  = 0
-        self.dailyHandAlternationCount = [:]
-        self.bigramCounts  = [:]
-        self.trigramCounts = [:]
-        self.alternationRewardScore = 0
-        self.highStrainBigramCount  = 0
-        self.dailyHighStrainBigramCount  = [:]
-        self.highStrainTrigramCount = 0
-        self.dailyHighStrainTrigramCount = [:]
-        self.appCounts    = [:]
-        self.deviceCounts = [:]
-        self.appSameFingerCount      = [:]
-        self.appTotalBigramCount     = [:]
-        self.appHandAlternationCount = [:]
-        self.appHighStrainBigramCount = [:]
-        self.deviceSameFingerCount      = [:]
-        self.deviceTotalBigramCount     = [:]
-        self.deviceHandAlternationCount = [:]
-        self.deviceHighStrainBigramCount = [:]
-        self.dailyModifiedCount = [:]
+        self.startedAt  = startedAt
+        self.counts     = counts
+        self.activity   = ActivityData()
+        self.ergonomics = ErgonomicsData()
+        self.appTracker = AppTrackerData()
+        self.shortcuts  = ShortcutData()
     }
 
     /// Backward-compatible decode — new fields default to zero/empty.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        startedAt = try c.decode(Date.self, forKey: .startedAt)
+        startedAt = try c.decode(Date.self,         forKey: .startedAt)
         counts    = try c.decode([String: Int].self, forKey: .counts)
-        lastInputTime    = try? c.decode(Date.self,   forKey: .lastInputTime)
-        avgIntervalMs    = (try? c.decode(Double.self, forKey: .avgIntervalMs))    ?? 0
-        avgIntervalCount = (try? c.decode(Int.self,    forKey: .avgIntervalCount)) ?? 0
-        modifiedCounts   = (try? c.decode([String: Int].self, forKey: .modifiedCounts)) ?? [:]
-        dailyMinIntervalMs    = (try? c.decode([String: Double].self, forKey: .dailyMinIntervalMs))    ?? [:]
-        dailyAvgIntervalMs    = (try? c.decode([String: Double].self, forKey: .dailyAvgIntervalMs))    ?? [:]
-        dailyAvgIntervalCount = (try? c.decode([String: Int].self,    forKey: .dailyAvgIntervalCount)) ?? [:]
-        sameFingerCount  = (try? c.decode(Int.self, forKey: .sameFingerCount))  ?? 0
-        totalBigramCount = (try? c.decode(Int.self, forKey: .totalBigramCount)) ?? 0
-        dailySameFingerCount  = (try? c.decode([String: Int].self, forKey: .dailySameFingerCount))  ?? [:]
-        dailyTotalBigramCount = (try? c.decode([String: Int].self, forKey: .dailyTotalBigramCount)) ?? [:]
-        handAlternationCount      = (try? c.decode(Int.self,            forKey: .handAlternationCount))      ?? 0
-        dailyHandAlternationCount = (try? c.decode([String: Int].self,  forKey: .dailyHandAlternationCount)) ?? [:]
-        bigramCounts  = (try? c.decode([String: Int].self, forKey: .bigramCounts))  ?? [:]
-        trigramCounts = (try? c.decode([String: Int].self, forKey: .trigramCounts)) ?? [:]
-        alternationRewardScore       = (try? c.decode(Double.self,          forKey: .alternationRewardScore))       ?? 0
-        highStrainBigramCount        = (try? c.decode(Int.self,             forKey: .highStrainBigramCount))        ?? 0
-        dailyHighStrainBigramCount   = (try? c.decode([String: Int].self,   forKey: .dailyHighStrainBigramCount))   ?? [:]
-        highStrainTrigramCount       = (try? c.decode(Int.self,             forKey: .highStrainTrigramCount))       ?? 0
-        dailyHighStrainTrigramCount  = (try? c.decode([String: Int].self,   forKey: .dailyHighStrainTrigramCount))  ?? [:]
-        appCounts    = (try? c.decode([String: Int].self, forKey: .appCounts))    ?? [:]
-        deviceCounts = (try? c.decode([String: Int].self, forKey: .deviceCounts)) ?? [:]
-        appSameFingerCount       = (try? c.decode([String: Int].self, forKey: .appSameFingerCount))       ?? [:]
-        appTotalBigramCount      = (try? c.decode([String: Int].self, forKey: .appTotalBigramCount))      ?? [:]
-        appHandAlternationCount  = (try? c.decode([String: Int].self, forKey: .appHandAlternationCount))  ?? [:]
-        appHighStrainBigramCount = (try? c.decode([String: Int].self, forKey: .appHighStrainBigramCount)) ?? [:]
-        deviceSameFingerCount       = (try? c.decode([String: Int].self, forKey: .deviceSameFingerCount))       ?? [:]
-        deviceTotalBigramCount      = (try? c.decode([String: Int].self, forKey: .deviceTotalBigramCount))      ?? [:]
-        deviceHandAlternationCount  = (try? c.decode([String: Int].self, forKey: .deviceHandAlternationCount))  ?? [:]
-        deviceHighStrainBigramCount = (try? c.decode([String: Int].self, forKey: .deviceHighStrainBigramCount)) ?? [:]
-        dailyModifiedCount = (try? c.decode([String: Int].self, forKey: .dailyModifiedCount)) ?? [:]
+
+        // ActivityData
+        var act = ActivityData()
+        act.lastInputTime       = try? c.decode(Date.self,            forKey: .lastInputTime)
+        act.avgIntervalMs       = (try? c.decode(Double.self,         forKey: .avgIntervalMs))        ?? 0
+        act.avgIntervalCount    = (try? c.decode(Int.self,            forKey: .avgIntervalCount))     ?? 0
+        act.dailyMinIntervalMs  = (try? c.decode([String: Double].self, forKey: .dailyMinIntervalMs)) ?? [:]
+        act.dailyAvgIntervalMs  = (try? c.decode([String: Double].self, forKey: .dailyAvgIntervalMs)) ?? [:]
+        act.dailyAvgIntervalCount = (try? c.decode([String: Int].self, forKey: .dailyAvgIntervalCount)) ?? [:]
+        activity = act
+
+        // ErgonomicsData
+        var erg = ErgonomicsData()
+        erg.sameFingerCount             = (try? c.decode(Int.self,             forKey: .sameFingerCount))             ?? 0
+        erg.totalBigramCount            = (try? c.decode(Int.self,             forKey: .totalBigramCount))            ?? 0
+        erg.dailySameFingerCount        = (try? c.decode([String: Int].self,   forKey: .dailySameFingerCount))        ?? [:]
+        erg.dailyTotalBigramCount       = (try? c.decode([String: Int].self,   forKey: .dailyTotalBigramCount))       ?? [:]
+        erg.handAlternationCount        = (try? c.decode(Int.self,             forKey: .handAlternationCount))        ?? 0
+        erg.dailyHandAlternationCount   = (try? c.decode([String: Int].self,   forKey: .dailyHandAlternationCount))   ?? [:]
+        erg.bigramCounts                = (try? c.decode([String: Int].self,   forKey: .bigramCounts))                ?? [:]
+        erg.trigramCounts               = (try? c.decode([String: Int].self,   forKey: .trigramCounts))               ?? [:]
+        erg.alternationRewardScore      = (try? c.decode(Double.self,          forKey: .alternationRewardScore))      ?? 0
+        erg.highStrainBigramCount       = (try? c.decode(Int.self,             forKey: .highStrainBigramCount))       ?? 0
+        erg.dailyHighStrainBigramCount  = (try? c.decode([String: Int].self,   forKey: .dailyHighStrainBigramCount))  ?? [:]
+        erg.highStrainTrigramCount      = (try? c.decode(Int.self,             forKey: .highStrainTrigramCount))      ?? 0
+        erg.dailyHighStrainTrigramCount = (try? c.decode([String: Int].self,   forKey: .dailyHighStrainTrigramCount)) ?? [:]
+        ergonomics = erg
+
+        // AppTrackerData
+        var app = AppTrackerData()
+        app.appCounts                  = (try? c.decode([String: Int].self, forKey: .appCounts))                  ?? [:]
+        app.deviceCounts               = (try? c.decode([String: Int].self, forKey: .deviceCounts))               ?? [:]
+        app.appSameFingerCount         = (try? c.decode([String: Int].self, forKey: .appSameFingerCount))         ?? [:]
+        app.appTotalBigramCount        = (try? c.decode([String: Int].self, forKey: .appTotalBigramCount))        ?? [:]
+        app.appHandAlternationCount    = (try? c.decode([String: Int].self, forKey: .appHandAlternationCount))    ?? [:]
+        app.appHighStrainBigramCount   = (try? c.decode([String: Int].self, forKey: .appHighStrainBigramCount))   ?? [:]
+        app.deviceSameFingerCount      = (try? c.decode([String: Int].self, forKey: .deviceSameFingerCount))      ?? [:]
+        app.deviceTotalBigramCount     = (try? c.decode([String: Int].self, forKey: .deviceTotalBigramCount))     ?? [:]
+        app.deviceHandAlternationCount = (try? c.decode([String: Int].self, forKey: .deviceHandAlternationCount)) ?? [:]
+        app.deviceHighStrainBigramCount = (try? c.decode([String: Int].self, forKey: .deviceHighStrainBigramCount)) ?? [:]
+        appTracker = app
+
+        // ShortcutData
+        var sc = ShortcutData()
+        sc.modifiedCounts    = (try? c.decode([String: Int].self, forKey: .modifiedCounts))    ?? [:]
+        sc.dailyModifiedCount = (try? c.decode([String: Int].self, forKey: .dailyModifiedCount)) ?? [:]
+        shortcuts = sc
+    }
+
+    /// Encodes flat (same JSON keys as before) to preserve backward compatibility.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(startedAt, forKey: .startedAt)
+        try c.encode(counts,    forKey: .counts)
+        // ActivityData — encoded flat
+        try c.encodeIfPresent(activity.lastInputTime,         forKey: .lastInputTime)
+        try c.encode(activity.avgIntervalMs,                  forKey: .avgIntervalMs)
+        try c.encode(activity.avgIntervalCount,               forKey: .avgIntervalCount)
+        try c.encode(activity.dailyMinIntervalMs,             forKey: .dailyMinIntervalMs)
+        try c.encode(activity.dailyAvgIntervalMs,             forKey: .dailyAvgIntervalMs)
+        try c.encode(activity.dailyAvgIntervalCount,          forKey: .dailyAvgIntervalCount)
+        // ErgonomicsData — encoded flat
+        try c.encode(ergonomics.sameFingerCount,              forKey: .sameFingerCount)
+        try c.encode(ergonomics.totalBigramCount,             forKey: .totalBigramCount)
+        try c.encode(ergonomics.dailySameFingerCount,         forKey: .dailySameFingerCount)
+        try c.encode(ergonomics.dailyTotalBigramCount,        forKey: .dailyTotalBigramCount)
+        try c.encode(ergonomics.handAlternationCount,         forKey: .handAlternationCount)
+        try c.encode(ergonomics.dailyHandAlternationCount,    forKey: .dailyHandAlternationCount)
+        try c.encode(ergonomics.bigramCounts,                 forKey: .bigramCounts)
+        try c.encode(ergonomics.trigramCounts,                forKey: .trigramCounts)
+        try c.encode(ergonomics.alternationRewardScore,       forKey: .alternationRewardScore)
+        try c.encode(ergonomics.highStrainBigramCount,        forKey: .highStrainBigramCount)
+        try c.encode(ergonomics.dailyHighStrainBigramCount,   forKey: .dailyHighStrainBigramCount)
+        try c.encode(ergonomics.highStrainTrigramCount,       forKey: .highStrainTrigramCount)
+        try c.encode(ergonomics.dailyHighStrainTrigramCount,  forKey: .dailyHighStrainTrigramCount)
+        // AppTrackerData — encoded flat
+        try c.encode(appTracker.appCounts,                    forKey: .appCounts)
+        try c.encode(appTracker.deviceCounts,                 forKey: .deviceCounts)
+        try c.encode(appTracker.appSameFingerCount,           forKey: .appSameFingerCount)
+        try c.encode(appTracker.appTotalBigramCount,          forKey: .appTotalBigramCount)
+        try c.encode(appTracker.appHandAlternationCount,      forKey: .appHandAlternationCount)
+        try c.encode(appTracker.appHighStrainBigramCount,     forKey: .appHighStrainBigramCount)
+        try c.encode(appTracker.deviceSameFingerCount,        forKey: .deviceSameFingerCount)
+        try c.encode(appTracker.deviceTotalBigramCount,       forKey: .deviceTotalBigramCount)
+        try c.encode(appTracker.deviceHandAlternationCount,   forKey: .deviceHandAlternationCount)
+        try c.encode(appTracker.deviceHighStrainBigramCount,  forKey: .deviceHighStrainBigramCount)
+        // ShortcutData — encoded flat
+        try c.encode(shortcuts.modifiedCounts,                forKey: .modifiedCounts)
+        try c.encode(shortcuts.dailyModifiedCount,            forKey: .dailyModifiedCount)
     }
 }
 
@@ -249,11 +295,11 @@ final class KeyCountStore {
             pending.hourly[today, default: [:]][hour, default: 0] += 1
             // Per-app → SQLite pending
             if let app = appName {
-                store.appCounts[app, default: 0] += 1
+                store.appTracker.appCounts[app, default: 0] += 1
                 pending.dailyApps[today, default: [:]][app, default: 0] += 1
             }
             // Per-device → SQLite pending
-            store.deviceCounts[deviceName, default: 0] += 1
+            store.appTracker.deviceCounts[deviceName, default: 0] += 1
             pending.dailyDevices[today, default: [:]][deviceName, default: 0] += 1
 
             // Manual WPM session keystroke counter
@@ -266,7 +312,7 @@ final class KeyCountStore {
             }
             _todayCount += 1
 
-            let prevInputTime = store.lastInputTime
+            let prevInputTime = store.activity.lastInputTime
 
             // Session detection (Issue #60): detect ≥5-min gaps and record completed sessions.
             if let prev = prevInputTime {
@@ -287,21 +333,21 @@ final class KeyCountStore {
             }
 
             // Welford IKI update (≤1000ms only)
-            if let last = store.lastInputTime {
+            if let last = store.activity.lastInputTime {
                 let intervalMs = timestamp.timeIntervalSince(last) * 1000
                 if intervalMs <= 1000 {
                     // Global Welford
-                    store.avgIntervalCount += 1
-                    store.avgIntervalMs += (intervalMs - store.avgIntervalMs) / Double(store.avgIntervalCount)
+                    store.activity.avgIntervalCount += 1
+                    store.activity.avgIntervalMs += (intervalMs - store.activity.avgIntervalMs) / Double(store.activity.avgIntervalCount)
                     // Daily min
-                    if intervalMs < (store.dailyMinIntervalMs[today] ?? Double.infinity) {
-                        store.dailyMinIntervalMs[today] = intervalMs
+                    if intervalMs < (store.activity.dailyMinIntervalMs[today] ?? Double.infinity) {
+                        store.activity.dailyMinIntervalMs[today] = intervalMs
                     }
                     // Daily Welford (Issue #59)
-                    let dc = store.dailyAvgIntervalCount[today, default: 0] + 1
-                    store.dailyAvgIntervalCount[today] = dc
-                    let prevAvg = store.dailyAvgIntervalMs[today, default: 0.0]
-                    store.dailyAvgIntervalMs[today] = prevAvg + (intervalMs - prevAvg) / Double(dc)
+                    let dc = store.activity.dailyAvgIntervalCount[today, default: 0] + 1
+                    store.activity.dailyAvgIntervalCount[today] = dc
+                    let prevAvg = store.activity.dailyAvgIntervalMs[today, default: 0.0]
+                    store.activity.dailyAvgIntervalMs[today] = prevAvg + (intervalMs - prevAvg) / Double(dc)
                     // Live ring buffer
                     recentIKIs.append((key: key, iki: intervalMs))
                     if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
@@ -314,7 +360,7 @@ final class KeyCountStore {
                 recentIKIs.append((key: key, iki: 0))
                 if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
             }
-            store.lastInputTime = timestamp
+            store.activity.lastInputTime = timestamp
 
             // Same-finger / alternation / bigram ergonomics
             let layout = LayoutRegistry.shared
@@ -324,19 +370,19 @@ final class KeyCountStore {
                let curFinger  = layout.current.finger(for: key),
                let curHand    = layout.hand(for: key) {
 
-                store.totalBigramCount += 1
-                store.dailyTotalBigramCount[today, default: 0] += 1
+                store.ergonomics.totalBigramCount += 1
+                store.ergonomics.dailyTotalBigramCount[today, default: 0] += 1
 
                 if prevFinger == curFinger && prevHand == curHand {
-                    store.sameFingerCount += 1
-                    store.dailySameFingerCount[today, default: 0] += 1
+                    store.ergonomics.sameFingerCount += 1
+                    store.ergonomics.dailySameFingerCount[today, default: 0] += 1
                 }
 
                 if prevHand != curHand {
-                    store.handAlternationCount += 1
-                    store.dailyHandAlternationCount[today, default: 0] += 1
+                    store.ergonomics.handAlternationCount += 1
+                    store.ergonomics.dailyHandAlternationCount[today, default: 0] += 1
                     alternationStreak += 1
-                    store.alternationRewardScore +=
+                    store.ergonomics.alternationRewardScore +=
                         layout.alternationRewardModel.reward(forStreak: alternationStreak)
                 } else {
                     alternationStreak = 0
@@ -344,7 +390,7 @@ final class KeyCountStore {
 
                 // Bigram frequency (all-time stays in JSON; daily → SQLite)
                 let pair = Bigram(from: prev, to: key).key
-                store.bigramCounts[pair, default: 0] += 1
+                store.ergonomics.bigramCounts[pair, default: 0] += 1
                 pending.dailyBigrams[today, default: [:]][pair, default: 0] += 1
 
                 // Bigram IKI → SQLite pending (Issue #24)
@@ -359,36 +405,36 @@ final class KeyCountStore {
                 // High-strain detection (Issue #28)
                 let highStrain = layout.highStrainDetector.isHighStrain(from: prev, to: key, layout: layout)
                 if highStrain {
-                    store.highStrainBigramCount += 1
-                    store.dailyHighStrainBigramCount[today, default: 0] += 1
+                    store.ergonomics.highStrainBigramCount += 1
+                    store.ergonomics.dailyHighStrainBigramCount[today, default: 0] += 1
                     if lastBigramWasHighStrain {
-                        store.highStrainTrigramCount += 1
-                        store.dailyHighStrainTrigramCount[today, default: 0] += 1
+                        store.ergonomics.highStrainTrigramCount += 1
+                        store.ergonomics.dailyHighStrainTrigramCount[today, default: 0] += 1
                     }
                 }
                 lastBigramWasHighStrain = highStrain
 
                 // Per-app bigram ergonomics
                 if let app = appName {
-                    store.appTotalBigramCount[app, default: 0] += 1
+                    store.appTracker.appTotalBigramCount[app, default: 0] += 1
                     if prevFinger == curFinger && prevHand == curHand {
-                        store.appSameFingerCount[app, default: 0] += 1
+                        store.appTracker.appSameFingerCount[app, default: 0] += 1
                     }
-                    if prevHand != curHand { store.appHandAlternationCount[app, default: 0] += 1 }
-                    if highStrain          { store.appHighStrainBigramCount[app, default: 0] += 1 }
+                    if prevHand != curHand { store.appTracker.appHandAlternationCount[app, default: 0] += 1 }
+                    if highStrain          { store.appTracker.appHighStrainBigramCount[app, default: 0] += 1 }
                 }
                 // Per-device bigram ergonomics
-                store.deviceTotalBigramCount[deviceName, default: 0] += 1
+                store.appTracker.deviceTotalBigramCount[deviceName, default: 0] += 1
                 if prevFinger == curFinger && prevHand == curHand {
-                    store.deviceSameFingerCount[deviceName, default: 0] += 1
+                    store.appTracker.deviceSameFingerCount[deviceName, default: 0] += 1
                 }
-                if prevHand != curHand { store.deviceHandAlternationCount[deviceName, default: 0] += 1 }
-                if highStrain          { store.deviceHighStrainBigramCount[deviceName, default: 0] += 1 }
+                if prevHand != curHand { store.appTracker.deviceHandAlternationCount[deviceName, default: 0] += 1 }
+                if highStrain          { store.appTracker.deviceHighStrainBigramCount[deviceName, default: 0] += 1 }
 
                 // Trigram frequency (all-time stays in JSON; daily → SQLite) (Issue #12)
                 if let prev2 = secondLastKeyName {
                     let trigram = "\(prev2)→\(prev)→\(key)"
-                    store.trigramCounts[trigram, default: 0] += 1
+                    store.ergonomics.trigramCounts[trigram, default: 0] += 1
                     pending.dailyTrigrams[today, default: [:]][trigram, default: 0] += 1
                 }
                 secondLastKeyName = prev
@@ -408,8 +454,8 @@ final class KeyCountStore {
     /// Increment a modifier+key combo count.
     func incrementModified(key: String) {
         queue.sync {
-            store.modifiedCounts[key, default: 0] += 1
-            store.dailyModifiedCount[todayKey, default: 0] += 1
+            store.shortcuts.modifiedCounts[key, default: 0] += 1
+            store.shortcuts.dailyModifiedCount[todayKey, default: 0] += 1
         }
         scheduleSave()
     }
@@ -435,7 +481,7 @@ final class KeyCountStore {
     /// Finalize the open session and flush it. Call from AppDelegate on termination.
     func finalizeCurrentSession() {
         queue.sync {
-            guard let last = store.lastInputTime else { return }
+            guard let last = store.activity.lastInputTime else { return }
             finalizeCurrentSessionLocked(at: last)
         }
     }
