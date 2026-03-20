@@ -151,6 +151,12 @@ extension KeyCountStore {
                     t.add(column: "before_iki_json", .text).notNull().defaults(to: "{}")
                 }
             }
+            // Issue #193: store trigram targets alongside bigram targets
+            migrator.registerMigration("v5.1") { db in
+                try db.alter(table: "training_results") { t in
+                    t.add(column: "trigram_targets_json", .text).notNull().defaults(to: "[]")
+                }
+            }
             // Issue #63: per-hour fatigue data (IKI + ergonomic rates)
             migrator.registerMigration("v5") { db in
                 try db.create(table: "hourly_ergonomics", ifNotExists: true) { t in

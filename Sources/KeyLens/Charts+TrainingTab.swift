@@ -257,8 +257,11 @@ extension ChartsView {
                         trainingResetToken = UUID()
                     },
                     onSessionComplete: { result in
+                        // Capture the trigram keys that were included in this session (Issue #193).
+                        let practicedTrigrams = model.trainingTrigramScores.prefix(3).map { $0.trigram }
                         KeyCountStore.shared.saveTrainingResult(
                             targets: result.targets,
+                            trigramTargets: Array(practicedTrigrams),
                             sessionLength: result.sessionLength,
                             accuracy: result.accuracy,
                             wpm: result.wpm,
@@ -328,7 +331,7 @@ extension ChartsView {
                         Text(formatDate(record.completedAt))
                             .font(.system(.caption, design: .monospaced))
                             .frame(width: 130, alignment: .leading)
-                        Text(record.targetDisplayStrings.joined(separator: " "))
+                        Text(record.allTargetDisplayStrings.joined(separator: " "))
                             .font(.system(.caption, design: .monospaced))
                             .frame(width: 110, alignment: .leading)
                         Text(record.sessionLength)

@@ -13,17 +13,19 @@ extension KeyCountStore {
     /// trigger a UI reload immediately after.
     ///
     /// - Parameters:
-    ///   - targets:       Raw bigram keys that were practiced, e.g. ["t→h", "h→e"].
-    ///   - sessionLength: The session length label ("Short", "Normal", "Long").
-    ///   - accuracy:      Percentage of correct keystrokes (0–100).
-    ///   - wpm:           Words per minute during the session.
-    ///   - duration:      Elapsed seconds from first keystroke to session end.
-    ///   - totalTyped:    Total keystrokes typed.
-    ///   - totalCorrect:  Correct keystrokes typed.
-    ///   - beforeIKI:     Mean IKI (ms) per target bigram at session creation time (Issue #84).
-    ///   - completion:    Called on main thread after the write completes.
+    ///   - targets:        Raw bigram keys that were practiced, e.g. ["t→h", "h→e"].
+    ///   - trigramTargets: Raw trigram keys that were practiced, e.g. ["t→h→e"] (Issue #193).
+    ///   - sessionLength:  The session length label ("Short", "Normal", "Long").
+    ///   - accuracy:       Percentage of correct keystrokes (0–100).
+    ///   - wpm:            Words per minute during the session.
+    ///   - duration:       Elapsed seconds from first keystroke to session end.
+    ///   - totalTyped:     Total keystrokes typed.
+    ///   - totalCorrect:   Correct keystrokes typed.
+    ///   - beforeIKI:      Mean IKI (ms) per target bigram at session creation time (Issue #84).
+    ///   - completion:     Called on main thread after the write completes.
     func saveTrainingResult(
         targets: [String],
+        trigramTargets: [String] = [],
         sessionLength: String,
         accuracy: Int,
         wpm: Int,
@@ -40,6 +42,8 @@ extension KeyCountStore {
             }
             let targetsJSON = (try? JSONSerialization.data(withJSONObject: targets))
                 .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+            let trigramTargetsJSON = (try? JSONSerialization.data(withJSONObject: trigramTargets))
+                .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
             let beforeIKIJSON = (try? JSONSerialization.data(withJSONObject: beforeIKI))
                 .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
             let now = Date().timeIntervalSince1970
@@ -47,12 +51,12 @@ extension KeyCountStore {
                 try db.execute(
                     sql: """
                         INSERT INTO training_results
-                            (completed_at, targets, session_length,
+                            (completed_at, targets, trigram_targets_json, session_length,
                              accuracy, wpm, duration_seconds, total_typed, total_correct,
                              before_iki_json)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                    arguments: [now, targetsJSON, sessionLength,
+                    arguments: [now, targetsJSON, trigramTargetsJSON, sessionLength,
                                 accuracy, wpm, duration, totalTyped, totalCorrect,
                                 beforeIKIJSON]
                 )
@@ -83,7 +87,7 @@ extension KeyCountStore {
             guard let db = dbQueue else { return [] }
             let rows = (try? db.read { db in
                 try Row.fetchAll(db, sql: """
-                    SELECT id, completed_at, targets, session_length,
+                    SELECT id, completed_at, targets, trigram_targets_json, session_length,
                            accuracy, wpm, duration_seconds, total_typed, total_correct,
                            before_iki_json
                     FROM training_results
@@ -96,6 +100,7 @@ extension KeyCountStore {
                 let id: Int64             = row["id"]
                 let completedAt: Double   = row["completed_at"]
                 let targetsJSON: String   = row["targets"]
+                let trigramJSON: String   = row["trigram_targets_json"] ?? "[]"
                 let sessionLength: String = row["session_length"]
                 let accuracy: Int         = row["accuracy"]
                 let wpm: Int              = row["wpm"]
@@ -106,6 +111,8 @@ extension KeyCountStore {
 
                 let targets = (try? JSONSerialization.jsonObject(with: Data(targetsJSON.utf8)))
                     .flatMap { $0 as? [String] } ?? []
+                let trigramTargets = (try? JSONSerialization.jsonObject(with: Data(trigramJSON.utf8)))
+                    .flatMap { $0 as? [String] } ?? []
                 let beforeIKI = (try? JSONSerialization.jsonObject(with: Data(beforeIKIJSON.utf8)))
                     .flatMap { $0 as? [String: Double] } ?? [:]
 
@@ -113,6 +120,7 @@ extension KeyCountStore {
                     id: id,
                     completedAt: Date(timeIntervalSince1970: completedAt),
                     targets: targets,
+                    trigramTargets: trigramTargets,
                     sessionLength: sessionLength,
                     accuracy: accuracy,
                     wpm: wpm,
