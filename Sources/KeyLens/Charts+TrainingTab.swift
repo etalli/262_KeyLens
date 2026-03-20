@@ -34,21 +34,21 @@ extension ChartsView {
     var trainingTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.trainingTargetsTitle,
-                             helpText: L10n.shared.helpTrainingTargets) {
-                    trainingTargetsSection
-                }
                 chartSection(L10n.shared.practiceDrillsTitle,
                              helpText: L10n.shared.helpPracticeDrills) {
                     practiceDrillsSection
                 }
-                chartSection(L10n.shared.trainingTrigramTargetsTitle,
-                             helpText: L10n.shared.helpTrainingTrigrams) {
-                    trainingTrigramTargetsSection
-                }
                 chartSection(L10n.shared.trainingHistoryTitle,
                              helpText: L10n.shared.helpTrainingHistory) {
                     trainingHistorySection
+                }
+                chartSection(L10n.shared.trainingTargetsTitle,
+                             helpText: L10n.shared.helpTrainingTargets) {
+                    trainingTargetsSection
+                }
+                chartSection(L10n.shared.trainingTrigramTargetsTitle,
+                             helpText: L10n.shared.helpTrainingTrigrams) {
+                    trainingTrigramTargetsSection
                 }
             }
             .padding(24)
@@ -209,7 +209,7 @@ extension ChartsView {
                             .frame(width: 70, alignment: .trailing)
                         Text(drillText)
                             .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.primary.opacity(0.75))
                             .frame(minWidth: 120, alignment: .leading)
                             .padding(.leading, 16)
                     }
