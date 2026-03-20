@@ -5,6 +5,16 @@ extension ChartsView {
 
     var liveTab: some View {
         VStack(alignment: .leading, spacing: 0) {
+            chartSection(L10n.shared.chartTitleSpeedometer, helpText: L10n.shared.helpSpeedometer) {
+                SpeedometerView()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .padding(.top, 24)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
+
+            Divider().padding(.horizontal, 24)
+
             chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 24)

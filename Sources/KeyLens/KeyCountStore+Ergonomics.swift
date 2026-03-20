@@ -18,6 +18,26 @@ extension KeyCountStore {
         return 60_000.0 / (ms * 5.0)
     }
 
+    /// Rolling WPM from keystrokes in the last `windowSeconds` using the recentIKIs ring buffer.
+    /// Returns 0 if no keystroke was received in the last 2 seconds (idle decay).
+    func rollingWPM(windowSeconds: Double = 5.0) -> Double {
+        queue.sync {
+            guard let last = store.activity.lastInputTime,
+                  Date().timeIntervalSince(last) <= 2.0 else { return 0.0 }
+            let windowMs = windowSeconds * 1000.0
+            var totalMs = 0.0
+            var count = 0
+            for entry in recentIKIs.reversed() {
+                guard entry.iki > 0 else { continue }
+                guard totalMs + entry.iki <= windowMs else { break }
+                totalMs += entry.iki
+                count += 1
+            }
+            guard count > 0, totalMs > 0 else { return 0.0 }
+            return Double(count) / 5.0 * (60_000.0 / totalMs)
+        }
+    }
+
     /// Cumulative backspace rate: Delete count / total keystrokes × 100 (%).
     var backspaceRate: Double? {
         queue.sync {
