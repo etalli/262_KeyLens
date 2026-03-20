@@ -23,6 +23,10 @@ extension ChartsView {
                              helpText: L10n.shared.helpPracticeDrills) {
                     practiceDrillsSection
                 }
+                chartSection(L10n.shared.trainingTrigramTargetsTitle,
+                             helpText: L10n.shared.helpTrainingTrigrams) {
+                    trainingTrigramTargetsSection
+                }
                 chartSection(L10n.shared.trainingHistoryTitle,
                              helpText: L10n.shared.helpTrainingHistory) {
                     trainingHistorySection
@@ -124,6 +128,89 @@ extension ChartsView {
             Text(L10n.shared.trainingNoData)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        }
+    }
+
+    // MARK: - Trigram Targets (Issue #89)
+
+    @ViewBuilder
+    private var trainingTrigramTargetsSection: some View {
+        if model.trainingTrigramScores.isEmpty {
+            Text(L10n.shared.trainingNoTrigramData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                HStack(spacing: 0) {
+                    Text(L10n.shared.trainingColumnTrigram)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 80, alignment: .leading)
+                    Text(L10n.shared.trainingColumnEstIKI)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 120, alignment: .trailing)
+                    Text(L10n.shared.trainingColumnCount)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 90, alignment: .trailing)
+                    Text(L10n.shared.trainingColumnTier)
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(width: 70, alignment: .trailing)
+                    Text("Drill")
+                        .font(.caption).foregroundStyle(.primary.opacity(0.6))
+                        .frame(minWidth: 120, alignment: .leading)
+                        .padding(.leading, 16)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+
+                Divider()
+
+                ForEach(Array(model.trainingTrigramScores.enumerated()), id: \.offset) { index, score in
+                    let display   = Trigram.parse(score.trigram)?.display ?? score.trigram
+                    let drillText = Array(repeating: display, count: 5).joined(separator: " ")
+                    let tier      = trigramTierLabel(rank: index, total: model.trainingTrigramScores.count)
+                    HStack(spacing: 0) {
+                        Text(display)
+                            .font(.system(.body, design: .monospaced))
+                            .frame(width: 80, alignment: .leading)
+                        Text(String(format: "%.0f ms", score.estimatedIKI))
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(ikiColor(score.estimatedIKI))
+                            .frame(width: 120, alignment: .trailing)
+                        Text("\(score.count)")
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(.primary.opacity(0.75))
+                            .frame(width: 90, alignment: .trailing)
+                        Text(tier.label)
+                            .font(.caption)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(tier.color.opacity(0.15))
+                            .foregroundStyle(tier.color)
+                            .clipShape(Capsule())
+                            .frame(width: 70, alignment: .trailing)
+                        Text(drillText)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 120, alignment: .leading)
+                            .padding(.leading, 16)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(index.isMultiple(of: 2) ? Color.clear : Color.primary.opacity(0.06))
+                }
+            }
+        }
+    }
+
+    private func trigramTierLabel(rank: Int, total: Int) -> TierInfo {
+        let high = max(1, total / 3)
+        let mid  = max(1, total / 3)
+        if rank < high {
+            return TierInfo(label: L10n.shared.trainingTierHigh, color: .red)
+        } else if rank < high + mid {
+            return TierInfo(label: L10n.shared.trainingTierMid, color: .orange)
+        } else {
+            return TierInfo(label: L10n.shared.trainingTierLow, color: .blue)
         }
     }
 

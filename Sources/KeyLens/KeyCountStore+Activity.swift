@@ -253,6 +253,59 @@ extension KeyCountStore {
         }
     }
 
+    /// Trigrams ranked by training priority (Issue #89).
+    ///
+    /// Estimates trigram latency from the two constituent bigram mean IKIs:
+    ///   estimatedIKI("t→h→e") = meanIKI("t→h") + meanIKI("h→e")
+    ///
+    /// Trigrams where either constituent bigram has no IKI data are excluded.
+    ///
+    /// - Parameters:
+    ///   - minCount: Minimum observation count to include a trigram (default: 5).
+    ///   - topK:     Maximum results returned (default: 10).
+    func rankedTrigramsForTraining(minCount: Int = 5, topK: Int = 10) -> [TrigramScore] {
+        queue.sync {
+            // Build merged bigram mean IKI (same approach as rankedBigramsForTraining).
+            var mergedBigram: [String: (sum: Double, count: Int)] = [:]
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: "SELECT bigram, iki_sum, iki_count FROM bigram_iki")
+               }) {
+                for row in rows {
+                    let key: String = row["bigram"]
+                    let sum: Double = row["iki_sum"]
+                    let cnt: Int    = row["iki_count"]
+                    mergedBigram[key] = (sum: sum, count: cnt)
+                }
+            }
+            for (bigram, p) in pending.bigramIKI {
+                let e = mergedBigram[bigram] ?? (sum: 0, count: 0)
+                mergedBigram[bigram] = (sum: e.sum + p.sum, count: e.count + p.count)
+            }
+            let bigramMeanIKI: [String: Double] = mergedBigram.compactMapValues { data -> Double? in
+                guard data.count > 0 else { return nil }
+                return data.sum / Double(data.count)
+            }
+
+            // Merge all-time trigram counts with any pending session data.
+            var counts: [String: Int] = store.ergonomics.trigramCounts
+            for (_, dayMap) in pending.dailyTrigrams {
+                for (t, v) in dayMap { counts[t, default: 0] += v }
+            }
+
+            // Build candidates: estimate IKI from constituent bigrams.
+            let candidates: [TrigramScore] = counts.compactMap { trigram, count -> TrigramScore? in
+                guard let t = Trigram.parse(trigram),
+                      let ikiAB = bigramMeanIKI[t.leadingBigram],
+                      let ikiBC = bigramMeanIKI[t.trailingBigram]
+                else { return nil }
+                return TrigramScore(trigram: trigram, estimatedIKI: ikiAB + ikiBC, count: count)
+            }
+
+            return TrigramScore.topCandidates(candidates, minCount: minCount, topK: topK)
+        }
+    }
+
     /// Returns a dictionary of all bigram keys to their current mean IKI in milliseconds (Issue #84).
     ///
     /// Used to compute the "after" IKI when displaying before/after training history.

@@ -69,6 +69,8 @@ final class ChartDataModel: ObservableObject {
     @Published var mouseKeyboardBalance:       [MouseKeyboardBalanceEntry]  = []
     // Issue #90: Ranked bigrams for training — session is built in the view using the user's length preference.
     @Published var trainingScores:             [BigramScore]                 = []
+    // Issue #89: Ranked trigrams for training (Phase 2).
+    @Published var trainingTrigramScores:      [TrigramScore]                = []
     // Issue #88: Training result history
     @Published var trainingHistory:            [TrainingRecord]              = []
     // Issue #84: Full bigram → current mean IKI map for before/after comparison in training history.
@@ -168,6 +170,8 @@ final class ChartDataModel: ObservableObject {
         }.sorted { $0.date < $1.date }
         // Issue #90: Training — store raw scores; session is built in the view with the user's length config.
         trainingScores = store.rankedBigramsForTraining(minCount: 5, topK: 10)
+        // Issue #89: Trigram training targets (Phase 2).
+        trainingTrigramScores = store.rankedTrigramsForTraining(minCount: 5, topK: 8)
         // Issue #88: Training history
         trainingHistory = store.trainingHistory(limit: 20)
         // Issue #84: Full IKI map for before/after comparison

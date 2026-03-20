@@ -1241,6 +1241,21 @@ final class L10n {
     var trainingColumnBigram: String   { ja("バイグラム", en: "Bigram") }
     var trainingColumnIKI: String      { ja("平均 IKI (ms)", en: "Avg IKI (ms)") }
     var trainingColumnCount: String    { ja("出現回数", en: "Count") }
+
+    // Trigram training (Issue #89)
+    var trainingTrigramTargetsTitle: String {
+        ja("練習対象トライグラム", en: "Trigram Training Targets")
+    }
+    var helpTrainingTrigrams: String {
+        ja("3キー列の推定レイテンシ (構成バイグラム IKI の合計) を基にランク付けします。スコア = 推定 IKI × log2(出現回数 + 1)。",
+           en: "3-key sequences ranked by estimated latency: sum of the two constituent bigram IKIs. Score = estimated IKI × log2(count + 1).")
+    }
+    var trainingColumnTrigram: String  { ja("トライグラム", en: "Trigram") }
+    var trainingColumnEstIKI: String   { ja("推定 IKI (ms)", en: "Est. IKI (ms)") }
+    var trainingNoTrigramData: String {
+        ja("トライグラムデータがまだありません。バイグラム IKI が蓄積されると表示されます。",
+           en: "No trigram data yet. Appears once bigram IKI data has accumulated.")
+    }
     var trainingColumnTier: String     { ja("優先度", en: "Priority") }
     /// Column header for the training history annotation in the targets table.
     var trainingColumnHistory: String  { ja("練習前→Δ", en: "Prior→Δ") }
