@@ -208,8 +208,8 @@ extension ChartsView {
                             .clipShape(Capsule())
                             .frame(width: 70, alignment: .trailing)
                         Text(drillText)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.primary.opacity(0.75))
+                            .font(.system(.caption, design: .monospaced, weight: .medium))
+                            .foregroundStyle(.primary)
                             .frame(minWidth: 120, alignment: .leading)
                             .padding(.leading, 16)
                     }
