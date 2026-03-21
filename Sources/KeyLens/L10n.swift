@@ -485,6 +485,7 @@ final class L10n {
             • 手交互率 — 左右交互に打鍵した割合（高いほど良い）
 
             Δ列の色: 緑 = 改善、赤 = 低下
+            pp (パーセンテージポイント) — 2つのパーセント値の絶対差。例: 10% → 12% = +2 pp
             """,
             en: """
             Compare keystroke statistics across two date ranges side by side.
@@ -501,6 +502,7 @@ final class L10n {
             • Alternation Rate — left/right hand alternation (higher is better)
 
             Δ column: green = improvement, red = regression
+            pp (percentage points) — absolute difference between two percentages. e.g. 10% → 12% = +2 pp
             """
         )
     }
