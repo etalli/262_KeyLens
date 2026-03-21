@@ -12,6 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
+    // Screenshot tab switching
+    document.querySelectorAll('.ss-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+            document.querySelectorAll('.ss-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.screenshot-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelector(`.screenshot-panel[data-panel="${target}"]`).classList.add('active');
+        });
+    });
+
     document.querySelectorAll('.feature-card, .opt-text, .opt-image, .security-card').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
