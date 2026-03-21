@@ -1132,6 +1132,16 @@ final class L10n {
         case (.chat, _):
             return ja("短いメッセージを頻繁に送信しています。まとめて入力するとキーストローク数を減らせます。",
                       en: "Frequent short messages detected. Batching thoughts reduces total keystrokes.")
+        // Rhythm is known but style hasn't resolved yet — give rhythm-based tip.
+        case (_, .burst):
+            return ja("バースト打鍵が検出されました。集中的な打鍵の後は短い休憩を入れると疲労を防げます。",
+                      en: "Burst rhythm detected. Short pauses between bursts help prevent fatigue.")
+        case (_, .steadyFlow):
+            return ja("安定したリズムで入力しています。このペースを維持しましょう。",
+                      en: "Steady rhythm detected — great consistency. Keep it up.")
+        case (_, .balanced):
+            return ja("バランスの良いリズムです。スタイルに合わせてさらに最適化できます。",
+                      en: "Balanced rhythm detected. More data will refine your personalized tip.")
         default:
             return ja("まだ分析データが蓄積中です。しばらく入力を続けてください。",
                       en: "Still gathering data. Keep typing to unlock personalized insights.")
