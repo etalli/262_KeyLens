@@ -16,6 +16,13 @@ extension ChartsView {
 
                 Divider().padding(.horizontal, 24)
 
+                chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
+                    .padding(.top, 24)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
+
+                Divider().padding(.horizontal, 24)
+
                 chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 24)

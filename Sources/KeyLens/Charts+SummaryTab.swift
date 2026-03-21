@@ -13,8 +13,7 @@ extension ChartsView {
                 }
                 chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection("Weekly Report", helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
-                chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
-                chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) {
+chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) {
                     mouseKeyboardBalanceChart
                 }
             }
