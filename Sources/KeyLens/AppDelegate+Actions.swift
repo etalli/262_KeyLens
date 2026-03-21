@@ -72,6 +72,36 @@ extension AppDelegate {
         }
     }
 
+    @MainActor
+    func exportYearInReviewCard() {
+        let l = L10n.shared
+        let year = Calendar.current.component(.year, from: Date()) - 1
+
+        let panel = NSSavePanel()
+        panel.title = l.exportYearInReviewMenuItem
+        panel.nameFieldStringValue = "KeyLens_year_\(year).png"
+        panel.allowedContentTypes = [.png]
+
+        let complete: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let url = panel.url else { return }
+            if YearInReviewGenerator.generate(year: year, to: url) != nil {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            } else {
+                let alert = NSAlert()
+                alert.messageText = l.yearInReviewSaveFailed
+                alert.runModal()
+            }
+        }
+
+        let window = NSApp.keyWindow ?? ChartsWindowController.shared.window
+        if let window {
+            panel.beginSheetModal(for: window, completionHandler: complete)
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+            panel.begin(completionHandler: complete)
+        }
+    }
+
     func exportCSV() {
         let store = KeyCountStore.shared
         let summary = store.exportSummaryCSV()

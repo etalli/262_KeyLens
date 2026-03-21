@@ -390,6 +390,34 @@ final class L10n {
         ja("週次サマリーカードの保存に失敗しました", en: "Failed to save weekly summary card")
     }
 
+    var exportYearInReviewMenuItem: String {
+        ja("年間サマリーを書き出し…", en: "Export Year in Review…")
+    }
+
+    var yearInReviewTitle: String {
+        ja("年間サマリー", en: "Year in Review")
+    }
+
+    var yearInReviewDailyAvg: String {
+        ja("1日平均", en: "Daily Avg")
+    }
+
+    var yearInReviewActiveDays: String {
+        ja("入力日数", en: "Active Days")
+    }
+
+    var yearInReviewBestMonth: String {
+        ja("最多月", en: "Best Month")
+    }
+
+    var yearInReviewMonthlyChart: String {
+        ja("月別打鍵数", en: "Monthly Keystrokes")
+    }
+
+    var yearInReviewSaveFailed: String {
+        ja("年間サマリーの保存に失敗しました", en: "Failed to save year in review")
+    }
+
     var exportSQLiteMenuItem: String {
         ja("SQLite 書き出し…", en: "Export SQLite…")
     }
