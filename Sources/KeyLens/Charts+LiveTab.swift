@@ -4,31 +4,33 @@ import Charts
 extension ChartsView {
 
     var liveTab: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            chartSection(L10n.shared.chartTitleSpeedometer, helpText: L10n.shared.helpSpeedometer) {
-                SpeedometerView()
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .padding(.top, 24)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 16)
-
-            Divider().padding(.horizontal, 24)
-
-            chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
-                .fixedSize(horizontal: false, vertical: true)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                chartSection(L10n.shared.chartTitleSpeedometer, helpText: L10n.shared.helpSpeedometer) {
+                    SpeedometerView()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
                 .padding(.top, 24)
-                .padding(.leading, 24)
-                .padding(.bottom, 24)
-                .padding(.trailing, 12)
-
-            Divider().padding(.horizontal, 24)
-
-            wpmMeasurementSection
                 .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                .padding(.bottom, 16)
+
+                Divider().padding(.horizontal, 24)
+
+                chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 24)
+                    .padding(.leading, 24)
+                    .padding(.bottom, 24)
+                    .padding(.trailing, 12)
+
+                Divider().padding(.horizontal, 24)
+
+                wpmMeasurementSection
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
             model.refreshLiveData()
             liveTimer?.invalidate()
