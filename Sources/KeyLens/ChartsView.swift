@@ -92,6 +92,10 @@ struct ChartsView: View {
             trainingTab
                 .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }
                 .tag(ChartTab.training)
+
+            comparisonTab
+                .tabItem { Label(ChartTab.comparison.rawValue, systemImage: ChartTab.comparison.icon) }
+                .tag(ChartTab.comparison)
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

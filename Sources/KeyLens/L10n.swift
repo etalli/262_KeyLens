@@ -418,6 +418,64 @@ final class L10n {
         ja("年間サマリーの保存に失敗しました", en: "Failed to save year in review")
     }
 
+    // MARK: - Period Comparison Tab (Issue #62)
+
+    var comparisonTabTitle: String {
+        ja("比較", en: "Compare")
+    }
+
+    var comparisonRangeA: String {
+        ja("期間 A", en: "Period A")
+    }
+
+    var comparisonRangeB: String {
+        ja("期間 B", en: "Period B")
+    }
+
+    var comparisonPresetLast7: String {
+        ja("直近7日 vs 前7日", en: "Last 7 days vs Prior 7 days")
+    }
+
+    var comparisonPresetThisMonth: String {
+        ja("今月 vs 先月", en: "This Month vs Last Month")
+    }
+
+    var comparisonCompareButton: String {
+        ja("比較する", en: "Compare")
+    }
+
+    var comparisonMetricKeystrokes: String {
+        ja("打鍵数 (合計)", en: "Total Keystrokes")
+    }
+
+    var comparisonMetricDailyAvg: String {
+        ja("1日平均打鍵数", en: "Daily Average")
+    }
+
+    var comparisonMetricActiveDays: String {
+        ja("入力日数", en: "Active Days")
+    }
+
+    var comparisonMetricSameFinger: String {
+        ja("同指連打率", en: "Same-Finger Rate")
+    }
+
+    var comparisonMetricAlteration: String {
+        ja("手交互率", en: "Alternation Rate")
+    }
+
+    var comparisonNoData: String {
+        ja("この期間のデータはありません", en: "No data for this period")
+    }
+
+    var comparisonStart: String {
+        ja("開始日", en: "Start")
+    }
+
+    var comparisonEnd: String {
+        ja("終了日", en: "End")
+    }
+
     var exportSQLiteMenuItem: String {
         ja("SQLite 書き出し…", en: "Export SQLite…")
     }
