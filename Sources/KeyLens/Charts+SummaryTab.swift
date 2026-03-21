@@ -52,10 +52,11 @@ extension ChartsView {
                 )
             }
 
-            // Personalized insight tip
+            // Personalized insight tip — tinted by current rhythm for instant visual feedback
+            let rColor = rhythmColor(rhythm)
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(rColor)
                     .font(.callout)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(l.typingInsightLabel)
@@ -66,8 +67,9 @@ extension ChartsView {
                 }
             }
             .padding(12)
-            .background(Color.yellow.opacity(0.08))
+            .background(rColor.opacity(0.1))
             .cornerRadius(10)
+            .animation(.easeInOut(duration: 0.4), value: rhythm)
         }
         .padding(.top, 4)
     }
