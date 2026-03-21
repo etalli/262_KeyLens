@@ -77,6 +77,8 @@ final class ChartDataModel: ObservableObject {
     @Published var trainingHistory:            [TrainingRecord]              = []
     // Issue #84: Full bigram → current mean IKI map for before/after comparison in training history.
     @Published var bigramIKIMap:               [String: Double]              = [:]
+    // Issue #78: Weekly Activity Heatmap
+    @Published var weeklyHeatmap:              [HeatmapCell]                 = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -125,6 +127,8 @@ final class ChartDataModel: ObservableObject {
         // Issue #5: Activity Trends
         hourlyDistribution = store.hourlyDistribution()
         monthlyTotals      = store.monthlyTotals().map(MonthlyTotalEntry.init)
+        // Issue #78: Weekly Activity Heatmap
+        weeklyHeatmap = store.hourlyCountsByDayOfWeek().map(HeatmapCell.init)
         // Per-application counts
         topApps      = store.topApps(limit: 20).map(AppEntry.init)
         todayTopApps = store.todayTopApps(limit: 10).map(AppEntry.init)

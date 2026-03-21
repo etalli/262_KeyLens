@@ -10,6 +10,7 @@ extension ChartsView {
                 chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
                 chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
                 chartSection(L10n.shared.chartTitleIKIHistogram, helpText: L10n.shared.helpIKIHistogram) { ikiHistogramChart }
+                chartSection(L10n.shared.chartTitleWeeklyHeatmap, helpText: L10n.shared.helpWeeklyHeatmap) { weeklyHeatmapChart }
                 chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                 chartSection("Daily Totals", helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
                 chartSection("Monthly Totals", helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
@@ -182,6 +183,20 @@ extension ChartsView {
             }
             .chartYAxisLabel(L10n.shared.axisLabelPercent, alignment: .trailing)
             .frame(height: 200)
+        }
+    }
+
+    // MARK: - Issue #78: Weekly Activity Heatmap
+
+    /// 7×24 grid heatmap: average keystrokes per (day-of-week, hour) cell.
+    /// 曜日×時刻の週間ヒートマップ (Issue #78)。
+    @ViewBuilder
+    var weeklyHeatmapChart: some View {
+        let cells = model.weeklyHeatmap
+        if cells.isEmpty || cells.allSatisfy({ $0.avgCount == 0 }) {
+            emptyState
+        } else {
+            WeeklyHeatmapView(cells: cells)
         }
     }
 
@@ -378,6 +393,104 @@ extension ChartsView {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+}
+
+// MARK: - Issue #78: WeeklyHeatmapView
+
+/// A 7-column × 24-row grid showing average keystrokes per (day-of-week, hour) cell.
+/// Color intensity scales linearly from the cell's avgCount to the maximum across all cells.
+/// Hovering over a cell shows a tooltip below the grid.
+struct WeeklyHeatmapView: View {
+    let cells: [HeatmapCell]
+
+    @State private var hoveredCell: HeatmapCell? = nil
+
+    private let cellW:   CGFloat = 26
+    private let cellH:   CGFloat = 10
+    private let labelW:  CGFloat = 28
+    private let headerH: CGFloat = 22
+
+    // Pre-build lookup [weekday * 24 + hour → cell] for O(1) access.
+    private var lookup: [Int: HeatmapCell] {
+        Dictionary(uniqueKeysWithValues: cells.map { ($0.weekday * 24 + $0.hour, $0) })
+    }
+
+    private var maxAvg: Double {
+        cells.map(\.avgCount).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            grid
+            tooltipLine
+        }
+    }
+
+    private var grid: some View {
+        HStack(alignment: .top, spacing: 0) {
+            hourLabels
+            ForEach(0..<7, id: \.self) { wd in
+                dayColumn(wd: wd)
+            }
+        }
+    }
+
+    private var hourLabels: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: headerH)
+            ForEach(0..<24, id: \.self) { h in
+                Text(h % 3 == 0 ? String(format: "%02d", h) : "")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.secondary)
+                    .frame(width: labelW, height: cellH, alignment: .trailing)
+                    .padding(.trailing, 3)
+            }
+        }
+    }
+
+    private func dayColumn(wd: Int) -> some View {
+        let abbrs = L10n.shared.weekdayAbbrs
+        let label = wd < abbrs.count ? abbrs[wd] : ""
+        return VStack(spacing: 0) {
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: cellW, height: headerH)
+            ForEach(0..<24, id: \.self) { h in
+                cellView(wd: wd, hour: h)
+            }
+        }
+    }
+
+    private func cellView(wd: Int, hour: Int) -> some View {
+        let cell = lookup[wd * 24 + hour]
+        let avg  = cell?.avgCount ?? 0
+        let intensity = maxAvg > 0 ? avg / maxAvg : 0
+        // Minimum opacity 0.06 so empty cells remain visible as outlines.
+        let fill = Color.blue.opacity(0.06 + intensity * 0.88)
+        return Rectangle()
+            .fill(fill)
+            .frame(width: cellW - 1, height: cellH - 1)
+            .cornerRadius(1)
+            .onHover { hovering in
+                hoveredCell = hovering ? cell : nil
+            }
+    }
+
+    @ViewBuilder
+    private var tooltipLine: some View {
+        if let cell = hoveredCell {
+            let fullNames = L10n.shared.weekdayFullNames
+            let dayName   = cell.weekday < fullNames.count ? fullNames[cell.weekday] : ""
+            let hourStr   = String(format: "%02d:00", cell.hour)
+            let avgLabel  = L10n.shared.heatmapAvgLabel(Int(cell.avgCount.rounded()))
+            Text("\(dayName) \(hourStr)  ·  \(avgLabel)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else {
+            Text(" ").font(.caption)  // fixed-height placeholder keeps layout stable
         }
     }
 }

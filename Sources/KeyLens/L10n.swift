@@ -1365,6 +1365,40 @@ final class L10n {
            en: "Total click counts for left, middle, and right mouse buttons.")
     }
 
+    // MARK: - Issue #78: Weekly Activity Heatmap
+
+    var chartTitleWeeklyHeatmap: String {
+        ja("週間活動ヒートマップ", en: "Weekly Activity Heatmap")
+    }
+
+    var helpWeeklyHeatmap: String {
+        ja(
+            "曜日 (列) と時刻 (行) ごとの平均打鍵数を色の濃さで表します。濃いほど入力量が多い時間帯です。全記録期間の平均値を表示します。",
+            en: "Average keystrokes per hour for each day of the week, across all recorded dates. Darker cells indicate more typing activity."
+        )
+    }
+
+    /// Weekday abbreviations ordered Sunday–Saturday (index 0–6).
+    /// 曜日略称、日〜土 (添字 0–6)。
+    var weekdayAbbrs: [String] {
+        resolved == .japanese
+            ? ["日", "月", "火", "水", "木", "金", "土"]
+            : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    }
+
+    /// Full weekday names ordered Sunday–Saturday (index 0–6).
+    /// 曜日フル名称、日〜土 (添字 0–6)。
+    var weekdayFullNames: [String] {
+        resolved == .japanese
+            ? ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"]
+            : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    }
+
+    /// Tooltip label for heatmap cell: "avg N keys" / "平均 N キー".
+    func heatmapAvgLabel(_ count: Int) -> String {
+        ja("平均 \(count) キー", en: "avg \(count) keys")
+    }
+
     // MARK: - Issue #60: Session detection
 
     var chartTitleSessions: String {
