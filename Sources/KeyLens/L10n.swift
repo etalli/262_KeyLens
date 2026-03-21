@@ -432,6 +432,14 @@ final class L10n {
         ja("期間 B", en: "Period B")
     }
 
+    var comparisonBefore: String {
+        ja("前", en: "Before")
+    }
+
+    var comparisonAfter: String {
+        ja("後", en: "After")
+    }
+
     var comparisonPresetLast7: String {
         ja("直近7日 vs 前7日", en: "Last 7 days vs Prior 7 days")
     }

@@ -224,13 +224,13 @@ struct ComparisonResultView: View {
             HStack {
                 Text(l.comparisonMetricLabel).font(.caption).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .trailing, spacing: 1) {
-                    Text(l.comparisonRangeA).font(.caption).bold()
+                    Text(l.comparisonBefore).font(.caption).bold()
                     Text(dateRangeStr(start: result.startA, end: result.endA))
                         .font(.system(size: 9)).foregroundColor(.secondary)
                 }
                 .frame(width: 120, alignment: .trailing)
                 VStack(alignment: .trailing, spacing: 1) {
-                    Text(l.comparisonRangeB).font(.caption).bold()
+                    Text(l.comparisonAfter).font(.caption).bold()
                     Text(dateRangeStr(start: result.startB, end: result.endB))
                         .font(.system(size: 9)).foregroundColor(.secondary)
                 }
