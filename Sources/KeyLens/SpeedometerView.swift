@@ -56,15 +56,11 @@ struct SpeedometerView: View {
             currentWPM = KeyCountStore.shared.rollingWPM()
             if currentWPM > peakWPM { peakWPM = currentWPM }
         }
-        // On timer: if typing is active (< 1s since last key), track measured WPM.
-        // If idle, apply inertia decay so needle coasts slowly to 0.
+        // Timer only applies decay — never reads rollingWPM (stale buffer would reset the needle).
+        // Decay starts 0.3 s after the last keystroke; during active typing the timer is a no-op.
         .onReceive(idleTimer) { _ in
-            let idle = Date().timeIntervalSince(lastKeystrokeDate) > 1.0
-            if idle {
-                currentWPM = max(0, currentWPM * Self.decayFactor)
-            } else {
-                currentWPM = KeyCountStore.shared.rollingWPM()
-            }
+            guard Date().timeIntervalSince(lastKeystrokeDate) > 0.3 else { return }
+            currentWPM = max(0, currentWPM * Self.decayFactor)
         }
         .onAppear {
             currentWPM = KeyCountStore.shared.rollingWPM()
