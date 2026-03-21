@@ -130,6 +130,102 @@ extension AppDelegate {
         }
     }
 
+    // MARK: - Obsidian Export
+
+    private static let obsidianBookmarkKey = "obsidianFolderBookmark"
+
+    /// Returns the previously saved Obsidian folder URL by resolving the stored security-scoped bookmark.
+    private func resolvedObsidianFolder() -> URL? {
+        guard let data = UserDefaults.standard.data(forKey: Self.obsidianBookmarkKey) else { return nil }
+        var isStale = false
+        return try? URL(resolvingBookmarkData: data,
+                        options: .withSecurityScope,
+                        relativeTo: nil,
+                        bookmarkDataIsStale: &isStale)
+    }
+
+    /// Saves a security-scoped bookmark for the given folder URL.
+    private func saveObsidianBookmark(for url: URL) {
+        let data = try? url.bookmarkData(options: .withSecurityScope,
+                                         includingResourceValuesForKeys: nil,
+                                         relativeTo: nil)
+        UserDefaults.standard.set(data, forKey: Self.obsidianBookmarkKey)
+    }
+
+    func exportObsidian() {
+        if let folder = resolvedObsidianFolder() {
+            writeObsidianNote(to: folder)
+        } else {
+            pickObsidianFolder { [weak self] folder in
+                self?.writeObsidianNote(to: folder)
+            }
+        }
+    }
+
+    func changeObsidianFolder() {
+        pickObsidianFolder { [weak self] folder in
+            self?.writeObsidianNote(to: folder)
+        }
+    }
+
+    private func pickObsidianFolder(then completion: @escaping (URL) -> Void) {
+        let l = L10n.shared
+        let panel = NSOpenPanel()
+        panel.title = l.obsidianFolderPickerTitle
+        panel.prompt = l.obsidianFolderPickerButton
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            self?.saveObsidianBookmark(for: url)
+            completion(url)
+        }
+    }
+
+    private func writeObsidianNote(to folder: URL) {
+        let l = L10n.shared
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let today = dateFmt.string(from: Date())
+
+        let markdown = KeyCountStore.shared.exportObsidianMarkdown(date: today)
+        let fileURL = folder.appendingPathComponent("\(today).md")
+
+        _ = folder.startAccessingSecurityScopedResource()
+        defer { folder.stopAccessingSecurityScopedResource() }
+
+        do {
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                // Append to existing note
+                let handle = try FileHandle(forWritingTo: fileURL)
+                handle.seekToEndOfFile()
+                if let data = markdown.data(using: .utf8) {
+                    handle.write(data)
+                }
+                handle.closeFile()
+            } else {
+                try markdown.write(to: fileURL, atomically: true, encoding: .utf8)
+            }
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                alert.messageText = l.obsidianExportSuccess
+                alert.informativeText = fileURL.path
+                alert.runModal()
+            }
+        } catch {
+            KeyLens.log("Obsidian export failed: \(error)")
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                alert.messageText = l.obsidianExportFailed
+                alert.informativeText = error.localizedDescription
+                alert.runModal()
+            }
+        }
+    }
+
     func changeLanguage(to lang: Language) {
         L10n.shared.language = lang
         objectWillChange.send()

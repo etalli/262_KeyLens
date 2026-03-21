@@ -39,6 +39,32 @@ extension KeyCountStore {
         }
     }
 
+    /// Generates a Markdown block suitable for appending to an Obsidian daily note.
+    /// Includes today's keystroke count, estimated WPM, backspace rate, and ergonomic score.
+    func exportObsidianMarkdown(date: String) -> String {
+        let store = KeyCountStore.shared
+        let todayKeys = store.todayCount
+        let wpm = store.estimatedWPM.map { String(format: "%.1f", $0) } ?? "—"
+        let bsRate = store.todayBackspaceRate.map { String(format: "%.1f%%", $0) } ?? "—"
+        let ergo = String(format: "%.0f", store.currentErgonomicScore)
+        let sfRate = store.todaySameFingerRate.map { String(format: "%.1f%%", $0 * 100) } ?? "—"
+        let altRate = store.todayHandAlternationRate.map { String(format: "%.1f%%", $0 * 100) } ?? "—"
+
+        return """
+
+## KeyLens · \(date)
+
+| Metric | Value |
+|--------|-------|
+| Today's Keystrokes | \(todayKeys.formatted()) |
+| Estimated WPM | \(wpm) |
+| Backspace Rate | \(bsRate) |
+| Ergonomic Score | \(ergo) / 100 |
+| Same-Finger Bigrams | \(sfRate) |
+| Hand Alternation | \(altRate) |
+"""
+    }
+
     /// Export all keystroke data to a SQLite database at the given URL.
     /// Uses GRDB backup to safely copy the live keylens.db to the destination.
     func exportSQLite(to url: URL) throws {

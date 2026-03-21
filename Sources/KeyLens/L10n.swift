@@ -418,6 +418,30 @@ final class L10n {
         ja("ここに保存", en: "Save Here")
     }
 
+    var exportObsidianMenuItem: String {
+        ja("Obsidian デイリーノートに書き出し", en: "Export to Obsidian Daily Note")
+    }
+
+    var changeObsidianFolderMenuItem: String {
+        ja("Obsidian フォルダを変更…", en: "Change Obsidian Folder…")
+    }
+
+    var obsidianFolderPickerTitle: String {
+        ja("Obsidian Vault フォルダを選択", en: "Select Obsidian Vault Folder")
+    }
+
+    var obsidianFolderPickerButton: String {
+        ja("このフォルダを使用", en: "Use This Folder")
+    }
+
+    var obsidianExportSuccess: String {
+        ja("Obsidian デイリーノートに書き出しました", en: "Exported to Obsidian daily note")
+    }
+
+    var obsidianExportFailed: String {
+        ja("Obsidian への書き出しに失敗しました", en: "Failed to export to Obsidian")
+    }
+
     var backupMenuItem: String {
         ja("バックアップを保存…", en: "Save Backup…")
     }
