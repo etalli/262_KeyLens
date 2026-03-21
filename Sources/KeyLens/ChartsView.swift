@@ -133,7 +133,7 @@ struct ChartsView: View {
                     Button {
                         snapshotToClipboard(title: title)
                     } label: {
-                        Image(systemName: isCopied ? "checkmark" : "clipboard")
+                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                             .font(.body)
                             .foregroundStyle(isCopied ? .green : .secondary)
                     }
