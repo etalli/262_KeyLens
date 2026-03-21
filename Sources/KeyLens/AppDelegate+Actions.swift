@@ -75,7 +75,7 @@ extension AppDelegate {
     @MainActor
     func exportYearInReviewCard() {
         let l = L10n.shared
-        let year = Calendar.current.component(.year, from: Date()) - 1
+        let year = Calendar.current.component(.year, from: Date())
 
         let panel = NSSavePanel()
         panel.title = l.exportYearInReviewMenuItem
