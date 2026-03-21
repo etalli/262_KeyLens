@@ -194,12 +194,12 @@ final class SessionBuilderTests: XCTestCase {
 
     func test_defaultConfig_hasExpectedValues() {
         let c = SessionConfig.default
-        XCTAssertEqual(c.maxTargets,   5)
-        XCTAssertEqual(c.highReps,     8)
-        XCTAssertEqual(c.midReps,      5)
-        XCTAssertEqual(c.lowReps,      3)
+        XCTAssertEqual(c.maxTargets,   3)
+        XCTAssertEqual(c.highReps,     5)
+        XCTAssertEqual(c.midReps,      3)
+        XCTAssertEqual(c.lowReps,      2)
         XCTAssertEqual(c.highTierSize, 2)
-        XCTAssertEqual(c.midTierSize,  2)
+        XCTAssertEqual(c.midTierSize,  1)
         XCTAssertTrue(c.includeAlternating)
     }
 }

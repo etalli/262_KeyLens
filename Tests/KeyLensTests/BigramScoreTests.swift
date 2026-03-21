@@ -103,8 +103,10 @@ final class BigramScoreTests: XCTestCase {
     // MARK: - topK limit
 
     func test_topCandidates_respectsTopKLimit() {
-        let candidates = (1...20).map { i in
-            BigramScore(bigram: "k\(i)", meanIKI: Double(i) * 10, count: i * 5)
+        // Bigrams must use "from→to" format with single printable ASCII chars to pass isTypeable.
+        let letters = Array("abcdefghijklmnopqrst")
+        let candidates = letters.enumerated().map { i, ch in
+            BigramScore(bigram: "k→\(ch)", meanIKI: Double(i + 1) * 10, count: (i + 1) * 5)
         }
         let result = BigramScore.topCandidates(candidates, minCount: 1, topK: 5)
         XCTAssertEqual(result.count, 5)
