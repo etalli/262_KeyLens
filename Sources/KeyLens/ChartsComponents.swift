@@ -39,6 +39,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
     case apps        = "Apps"
     case mouse       = "Mouse"
     case training    = "Training"
+    case comparison  = "Compare"
 
     var id: String { rawValue }
 
@@ -53,6 +54,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
         case .apps:       return "app.badge"
         case .mouse:      return "cursorarrow.motionlines"
         case .training:   return "figure.run"
+        case .comparison: return "arrow.left.arrow.right"
         }
     }
 }
