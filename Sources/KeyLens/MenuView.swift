@@ -384,7 +384,8 @@ private struct SettingsMenuRow: View {
                 .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
             ]
             item.attributedTitle = NSAttributedString(string: title, attributes: attrs)
-            item.isEnabled = false
+            // action: nil already prevents clicking and hover highlight;
+            // isEnabled: false adds extra dimming that fights attributedTitle color.
             menu.addItem(item)
         }
 
