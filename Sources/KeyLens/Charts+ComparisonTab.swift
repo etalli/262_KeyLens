@@ -246,7 +246,8 @@ struct ComparisonResultView: View {
                     label: l.comparisonMetricAvgWPM,
                     a: wpmA, b: wpmB,
                     lowerIsBetter: false,
-                    format: { String(format: "%.1f wpm", $0) }
+                    format: { String(format: "%.1f wpm", $0) },
+                    deltaFormat: { String(format: "%+.1f wpm", $0) }
                 )
             }
 
@@ -287,12 +288,19 @@ struct ComparisonResultView: View {
         )
     }
 
-    private func doubleRow(label: String, a: Double, b: Double, lowerIsBetter: Bool, format: (Double) -> String) -> some View {
+    private func doubleRow(label: String, a: Double, b: Double, lowerIsBetter: Bool, format: (Double) -> String, deltaFormat: ((Double) -> String)? = nil) -> some View {
         let delta    = b - a
         let better   = lowerIsBetter ? delta < 0 : delta > 0
-        let absDelta = abs(delta) * 100
-        let sign     = delta >= 0 ? "+" : "-"
-        let deltaStr = abs(delta) < 0.0001 ? "—" : "\(sign)\(String(format: "%.1f", absDelta))pp"
+        let deltaStr: String
+        if abs(delta) < 0.0001 {
+            deltaStr = "—"
+        } else if let deltaFormat {
+            deltaStr = deltaFormat(delta)
+        } else {
+            let absDelta = abs(delta) * 100
+            let sign     = delta >= 0 ? "+" : "-"
+            deltaStr = "\(sign)\(String(format: "%.1f", absDelta))pp"
+        }
         return tableRow(
             label: label,
             aStr: format(a),
