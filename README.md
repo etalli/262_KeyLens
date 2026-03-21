@@ -75,7 +75,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
-| **Settings…** | Customize menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), backup/restore data, open log folder |
+| **Settings…** | Customize menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), export Year in Review card (PNG), backup/restore data, open log folder |
 
 ### Charts window
 
@@ -105,6 +105,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Backspace Rate** | Daily backspace/correction rate over time |
 | **Hourly Distribution** | Aggregate keystroke count by hour of day (0–23) |
 | **Monthly Totals** | Keystroke count per calendar month |
+| **Weekly Activity Heatmap** | 2D grid (Day of Week × Hour of Day) showing average keystroke density — reveals peak activity times and fatigue patterns |
 
 #### Summary tab
 | Section | What it shows |
@@ -121,6 +122,11 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Training History** | Past session results with accuracy, WPM, and before/after IKI comparison per target |
 | **Training Targets** | Top bigrams ranked by training priority (mean IKI × log-frequency score) with tier labels and prior training annotations |
 | **Trigram Training Targets** | Top 3-key sequences ranked by estimated latency (sum of constituent bigram IKIs) with drill preview |
+
+#### Compare tab
+| Section | What it shows |
+|---------|---------------|
+| **Period Comparison** | Side-by-side stats for two custom date ranges: total keystrokes, daily average, active days, same-finger rate, alternation rate; delta column color-coded green/red; preset buttons for "Last 7 days vs Prior 7 days" and "This Month vs Last Month" |
 
 #### Mouse tab
 | Section | What it shows |

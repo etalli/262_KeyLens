@@ -82,9 +82,11 @@ graph TD
 │   │   ├── Charts+LiveTab.swift
 │   │   ├── Charts+MouseTab.swift
 │   │   ├── Charts+TrainingTab.swift
+│   │   ├── Charts+ComparisonTab.swift
 │   │   ├── ActivityCalendarView.swift
 │   │   ├── KeyboardHeatmapView.swift
 │   │   ├── WeeklySummaryCard.swift
+│   │   ├── YearInReviewCard.swift
 │   │   ├── KLEParser.swift
 │   │   ├── KeyboardDeviceInfo.swift
 │   │   ├── KeystrokeOverlayController.swift
@@ -348,19 +350,20 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
-`ChartsView` is organised into 9 tabs, each implemented as a `ChartsView` extension in its own file:
+`ChartsView` is organised into 10 tabs, each implemented as a `ChartsView` extension in its own file:
 
 | Tab file | Contents |
 |----------|----------|
 | `Charts+SummaryTab.swift` | Activity Calendar heatmap, Weekly Delta Report |
 | `Charts+KeyboardTab.swift` | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
 | `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Ergonomic Learning Curve, ergonomic score tables |
-| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram |
+| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
 | `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
 | `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
 | `Charts+LiveTab.swift` | Recent IKI bar chart, manual WPM measurement |
 | `Charts+MouseTab.swift` | Daily mouse distance, hourly mouse activity, mouse/keyboard balance |
 | `Charts+TrainingTab.swift` | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
+| `Charts+ComparisonTab.swift` | Side-by-side period comparison: two custom date ranges, preset buttons, stats table with delta column |
 
 Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
 
@@ -405,6 +408,12 @@ Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON int
 ### [WeeklySummaryCard.swift](Sources/KeyLens/WeeklySummaryCard.swift)
 
 `WeeklySummaryCardView` renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone.
+
+---
+
+### [YearInReviewCard.swift](Sources/KeyLens/YearInReviewCard.swift)
+
+`AnnualSummaryCardView` renders a full-year typing summary (total keystrokes, daily average, active days, best month, monthly bar chart, top 5 keys). Rendered off-screen via `ImageRenderer` and saved as PNG. `AnnualSummaryData.forYear(_:)` queries `KeyCountStore` for monthly totals and ergonomic rates. Triggered from the Data menu via `AppDelegate.exportYearInReviewCard()`.
 
 ---
 
