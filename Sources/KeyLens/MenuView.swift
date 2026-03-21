@@ -368,86 +368,81 @@ private struct SettingsMenuRow: View {
         let menu = NSMenu()
         var held: [NSMenuItemAction] = []
 
-        func add(_ title: String, checked: Bool = false, _ block: @escaping () -> Void) {
+        func add(_ title: String, to target: NSMenu, checked: Bool = false, _ block: @escaping () -> Void) {
             let a = NSMenuItemAction(block)
             held.append(a)
             let item = NSMenuItem(title: title, action: #selector(NSMenuItemAction.invoke), keyEquivalent: "")
             item.target = a
             item.state = checked ? .on : .off
-            menu.addItem(item)
+            target.addItem(item)
         }
 
-        func header(_ title: String) {
+        func submenu(_ title: String, _ build: (NSMenu) -> Void) {
+            let sub = NSMenu()
+            build(sub)
             let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-            let attrs: [NSAttributedString.Key: Any] = [
-                .foregroundColor: NSColor.secondaryLabelColor,
-                .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
-            ]
-            item.attributedTitle = NSAttributedString(string: title, attributes: attrs)
-            // action: nil already prevents clicking and hover highlight;
-            // isEnabled: false adds extra dimming that fights attributedTitle color.
+            item.submenu = sub
             menu.addItem(item)
         }
 
         // Customize Menu
-        add(l.customizeMenuMenuItem) {
+        add(l.customizeMenuMenuItem, to: menu) {
             appDelegate.showMenuCustomize()
         }
 
         menu.addItem(.separator())
 
         // Launch at Login
-        add(l.launchAtLogin, checked: SMAppService.mainApp.status == .enabled) {
+        add(l.launchAtLogin, to: menu, checked: SMAppService.mainApp.status == .enabled) {
             appDelegate.toggleLaunchAtLogin()
         }
 
         menu.addItem(.separator())
 
-        // Language
-        header(l.languageMenuTitle)
+        // Language submenu
         let currentLang = l.language
-        for lang in Language.allCases {
-            add(lang.displayName, checked: currentLang == lang) {
-                appDelegate.changeLanguage(to: lang)
+        submenu(l.languageMenuTitle) { sub in
+            for lang in Language.allCases {
+                add(lang.displayName, to: sub, checked: currentLang == lang) {
+                    appDelegate.changeLanguage(to: lang)
+                }
             }
         }
 
-        menu.addItem(.separator())
-
-        // Notify Every
-        header(l.notificationIntervalMenuTitle)
+        // Notify Every submenu
         let currentInterval = KeyCountStore.milestoneInterval
-        for interval in [100, 500, 1000, 5000, 10000] {
-            add(l.notificationIntervalLabel(interval), checked: currentInterval == interval) {
-                appDelegate.setMilestoneInterval(interval)
+        submenu(l.notificationIntervalMenuTitle) { sub in
+            for interval in [100, 500, 1000, 5000, 10000] {
+                add(l.notificationIntervalLabel(interval), to: sub, checked: currentInterval == interval) {
+                    appDelegate.setMilestoneInterval(interval)
+                }
             }
         }
 
-        menu.addItem(.separator())
-
-        // Break Reminder
-        // 休憩リマインダー
-        header(l.breakReminderMenuTitle)
+        // Break Reminder submenu
         let brm = BreakReminderManager.shared
-        add(l.breakReminderOff, checked: !brm.isEnabled) {
-            brm.isEnabled = false
-        }
-        for mins in [15, 30, 45, 60] {
-            add(l.breakReminderIntervalLabel(mins), checked: brm.isEnabled && brm.intervalMinutes == mins) {
-                brm.intervalMinutes = mins
-                brm.isEnabled = true
+        submenu(l.breakReminderMenuTitle) { sub in
+            add(l.breakReminderOff, to: sub, checked: !brm.isEnabled) {
+                brm.isEnabled = false
+            }
+            for mins in [15, 30, 45, 60] {
+                add(l.breakReminderIntervalLabel(mins), to: sub,
+                    checked: brm.isEnabled && brm.intervalMinutes == mins) {
+                    brm.intervalMinutes = mins
+                    brm.isEnabled = true
+                }
             }
         }
 
-        menu.addItem(.separator())
-
-        // Daily Keystroke Goal (Issue #69)
-        // 1日の目標打鍵数
-        header(l.dailyGoalMenuTitle)
+        // Daily Keystroke Goal submenu
         let ks = KeyCountStore.shared
-        add(l.dailyGoalOff, checked: ks.dailyGoal == 0) { ks.dailyGoal = 0 }
-        for count in [1000, 3000, 5000, 10000] {
-            add(l.dailyGoalLabel(count), checked: ks.dailyGoal == count) { ks.dailyGoal = count }
+        submenu(l.dailyGoalMenuTitle) { sub in
+            add(l.dailyGoalOff, to: sub, checked: ks.dailyGoal == 0) { ks.dailyGoal = 0 }
+            for count in [1000, 3000, 5000, 10000] {
+                add(l.dailyGoalLabel(count), to: sub, checked: ks.dailyGoal == count) {
+                    ks.dailyGoal = count
+                }
+            }
         }
 
         guard let event = NSApp.currentEvent else { return }
