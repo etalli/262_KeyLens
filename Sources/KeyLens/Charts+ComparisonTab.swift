@@ -87,9 +87,9 @@ struct ComparisonTabView: View {
 
     private var pickerGrid: some View {
         HStack(alignment: .top, spacing: 24) {
-            rangeColumn(label: l.comparisonRangeA, start: $startA, end: $endA)
+            rangeColumn(label: l.comparisonBefore, start: $startA, end: $endA)
             Divider().frame(height: 80)
-            rangeColumn(label: l.comparisonRangeB, start: $startB, end: $endB)
+            rangeColumn(label: l.comparisonAfter, start: $startB, end: $endB)
         }
         .padding(.vertical, 4)
     }

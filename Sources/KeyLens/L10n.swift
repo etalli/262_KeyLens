@@ -424,14 +424,6 @@ final class L10n {
         ja("比較", en: "Compare")
     }
 
-    var comparisonRangeA: String {
-        ja("期間 A", en: "Period A")
-    }
-
-    var comparisonRangeB: String {
-        ja("期間 B", en: "Period B")
-    }
-
     var comparisonBefore: String {
         ja("前", en: "Before")
     }
