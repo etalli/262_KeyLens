@@ -224,9 +224,10 @@ final class KeyCountStore {
     private var lastBigramWasHighStrain: Bool = false
     private var alternationStreak: Int = 0
 
-    // In-memory ring buffer: last 20 IKI values (key + interval ms, ≤1000ms only).
+    // In-memory ring buffer: last 6 IKI values for responsive instantaneous WPM.
+    // Fewer entries = needle reacts to speed changes within ~5 keystrokes.
     private(set) var recentIKIs: [(key: String, iki: Double)] = []
-    private let recentIKICapacity = 20
+    private let recentIKICapacity = 6
 
     // Manual WPM measurement session (Issue #150). All access on `queue`.
     var wpmSessionStart: Date? = nil
