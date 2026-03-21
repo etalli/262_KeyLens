@@ -1045,8 +1045,8 @@ final class L10n {
 
     var helpIntelligence: String {
         ja(
-            "キー頻度パターンから推定した2つの指標を表示します。\n\n推定スタイル: よく使うキーの分布からタイピング用途を推定します。文字・スペース中心 → 執筆、記号・修飾キー多用 → 開発、短いパターン多用 → チャット。\n\n疲労リスク: 同一指で1行以上離れたキーを連続入力する「高負荷バイグラム」の割合で判定します。\n低（緑）: 2%以下 / 中（橙）: 2〜5% / 高（赤）: 5%超",
-            en: "Two metrics inferred from your keystroke patterns.\n\nInferred Style: estimated from key frequency distribution. High letters/Space → Prose; high symbols/modifiers → Code; frequent short patterns → Chat.\n\nFatigue Risk: based on the high-strain bigram rate — same-finger keypairs spanning ≥1 keyboard row (e.g. F→R, J→U).\nLow (green): ≤2% / Moderate (orange): 2–5% / High (red): >5%"
+            "打鍵パターンから推定した3つの指標とアドバイスを表示します。\n\n推定スタイル: よく使うキーの分布からタイピング用途を推定します。文字・スペース中心 → 執筆、記号・修飾キー多用 → 開発、短いパターン多用 → チャット。\n\n疲労リスク: 同一指で1行以上離れたキーを連続入力する「高負荷バイグラム」の割合で判定します。\n低（緑）: 2%以下 / 中（橙）: 2〜5% / 高（赤）: 5%超\n\nタイピングリズム: 直近50打鍵のキー間隔(IKI)の変動係数(σ/μ)で判定します。\nバースト（紫）: 集中打鍵と休止が交互 / バランス（青）: 中間 / 定常（緑青）: 一定ペース\n\nアドバイス: スタイル・リズム・疲労の組み合わせから最適な改善提案を表示します。",
+            en: "Three metrics inferred from your keystroke patterns, plus a personalized tip.\n\nInferred Style: estimated from key frequency distribution. High letters/Space → Prose; high symbols/modifiers → Code; frequent short patterns → Chat.\n\nFatigue Risk: based on the high-strain bigram rate — same-finger keypairs spanning ≥1 keyboard row (e.g. F→R, J→U).\nLow (green): ≤2% / Moderate (orange): 2–5% / High (red): >5%\n\nTyping Rhythm: classified from the coefficient of variation (σ/μ) of the last 50 IKIs.\nBurst (purple): intense spurts with long pauses / Balanced (blue): mixed / Steady Flow (teal): even cadence\n\nInsight: a personalized suggestion based on the combination of your style, rhythm, and fatigue level."
         )
     }
 
