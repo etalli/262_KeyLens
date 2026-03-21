@@ -140,6 +140,10 @@ struct ComparisonResult {
 
     let a: PeriodStats
     let b: PeriodStats
+    let startA: Date
+    let endA:   Date
+    let startB: Date
+    let endB:   Date
 
     static func compute(startA: Date, endA: Date, startB: Date, endB: Date) -> ComparisonResult {
         let fmt = DateFormatter()
@@ -188,7 +192,9 @@ struct ComparisonResult {
 
         return ComparisonResult(
             a: stats(start: startA, end: endA),
-            b: stats(start: startB, end: endB)
+            b: stats(start: startB, end: endB),
+            startA: startA, endA: endA,
+            startB: startB, endB: endB
         )
     }
 }
@@ -202,13 +208,33 @@ struct ComparisonResultView: View {
     @AppStorage("appLanguage") private var appLanguage: String = "system"
     private var l: L10n { L10n.shared }
 
+    private static let dateFmt: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    private func dateRangeStr(start: Date, end: Date) -> String {
+        "\(Self.dateFmt.string(from: start)) – \(Self.dateFmt.string(from: end))"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header — labels resolved from L10n at render time so language changes apply instantly
             HStack {
                 Text(l.comparisonMetricLabel).font(.caption).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-                Text(l.comparisonRangeA).font(.caption).bold().frame(width: 120, alignment: .trailing)
-                Text(l.comparisonRangeB).font(.caption).bold().frame(width: 120, alignment: .trailing)
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(l.comparisonRangeA).font(.caption).bold()
+                    Text(dateRangeStr(start: result.startA, end: result.endA))
+                        .font(.system(size: 9)).foregroundColor(.secondary)
+                }
+                .frame(width: 120, alignment: .trailing)
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(l.comparisonRangeB).font(.caption).bold()
+                    Text(dateRangeStr(start: result.startB, end: result.endB))
+                        .font(.system(size: 9)).foregroundColor(.secondary)
+                }
+                .frame(width: 120, alignment: .trailing)
                 Text("Δ").font(.caption).foregroundColor(.secondary).frame(width: 80, alignment: .trailing)
             }
             .padding(.vertical, 6)
