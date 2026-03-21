@@ -241,6 +241,11 @@ extension KeyCountStore {
         queue.sync { TypingStyleAnalyzer().analyze(keyCounts: store.counts) }
     }
 
+    /// Detected typing rhythm from the recent IKI ring buffer.
+    public var currentTypingRhythm: TypingRhythm {
+        queue.sync { TypingRhythmAnalyzer().analyze(ikis: rhythmIKIs) }
+    }
+
     /// Detected fatigue risk level.
     public var currentFatigueLevel: FatigueLevel {
         queue.sync {

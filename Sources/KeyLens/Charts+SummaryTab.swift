@@ -24,20 +24,50 @@ extension ChartsView {
 
     @ViewBuilder
     var intelligenceGroup: some View {
-        HStack(spacing: 40) {
-            intelligenceCard(
-                title: L10n.shared.inferredStyle,
-                value: L10n.shared.typingStyleLabel(KeyCountStore.shared.currentTypingStyle),
-                icon: styleIcon(KeyCountStore.shared.currentTypingStyle),
-                color: theme.accentColor
-            )
+        let l = L10n.shared
+        let store = KeyCountStore.shared
+        let style = store.currentTypingStyle
+        let fatigue = store.currentFatigueLevel
+        let rhythm = store.currentTypingRhythm
 
-            intelligenceCard(
-                title: L10n.shared.fatigueRisk,
-                value: L10n.shared.fatigueLevelLabel(KeyCountStore.shared.currentFatigueLevel),
-                icon: fatigueIcon(KeyCountStore.shared.currentFatigueLevel),
-                color: fatigueColor(KeyCountStore.shared.currentFatigueLevel)
-            )
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 24) {
+                intelligenceCard(
+                    title: l.inferredStyle,
+                    value: l.typingStyleLabel(style),
+                    icon: styleIcon(style),
+                    color: theme.accentColor
+                )
+                intelligenceCard(
+                    title: l.fatigueRisk,
+                    value: l.fatigueLevelLabel(fatigue),
+                    icon: fatigueIcon(fatigue),
+                    color: fatigueColor(fatigue)
+                )
+                intelligenceCard(
+                    title: l.typingRhythm,
+                    value: l.typingRhythmLabel(rhythm),
+                    icon: rhythmIcon(rhythm),
+                    color: rhythmColor(rhythm)
+                )
+            }
+
+            // Personalized insight tip
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundStyle(.yellow)
+                    .font(.callout)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(l.typingInsightLabel)
+                        .font(.caption).bold().foregroundStyle(.secondary)
+                    Text(l.typingInsight(style: style, rhythm: rhythm, fatigue: fatigue))
+                        .font(.callout)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(12)
+            .background(Color.yellow.opacity(0.08))
+            .cornerRadius(10)
         }
         .padding(.top, 4)
     }
@@ -82,6 +112,24 @@ extension ChartsView {
         case .low:      return .green
         case .moderate: return .orange
         case .high:     return .red
+        }
+    }
+
+    func rhythmIcon(_ rhythm: TypingRhythm) -> String {
+        switch rhythm {
+        case .burst:      return "waveform.path.ecg"
+        case .steadyFlow: return "waveform"
+        case .balanced:   return "waveform.path"
+        case .unknown:    return "ellipsis.circle"
+        }
+    }
+
+    func rhythmColor(_ rhythm: TypingRhythm) -> Color {
+        switch rhythm {
+        case .burst:      return .purple
+        case .steadyFlow: return .teal
+        case .balanced:   return .blue
+        case .unknown:    return .secondary
         }
     }
 

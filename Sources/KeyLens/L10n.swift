@@ -1075,6 +1075,69 @@ final class L10n {
         }
     }
 
+    var typingRhythm: String {
+        ja("タイピングリズム", en: "Typing Rhythm")
+    }
+
+    func typingRhythmLabel(_ rhythm: TypingRhythm) -> String {
+        switch rhythm {
+        case .burst:      return ja("バースト", en: "Burst")
+        case .steadyFlow: return ja("定常", en: "Steady Flow")
+        case .balanced:   return ja("バランス", en: "Balanced")
+        case .unknown:    return ja("計測中…", en: "Measuring…")
+        }
+    }
+
+    var typingInsightLabel: String {
+        ja("アドバイス", en: "Insight")
+    }
+
+    /// Returns a personalized tip based on the combination of style, rhythm, and fatigue.
+    func typingInsight(style: TypingStyle, rhythm: TypingRhythm, fatigue: FatigueLevel) -> String {
+        // Fatigue is the highest priority signal.
+        if fatigue == .high {
+            switch rhythm {
+            case .burst:
+                return ja("バースト打鍵と高負荷バイグラムが重なっています。休憩を取るか、打鍵ペースを落としましょう。",
+                          en: "Burst rhythm combined with high strain — consider a break or slow your pace.")
+            default:
+                return ja("高負荷バイグラムが多く検出されています。キーボードの配置やストレッチで負荷を分散させましょう。",
+                          en: "High-strain bigrams detected. Try redistributing load via layout adjustments or stretching.")
+            }
+        }
+
+        // Moderate fatigue + burst = actionable advice.
+        if fatigue == .moderate && rhythm == .burst {
+            return ja("断続的な集中打鍵が疲労を蓄積させる可能性があります。意識的にペースを一定に保ちましょう。",
+                      en: "Intermittent bursts may be building fatigue. Try maintaining a more even pace.")
+        }
+
+        // Style-specific tips for normal fatigue.
+        switch (style, rhythm) {
+        case (.code, .burst):
+            return ja("コーディング中のバースト打鍵は記号入力のミスを増やす傾向があります。ゆっくり確実に入力しましょう。",
+                      en: "Burst typing during coding increases symbol errors. Slow down for accuracy.")
+        case (.code, .steadyFlow):
+            return ja("安定したリズムでコードを入力しています。このペースを維持しましょう。",
+                      en: "Steady rhythm while coding — great for accuracy. Keep it up.")
+        case (.prose, .burst):
+            return ja("執筆中のバースト打鍵はバックスペースを増やす傾向があります。文章を頭の中で組み立ててから入力しましょう。",
+                      en: "Burst typing during writing leads to more corrections. Think ahead before typing.")
+        case (.prose, .steadyFlow):
+            return ja("執筆に適した安定したリズムです。",
+                      en: "Steady flow suits your writing style well.")
+        case (.chat, .burst):
+            return ja("チャットのバースト打鍵は自然なパターンです。ただし長時間続く場合は手首を休めましょう。",
+                      en: "Burst rhythm is natural for chat. If sustained, rest your wrists periodically.")
+        case (.chat, _):
+            return ja("短いメッセージを頻繁に送信しています。まとめて入力するとキーストローク数を減らせます。",
+                      en: "Frequent short messages detected. Batching thoughts reduces total keystrokes.")
+        default:
+            return ja("まだ分析データが蓄積中です。しばらく入力を続けてください。",
+                      en: "Still gathering data. Keep typing to unlock personalized insights.")
+        }
+    }
+
     // MARK: - Menu Customization
 
     var customizeMenuMenuItem: String {

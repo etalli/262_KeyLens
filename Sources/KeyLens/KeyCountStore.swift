@@ -229,6 +229,10 @@ final class KeyCountStore {
     private(set) var recentIKIs: [(key: String, iki: Double)] = []
     private let recentIKICapacity = 6
 
+    // Larger ring buffer for rhythm classification (needs ~50 samples for stable CV).
+    private(set) var rhythmIKIs: [Double] = []
+    private let rhythmIKICapacity = 50
+
     // Manual WPM measurement session (Issue #150). All access on `queue`.
     var wpmSessionStart: Date? = nil
     var wpmSessionKeystrokes: Int = 0
@@ -352,6 +356,8 @@ final class KeyCountStore {
                     // Live ring buffer
                     recentIKIs.append((key: key, iki: intervalMs))
                     if recentIKIs.count > recentIKICapacity { recentIKIs.removeFirst() }
+                    rhythmIKIs.append(intervalMs)
+                    if rhythmIKIs.count > rhythmIKICapacity { rhythmIKIs.removeFirst() }
                     // IKI histogram bucket → SQLite pending
                     let bucket = KeyCountStore.ikiBucket(for: intervalMs)
                     pending.ikiBuckets[today, default: [:]][bucket, default: 0] += 1
