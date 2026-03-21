@@ -328,18 +328,26 @@ extension KeyCountStore {
     /// Allows the user to see how their real typing patterns would perform across layouts without
     /// needing to type on each layout or export data to an external tool.
     ///
-    /// - Returns: One entry per layout, sorted by hand-alternation rate descending (best first).
+    /// - Returns: One entry per layout. "Your Layout" is always first; the rest are sorted by ergonomic score descending.
     func layoutEfficiencyScores() -> [LayoutEfficiencyEntry] {
         let (bigrams, keyCounts) = queue.sync { (store.ergonomics.bigramCounts, store.counts) }
         guard !bigrams.isEmpty else { return [] }
+        let totalBigrams = bigrams.values.reduce(0, +)
 
-        let layouts: [(name: String, layout: any KeyboardLayout)] = [
-            ("QWERTY",  ANSILayout()),
-            ("Colemak", ColemakLayout()),
-            ("Dvorak",  DvorakLayout()),
-        ]
+        // Resolve the user's selected heatmap template from persistent storage.
+        // All physical templates (ANSI / Ortho / JIS / Custom) share standard ANSI
+        // touch-typing finger assignments, so ANSILayout() is the correct ergonomic model.
+        let templateRaw = UserDefaults.standard.string(forKey: "heatmapTemplate") ?? "ANSI"
+        let userLayoutLabel: String = {
+            switch templateRaw {
+            case "Ortho":   return "Your Layout (Ortho)"
+            case "JIS":     return "Your Layout (JIS)"
+            case "Custom":  return "Your Layout (Custom)"
+            default:        return "Your Layout (ANSI)"
+            }
+        }()
 
-        return layouts.map { layoutName, layout in
+        func makeEntry(name: String, layout: any KeyboardLayout, isUserLayout: Bool = false) -> LayoutEfficiencyEntry {
             let simRegistry = LayoutRegistry.forSimulation(layout: layout)
             let snapshot    = ErgonomicSnapshot.capture(
                 bigramCounts: bigrams,
@@ -347,15 +355,28 @@ extension KeyCountStore {
                 layout:       simRegistry
             )
             return LayoutEfficiencyEntry(
-                name:               layoutName,
-                sameFingerRate:     snapshot.sameFingerRate,
+                name:                name,
+                sameFingerRate:      snapshot.sameFingerRate,
                 handAlternationRate: snapshot.handAlternationRate,
-                ergonomicScore:     snapshot.ergonomicScore,
-                travelDistance:     snapshot.estimatedTravelDistance,
-                totalBigrams:       bigrams.values.reduce(0, +)
+                ergonomicScore:      snapshot.ergonomicScore,
+                travelDistance:      snapshot.estimatedTravelDistance,
+                totalBigrams:        totalBigrams,
+                isUserLayout:        isUserLayout
             )
         }
-        .sorted { $0.ergonomicScore > $1.ergonomicScore }
+
+        let userEntry = makeEntry(name: userLayoutLabel, layout: ANSILayout(), isUserLayout: true)
+
+        let alternatives: [(name: String, layout: any KeyboardLayout)] = [
+            ("QWERTY",  ANSILayout()),
+            ("Colemak", ColemakLayout()),
+            ("Dvorak",  DvorakLayout()),
+        ]
+        let sorted = alternatives
+            .map { makeEntry(name: $0.name, layout: $0.layout) }
+            .sorted { $0.ergonomicScore > $1.ergonomicScore }
+
+        return [userEntry] + sorted
     }
 }
 
