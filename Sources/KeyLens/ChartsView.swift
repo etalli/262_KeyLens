@@ -13,6 +13,8 @@ struct ChartsView: View {
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State var copiedSection: String? = nil
+    /// Key filter for the Slow Bigrams chart (Issue #99). Empty string = no filter.
+    @State var slowBigramKeyFilter: String = ""
     /// Title of the section whose image save just succeeded (cleared after 1.5 s).
     @State var savedSection: String? = nil
     /// Stores each chart section's SwiftUI global frame and the Charts NSWindow reference.

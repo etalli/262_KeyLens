@@ -53,16 +53,44 @@ extension ChartsView {
         let layout = ANSILayout()
         let fingers = ["Pinky", "Ring", "Middle", "Index", "Thumb"]
         let filtered: [SlowBigramEntry] = {
-            guard let sel = slowBigramFingerFilter else { return model.slowBigrams }
-            return model.slowBigrams.filter { entry in
-                guard let bigram = Bigram.parse(entry.bigram),
-                      let finger = layout.finger(for: bigram.to) else { return false }
-                return finger.rawValue.localizedCapitalized == sel
+            if !slowBigramKeyFilter.isEmpty {
+                // Key filter: search all bigrams from bigramIKIMap (not just the preloaded top-20).
+                let key = slowBigramKeyFilter.lowercased()
+                return model.bigramIKIMap
+                    .filter { bigram, _ in
+                        guard let b = Bigram.parse(bigram) else { return false }
+                        return b.from.lowercased() == key || b.to.lowercased() == key
+                    }
+                    .sorted { $0.value > $1.value }
+                    .prefix(20)
+                    .map { SlowBigramEntry((bigram: $0.key, avgIKI: $0.value)) }
+            } else if let sel = slowBigramFingerFilter {
+                return model.slowBigrams.filter { entry in
+                    guard let bigram = Bigram.parse(entry.bigram),
+                          let finger = layout.finger(for: bigram.to) else { return false }
+                    return finger.rawValue.localizedCapitalized == sel
+                }
+            } else {
+                return model.slowBigrams
             }
         }()
 
         VStack(alignment: .leading, spacing: 12) {
-            // Finger filter picker
+            // Key filter text field
+            HStack(spacing: 8) {
+                TextField(L10n.shared.slowBigramKeyFilterPlaceholder, text: $slowBigramKeyFilter)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 180)
+                if !slowBigramKeyFilter.isEmpty {
+                    Button { slowBigramKeyFilter = "" } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Finger filter picker (dimmed when key filter is active)
             HStack(spacing: 6) {
                 fingerFilterButton(label: "All", selected: slowBigramFingerFilter == nil) {
                     slowBigramFingerFilter = nil
@@ -73,6 +101,8 @@ extension ChartsView {
                     }
                 }
             }
+            .opacity(slowBigramKeyFilter.isEmpty ? 1 : 0.35)
+            .allowsHitTesting(slowBigramKeyFilter.isEmpty)
 
             if filtered.isEmpty {
                 Text(L10n.shared.slowBigramsNoData)

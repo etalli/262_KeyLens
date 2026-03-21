@@ -6,6 +6,7 @@ import KeyLensCore
 enum HeatmapMode: String, CaseIterable {
     case frequency = "Frequency"
     case strain    = "Strain"
+    case speed     = "Speed"
 }
 
 // MARK: - HeatmapTemplate
@@ -332,12 +333,35 @@ struct KeyboardHeatmapView: View {
 
     private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
 
+    // Speed score per key: average IKI across all bigrams in which the key participates.
+    // Requires ≥3 contributing bigrams to suppress noise from rarely-typed keys.
+    // キーごとの速度スコア：関連するビグラムのIKI平均値。データが少ないキーはnilとなる。
+    private var speedScores: [String: Double] {
+        let bigramIKI = KeyCountStore.shared.allBigramIKI()
+        var acc: [String: (sum: Double, count: Int)] = [:]
+        for (bigram, avgIKI) in bigramIKI {
+            guard let b = Bigram.parse(bigram) else { continue }
+            for key in [b.from, b.to] {
+                let e = acc[key] ?? (sum: 0, count: 0)
+                acc[key] = (sum: e.sum + avgIKI, count: e.count + 1)
+            }
+        }
+        return acc.compactMapValues { d -> Double? in
+            guard d.count >= 3 else { return nil }
+            return d.sum / Double(d.count)
+        }
+    }
+
     // Returns (count, max) for a key based on the current display mode.
     // 現在の表示モードに応じてキーの（カウント, 最大値）ペアを返す。
     private func keyDisplayValues(for keyName: String) -> (Int, Int) {
         switch mode {
         case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
         case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        case .speed:
+            let ms = speedScores[keyName] ?? 0
+            let maxMs = speedScores.values.max() ?? 1.0
+            return (Int(ms * 100), Int(maxMs * 100))
         }
     }
 
@@ -431,7 +455,9 @@ struct KeyboardHeatmapView: View {
                         .popover(isPresented: $showModeHelp, arrowEdge: .bottom) {
                             Text(mode == .strain
                                 ? L10n.shared.helpHeatmapStrain
-                                : L10n.shared.helpHeatmapFrequency
+                                : mode == .speed
+                                    ? L10n.shared.helpHeatmapSpeed
+                                    : L10n.shared.helpHeatmapFrequency
                             )
                             .font(.callout)
                             .padding(10)
@@ -468,6 +494,7 @@ struct KeyboardHeatmapView: View {
                 template: effectiveTemplate,
                 keyboardKeyNames: keyboardKeyNames,
                 strainScores: strainScores,
+                speedScores: speedScores,
                 selectedCellID: $selectedCellID,
                 customKeys: customKeys
             )
@@ -484,6 +511,7 @@ struct KeyboardHeatmapView: View {
             template: effectiveTemplate,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
+            speedScores: speedScores,
             customKeys: customKeys
         )
         .frame(width: 800) // Base width for export
@@ -533,6 +561,7 @@ struct KeyboardHeatmapView: View {
             template: effectiveTemplate,
             keyboardKeyNames: keyboardKeyNames,
             strainScores: strainScores,
+            speedScores: speedScores,
             customKeys: customKeys
         )
         .frame(width: 800)
@@ -560,6 +589,7 @@ struct HeatmapExportView: View {
     let template: HeatmapTemplate
     let keyboardKeyNames: Set<String>
     let strainScores: [String: Int]
+    var speedScores: [String: Double] = [:]
     var selectedCellID: Binding<String?>? = nil
     var customKeys: [KLEAbsoluteKey] = []
 
@@ -579,6 +609,7 @@ struct HeatmapExportView: View {
     }
 
     private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
+    private var maxSpeedScore: Double { speedScores.values.max() ?? 1.0 }
 
     private var keyboardFrameHeight: CGFloat {
         let rowH = keyHeight + keySpacing
@@ -600,7 +631,16 @@ struct HeatmapExportView: View {
         switch mode {
         case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
         case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        case .speed:
+            let ms = speedScores[keyName] ?? 0
+            return (Int(ms * 100), Int(maxSpeedScore * 100))
         }
+    }
+
+    // Returns the raw ms IKI value for speed tooltip, or nil if not in speed mode.
+    private func speedTooltipText(for keyName: String) -> String? {
+        guard mode == .speed, let ms = speedScores[keyName] else { return nil }
+        return L10n.shared.heatmapSpeedTooltip(ms)
     }
 
     // Returns the row definitions for the current template.
@@ -674,7 +714,8 @@ struct HeatmapExportView: View {
                                         max: displayMax,
                                         width: cellW,
                                         height: cellH,
-                                        tooltipStyle: mode == .strain ? .strain : .count
+                                        tooltipStyle: mode == .strain ? .strain : .count,
+                                        tooltipOverride: speedTooltipText(for: key.keyName)
                                     )
                                     .rotationEffect(.degrees(key.r))
                                     .offset(x: CGFloat(key.cx) * unitW - cellW / 2,
@@ -711,7 +752,8 @@ struct HeatmapExportView: View {
                         count: displayCount,
                         max: displayMax,
                         width: unitWidth * CGFloat(key.widthRatio),
-                        tooltipStyle: mode == .strain ? .strain : .count
+                        tooltipStyle: mode == .strain ? .strain : .count,
+                        tooltipOverride: speedTooltipText(for: key.keyName)
                     )
                 }
             }
@@ -745,7 +787,8 @@ struct HeatmapExportView: View {
         max: Int,
         width: CGFloat,
         height: CGFloat? = nil,
-        tooltipStyle: HeatmapTooltipStyle
+        tooltipStyle: HeatmapTooltipStyle,
+        tooltipOverride: String? = nil
     ) -> some View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
         let baseHue = ThemeStore.shared.current.heatmapBaseHue
@@ -783,7 +826,7 @@ struct HeatmapExportView: View {
                         Text(label)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text(tooltipText(for: count, style: tooltipStyle))
+                        Text(tooltipOverride ?? tooltipText(for: count, style: tooltipStyle))
                             .font(.callout.monospacedDigit())
                     }
                     .padding(10)
@@ -802,8 +845,8 @@ struct HeatmapExportView: View {
 
     private var legend: some View {
         let l = L10n.shared
-        let lowLabel  = mode == .strain ? "Low strain"  : l.heatmapLow
-        let highLabel = mode == .strain ? "High strain" : l.heatmapHigh
+        let lowLabel  = mode == .strain ? "Low strain"  : mode == .speed ? l.heatmapSpeedLow  : l.heatmapLow
+        let highLabel = mode == .strain ? "High strain" : mode == .speed ? l.heatmapSpeedHigh : l.heatmapHigh
         return HStack(spacing: 6) {
             Text(lowLabel).font(.caption2).foregroundStyle(.secondary)
             LinearGradient(

@@ -598,6 +598,27 @@ final class L10n {
         ja("負荷スコア: \(score.formatted())", en: "Strain: \(score.formatted())")
     }
 
+    var heatmapSpeedLow: String {
+        ja("速い", en: "Fast")
+    }
+
+    var heatmapSpeedHigh: String {
+        ja("遅い", en: "Slow")
+    }
+
+    var helpHeatmapSpeed: String {
+        ja("速度モード：ビグラムIKI（キー間隔）の平均値に基づいて各キーを色付けします。赤いキーが最も遅いキーです（3ビグラム以上のデータが必要）。",
+           en: "Speed mode: each key is colored by its average inter-keystroke interval (IKI) across related bigrams. Red = slowest key. Requires at least 3 bigrams of data per key.")
+    }
+
+    func heatmapSpeedTooltip(_ ms: Double) -> String {
+        ja(String(format: "平均IKI: %.0f ms", ms), en: String(format: "Avg IKI: %.0f ms", ms))
+    }
+
+    var slowBigramKeyFilterPlaceholder: String {
+        ja("キーで絞り込む (例: e)", en: "Filter by key (e.g. e)")
+    }
+
     // MARK: - Fatigue Detection (Issue #63)
 
     var fatigueCurveTitle: String {
