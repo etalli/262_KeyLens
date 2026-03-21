@@ -40,6 +40,14 @@ struct ChartsView: View {
     /// Controls the confirmation alert for clearing training history.
     @State var showClearHistoryAlert = false
 
+    // MARK: - Issue #62: Period Comparison state
+    /// Which preset is selected (0 = custom, 1 = this week vs last, 2 = this month vs last month)
+    @State var comparisonPreset: Int = 1
+    @State var comparisonAStart: Date = Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
+    @State var comparisonAEnd: Date   = Date()
+    @State var comparisonBStart: Date = Calendar.current.date(byAdding: .day, value: -13, to: Date()) ?? Date()
+    @State var comparisonBEnd: Date   = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。
     let recentIKIChartWidth: CGFloat = 560
@@ -92,6 +100,10 @@ struct ChartsView: View {
             trainingTab
                 .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }
                 .tag(ChartTab.training)
+
+            comparisonTab
+                .tabItem { Label(ChartTab.comparison.rawValue, systemImage: ChartTab.comparison.icon) }
+                .tag(ChartTab.comparison)
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

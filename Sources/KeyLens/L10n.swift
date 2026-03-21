@@ -1508,6 +1508,29 @@ final class L10n {
         }
     }
 
+    // MARK: - Period Comparison (Issue #62)
+
+    var chartTitlePeriodComparison: String { ja("期間比較", en: "Period Comparison") }
+    var comparisonPeriodA: String          { ja("期間 A", en: "Period A") }
+    var comparisonPeriodB: String          { ja("期間 B", en: "Period B") }
+    var comparisonFrom: String             { ja("開始", en: "From") }
+    var comparisonTo: String               { ja("終了", en: "To") }
+    var comparisonPresetCustom: String     { ja("カスタム", en: "Custom") }
+    var comparisonPresetWeek: String       { ja("今週 vs 先週", en: "This Week vs Last Week") }
+    var comparisonPresetMonth: String      { ja("今月 vs 先月", en: "This Month vs Last Month") }
+    var comparisonTotalKeys: String        { ja("合計打鍵数", en: "Total Keystrokes") }
+    var comparisonAvgPerDay: String        { ja("1日平均", en: "Avg / Day") }
+    var comparisonPeakDay: String          { ja("ピーク日", en: "Peak Day") }
+    var comparisonNoData: String           { ja("選択期間にデータがありません", en: "No data for the selected period") }
+    var comparisonDayOffset: String        { ja("日目", en: "Day") }
+
+    var helpPeriodComparison: String {
+        ja(
+            "任意の2期間を選んで打鍵数を重ね合わせて比較します。プリセットで今週/今月と前の期間を素早く選択できます。\n\nX軸は期間の開始からの経過日数を示します。",
+            en: "Compare keystroke totals across any two date ranges, overlaid on a single chart. Use the presets to quickly compare this week or month against the previous period.\n\nThe X-axis shows days elapsed from the start of each period."
+        )
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {

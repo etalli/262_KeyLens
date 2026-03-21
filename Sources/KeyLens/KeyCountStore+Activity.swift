@@ -481,6 +481,41 @@ extension KeyCountStore {
         }
     }
 
+    /// Per-day keystroke totals between two dates (inclusive), oldest first.
+    /// Days with no data are included with a count of 0.
+    func dailyTotals(from startDate: Date, to endDate: Date) -> [(date: String, total: Int)] {
+        let cal = Calendar.current
+        let start = min(startDate, endDate)
+        let end   = max(startDate, endDate)
+        return queue.sync {
+            guard let db = dbQueue else { return [] }
+            let startKey = Self.dayFormatter.string(from: start)
+            let endKey   = Self.dayFormatter.string(from: end)
+            var map: [String: Int] = [:]
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, SUM(count) as total FROM daily_keys
+                    WHERE date >= ? AND date <= ? GROUP BY date
+                    """, arguments: [startKey, endKey])
+            }) {
+                for row in rows { map[row["date"], default: 0] = (row["total"] as Int) }
+            }
+            for (date, keys) in pending.dailyKeys where date >= startKey && date <= endKey {
+                map[date, default: 0] += keys.values.reduce(0, +)
+            }
+            // Enumerate every calendar day in the range, filling zeros for missing days
+            var result: [(date: String, total: Int)] = []
+            var cursor = start
+            while cursor <= end {
+                let key = Self.dayFormatter.string(from: cursor)
+                result.append((date: key, total: map[key] ?? 0))
+                guard let next = cal.date(byAdding: .day, value: 1, to: cursor) else { break }
+                cursor = next
+            }
+            return result
+        }
+    }
+
     /// All daily totals sorted ascending by date.
     func dailyTotals() -> [(date: String, total: Int)] {
         queue.sync {
