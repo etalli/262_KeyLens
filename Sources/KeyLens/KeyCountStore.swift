@@ -204,6 +204,7 @@ final class KeyCountStore {
 
     var store: CountData
     let queue = DispatchQueue(label: "com.keycounter.store")
+    private let saveQueue = DispatchQueue(label: "com.keycounter.save", qos: .background)
 
     let saveURL: URL
     private var saveWorkItem: DispatchWorkItem?
@@ -642,16 +643,22 @@ final class KeyCountStore {
     /// Debounces JSON scalar writes: schedules a save 2 seconds after the last call.
     private func scheduleSave() {
         saveWorkItem?.cancel()
-        let item = DispatchWorkItem { [weak self] in self?.save() }
+        let item = DispatchWorkItem { [weak self] in self?.snapshotAndSave() }
         saveWorkItem = item
         queue.asyncAfter(deadline: .now() + 2.0, execute: item)
     }
 
-    private func save() {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        guard let data = try? encoder.encode(store) else { return }
-        try? data.write(to: saveURL, options: .atomic)
+    // Captures a snapshot of `store` on `queue`, then encodes and writes on `saveQueue`.
+    // This prevents JSON encoding (O(store size)) from blocking `queue.sync` in increment().
+    private func snapshotAndSave() {
+        let snapshot = store
+        let url = saveURL
+        saveQueue.async {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            guard let data = try? encoder.encode(snapshot) else { return }
+            try? data.write(to: url, options: .atomic)
+        }
     }
 
     private func load() {
