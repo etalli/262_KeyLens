@@ -12,14 +12,12 @@ English | [日本語](docs/README.ja.md)
 [![GitHub release](https://img.shields.io/github/v/release/etalli/262_KeyLens?style=flat-square&color=blue)](https://github.com/etalli/262_KeyLens/releases/latest)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
 
-**Optimize your keyboard layout with real-world typing data.**
+KeyLens is a macOS menu bar app that tracks your keystrokes locally and recommends ergonomic layout changes based on your actual usage.
 
-KeyLens is a powerful macOS tool that analyzes your typing habits locally to recommend ergonomic layout improvements tailored specifically to your usage patterns.
-
-KeyLens is designed so that **typed content cannot be reconstructed** from the stored data. Only aggregated statistics (counts and timing summaries) are kept.
+The stored data is key names and counts only — your actual typed content cannot be reconstructed from it.
 
 
-[**Visit the Official Page**](https://etalli.github.io/262_KeyLens/landing-page/) for a visual tour and deep dive into the optimization engine
+[**Official Page**](https://etalli.github.io/262_KeyLens/landing-page/) — screenshots and layout optimization walkthrough
 
 <table>
   <tr>
@@ -35,28 +33,28 @@ KeyLens is designed so that **typed content cannot be reconstructed** from the s
 
 ## Features
 
-- **Global recording** — Counts all keystrokes regardless of the active application
-- **Menu bar statistics** — Today's count, total count, average keystroke interval; customizable display (toggle and reorder widgets)
-- **Charts** — Keyboard Heatmap, Top Keys, Bigrams, Apps, Devices, Daily Totals, Ergonomic Learning Curve, Weekly Delta Report, and more
-- **Weekly Summary Card** — Auto-generates a shareable PNG snapshot of your weekly stats every Saturday; also available via Data menu at any time
-- **Keystroke Overlay** — Real-time floating window showing recent keystrokes (⌘C / ⇧A style)
+- **Global recording** — Counts keystrokes in any app, no exceptions
+- **Menu bar statistics** — Today's count, all-time total, average keystroke interval; toggle and reorder these widgets as you like
+- **Charts** — Keyboard heatmap, top keys, bigrams, apps, devices, daily totals, ergonomic learning curve, weekly delta report, and more
+- **Weekly Summary Card** — Generates a PNG of your weekly stats every Saturday; also available any time from the Data menu
+- **Keystroke Overlay** — Floating window showing recent keystrokes in real time (⌘C / ⇧A style)
 
 ---
 
 ## Quick Install
 
-1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** (or the ZIP version from the release page)
+1. Download **[KeyLens.dmg](https://github.com/etalli/262_KeyLens/releases/latest)** (or the ZIP from the release page)
 2. Open the DMG and drag **KeyLens.app** to `/Applications`
-3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer". Run the following command in Terminal:
+3. **Important (Security):** On first launch, macOS will block the app as it is from an "unidentified developer". Run this in Terminal:
 
    ```bash
    sudo xattr -rd com.apple.quarantine /Applications/KeyLens.app
    ```
 
-   Then launch the app normally from Finder or Spotlight.
-4. An alert will appear asking for **Accessibility** permission.
+   Then launch normally from Finder or Spotlight.
+4. An alert will ask for **Accessibility** permission.
    - Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**.
-5. Switch back to any app — the keyboard icon appears in your menu bar and monitoring starts.
+5. Switch to any app — the keyboard icon appears in your menu bar and monitoring starts.
 
 > **Note:** The app uses an ad-hoc signature. This manual override is required only once.
 
@@ -77,7 +75,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
-| **Settings…** | Customize Menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), backup/restore data, open log folder |
+| **Settings…** | Customize menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), backup/restore data, open log folder |
 
 ### Charts window
 
@@ -113,7 +111,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 |---------|---------------|
 | **Activity Calendar** | GitHub-style heatmap of daily keystroke activity |
 | **Weekly Report** | Last 7 days vs prior 7 days with trend arrows |
-| **Intelligence** | Inferred typing style and fatigue risk level |
+| **Typing Profile** | Inferred typing style and fatigue risk level |
 | **Mouse vs Keyboard Balance** | Daily ratio line showing whether you leaned toward mouse or keyboard (0% = keyboard-only, 100% = mouse-only) |
 
 #### Training tab
@@ -139,7 +137,7 @@ Export your keystroke data and analyze it with an AI assistant for layout optimi
 
 1. Open **Settings… > Data > Export CSV** to export your keystroke data as a CSV file
 2. Open **Settings… > Data > Edit AI Prompt** to review or customize the analysis prompt
-3. Copy the exported CSV content and paste it into an AI tool (e.g. Claude, ChatGPT) together with the prompt
+3. Copy the exported CSV and paste it into an AI tool (e.g. Claude, ChatGPT) along with the prompt
 
 **Example prompt workflow:**
 
@@ -168,7 +166,7 @@ The default prompt asks the AI to compute same-finger rates, hand alternation ra
 </table>
 </div>
 
-Toggle via **Overlay** in the menu, or press the global hotkey **⌃⌥O** from anywhere. Shows recent keystrokes in a floating window that fades after 3 seconds of inactivity. Position, size, and hotkey are configurable via the gear icon (⚙).
+Toggle via **Overlay** in the menu, or press **⌃⌥O** from anywhere. It shows recent keystrokes in a floating window that fades after 3 seconds. Position, size, and hotkey are all configurable via ⚙.
 
 ---
 
@@ -215,4 +213,4 @@ See [docs/HowToBuild.md](docs/HowToBuild.md) for prerequisites, build commands, 
 For internal design details, see [Architecture](docs/Architecture.md).
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
 
-Feedback welcome! Feel free to open an [issue](https://github.com/etalli/262_KeyLens/issues) for bug reports, feature requests, or questions.
+Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).

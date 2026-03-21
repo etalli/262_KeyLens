@@ -119,16 +119,16 @@
 <body>
   <div class="container">
     <h1>Claude Code Insights</h1>
-    <p class="subtitle">441 messages across 45 sessions (69 total) | 2026-02-21 to 2026-03-09</p>
+    <p class="subtitle">859 messages across 89 sessions (123 total) | 2026-02-21 to 2026-03-20</p>
 
     
     <div class="at-a-glance">
       <div class="glance-title">At a Glance</div>
       <div class="glance-sections">
-        <div class="glance-section"><strong>What's working:</strong> You've built a really effective issue-driven development loop — picking GitHub issues, implementing them, committing, and closing, sometimes knocking out 8+ features in a single session. Your habit of using Claude for feasibility analysis and planning before jumping into implementation keeps your KeyLens project well-organized and moving through milestones systematically. <a href="#section-wins" class="see-more">Impressive Things You Did →</a></div>
-        <div class="glance-section"><strong>What's hindering you:</strong> On Claude's side, it keeps ignoring your own CLAUDE.md conventions — wrong build commands, wrong language for responses, skipping the plan-first step — which is frustrating when you've taken the time to set those rules up. On your side, build permission issues from previous `sudo` builds have stalled multiple sessions, and initial requests sometimes lack enough specifics (exact sizing, expected behavior) for Claude to get the implementation right on the first try. <a href="#section-friction" class="see-more">Where Things Go Wrong →</a></div>
-        <div class="glance-section"><strong>Quick wins to try:</strong> Set up <strong>custom slash commands</strong> for your /issue and /release workflows — you've tried this before but hit formatting issues, and getting these locked in would save real time across your frequent release cycles. Also try <strong>hooks</strong> to auto-run your build script after edits, which would catch build failures immediately instead of discovering them later in the session. <a href="#section-features" class="see-more">Features to Try →</a></div>
-        <div class="glance-section"><strong>Ambitious workflows:</strong> As models get more capable, you could run <strong>parallel Claude agents</strong> on independent GitHub issues across separate branches — compressing those multi-issue sprint sessions from sequential to simultaneous. Your project is also well-positioned for a <strong>test-driven implementation loop</strong> where Claude writes tests from issue acceptance criteria first and iterates until they pass, which would eliminate the buggy first implementations that currently cost you extra rounds of debugging. <a href="#section-horizon" class="see-more">On the Horizon →</a></div>
+        <div class="glance-section"><strong>What's working:</strong> You&apos;ve built an impressive GitHub-driven development loop where Claude picks up issues, implements them, builds, commits, and closes — essentially a full-cycle dev partner for your KeyLens app. Your sessions are well-structured with clear task breakdowns, and you&apos;re shipping real releases (v0.55 through v0.61) end-to-end through Claude, including changelogs and announcements. <a href="#section-wins" class="see-more">Impressive Things You Did →</a></div>
+        <div class="glance-section"><strong>What's hindering you:</strong> On Claude&apos;s side, it frequently misreads the scope of what you&apos;re asking — modifying the wrong thing, claiming bugs are fixed when they aren&apos;t, or combining issues you wanted separate. On your side, chart and UI requests often go through multiple redesign rounds because the initial intent isn&apos;t fully specified, and your git/format preferences (like dmg.zip vs DMG) aren&apos;t always captured where Claude can reference them. <a href="#section-friction" class="see-more">Where Things Go Wrong →</a></div>
+        <div class="glance-section"><strong>Quick wins to try:</strong> Set up custom slash commands like `/release` and `/issue` to codify your release pipeline and issue implementation workflow — you attempted this once but it didn&apos;t stick, and it would eliminate repetitive setup each session. Also consider adding hooks to auto-run your build script after edits, so Claude can&apos;t claim something is fixed without proof. <a href="#section-features" class="see-more">Features to Try →</a></div>
+        <div class="glance-section"><strong>Ambitious workflows:</strong> As models get more capable, you should be ready for fully autonomous issue-to-PR pipelines where Claude picks an issue, branches, implements, builds, self-verifies, and opens a PR without your involvement. Your project is also a perfect candidate for parallel agents — spinning up multiple Claude instances to tackle independent issues simultaneously, turning a single-threaded workflow into sprint-style execution. <a href="#section-horizon" class="see-more">On the Horizon →</a></div>
       </div>
     </div>
     
@@ -145,11 +145,11 @@
     </nav>
 
     <div class="stats-row">
-      <div class="stat"><div class="stat-value">441</div><div class="stat-label">Messages</div></div>
-      <div class="stat"><div class="stat-value">+10,142/-827</div><div class="stat-label">Lines</div></div>
-      <div class="stat"><div class="stat-value">146</div><div class="stat-label">Files</div></div>
-      <div class="stat"><div class="stat-value">13</div><div class="stat-label">Days</div></div>
-      <div class="stat"><div class="stat-value">33.9</div><div class="stat-label">Msgs/Day</div></div>
+      <div class="stat"><div class="stat-value">859</div><div class="stat-label">Messages</div></div>
+      <div class="stat"><div class="stat-value">+12,550/-1,092</div><div class="stat-label">Lines</div></div>
+      <div class="stat"><div class="stat-value">239</div><div class="stat-label">Files</div></div>
+      <div class="stat"><div class="stat-value">22</div><div class="stat-label">Days</div></div>
+      <div class="stat"><div class="stat-value">39</div><div class="stat-label">Msgs/Day</div></div>
     </div>
 
     
@@ -159,41 +159,41 @@
         <div class="project-area">
           <div class="area-header">
             <span class="area-name">KeyLens macOS App Development</span>
-            <span class="area-count">~30 sessions</span>
+            <span class="area-count">~45 sessions</span>
           </div>
-          <div class="area-desc">Primary project: iterative development of a macOS keystroke/keyboard analytics app (renamed from KeyCounter → KeyStat → KeyLens). Claude Code was used extensively for feature implementation across multiple phases including heatmaps, keystroke overlays, break reminders, mouse distance tracking, ergonomic modeling, app-specific tracking, and chart/UI improvements. Multi-file changes, building, and testing were core activities.</div>
+          <div class="area-desc">Primary development of KeyLens, a macOS keystroke/mouse analytics app built in Swift/SwiftUI. Claude Code implemented dozens of GitHub issues including chart features (bigram charts, IKI histograms, finger IKI, WPM), keyboard rendering, mouse tracking, overlay hotkeys, menu customization, and UI polish. Heavy use of multi-file edits, builds, and iterative debugging.</div>
         </div>
       
         <div class="project-area">
           <div class="area-header">
-            <span class="area-name">Release Management &amp; GitHub Operations</span>
-            <span class="area-count">~10 sessions</span>
+            <span class="area-name">GitHub Issue &amp; Project Management</span>
+            <span class="area-count">~20 sessions</span>
           </div>
-          <div class="area-desc">Frequent use of Claude Code for version bumping, DMG building, GitHub Release creation with changelogs, tagging, pushing, and closing GitHub issues. Claude also helped set up custom slash commands for /issue and /release workflows, and managed contributor cleanup and git history modifications.</div>
+          <div class="area-desc">Creating, triaging, and managing GitHub issues for KeyLens, including batch issue creation, syncing roadmap docs with issue statuses, posting analysis comments, and prioritizing features across project phases. Claude was used to survey open issues, recommend priorities, and keep documentation aligned with development progress.</div>
         </div>
       
         <div class="project-area">
           <div class="area-header">
-            <span class="area-name">Documentation &amp; Project Management</span>
-            <span class="area-count">~8 sessions</span>
+            <span class="area-name">Release Pipeline &amp; Git Operations</span>
+            <span class="area-count">~15 sessions</span>
           </div>
-          <div class="area-desc">Claude Code was used to maintain and improve README files (including Japanese translations), extract architecture docs, simplify technical terminology, update roadmaps with issue references, validate CLAUDE.md rules, and manage project phase tracking. Markdown was the most-used language across all sessions.</div>
+          <div class="area-desc">Managing the full release workflow including version bumps, build scripts, DMG/zip packaging, GitHub release creation with changelogs, and branch/PR management. Claude handled git operations like merging, cherry-picking, conflict resolution, and branch cleanup, though occasional workflow errors (committing to main, format mismatches) required correction.</div>
         </div>
       
         <div class="project-area">
           <div class="area-header">
-            <span class="area-name">Patent Scraping Tool</span>
-            <span class="area-count">~2 sessions</span>
+            <span class="area-name">Documentation &amp; Architecture</span>
+            <span class="area-count">~12 sessions</span>
           </div>
-          <div class="area-desc">A Python-based patent scraping project where Claude helped build and debug a script for fetching patent abstracts with LLM-generated summaries. Sessions involved iterative debugging of JavaScript rendering issues, CSS selector fixes, and resolving virtual environment vs system Python mismatches.</div>
+          <div class="area-desc">Maintaining and improving project documentation including CLAUDE.md, Architecture.md, README syncing, and development docs. Claude analyzed project structure, identified redundancies, restructured docs, updated architecture diagrams, and managed license changes (Apache 2.0 with badge).</div>
         </div>
       
         <div class="project-area">
           <div class="area-header">
-            <span class="area-name">Keyboard Key Code Checker App</span>
-            <span class="area-count">~4 sessions</span>
+            <span class="area-name">Data Architecture &amp; SQLite Migration</span>
+            <span class="area-count">~7 sessions</span>
           </div>
-          <div class="area-desc">Development of a companion macOS app for checking keyboard key codes, with Claude implementing features like best WPM tracking, flash animations, dark mode, layout restructuring, and event.repeat detection. Claude also helped brainstorm improvement ideas and plan new features.</div>
+          <div class="area-desc">Migrating KeyLens from its existing data layer to SQLite/GRDB, implementing SQLite export functionality, and exploring new data analysis possibilities like mouse distance tracking and session detection. Claude investigated schemas, implemented the migration, wrote tests, and analyzed what metrics could be derived from collected data.</div>
         </div>
       
     </div>
@@ -203,34 +203,34 @@
       <div class="chart-card">
         <div class="chart-title">What You Wanted</div>
         <div class="bar-row">
-        <div class="bar-label">Git Operations</div>
+        <div class="bar-label">Implement Github Issue</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#2563eb"></div></div>
-        <div class="bar-value">19</div>
+        <div class="bar-value">29</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Feature Implementation</div>
-        <div class="bar-track"><div class="bar-fill" style="width:68.42105263157895%;background:#2563eb"></div></div>
-        <div class="bar-value">13</div>
+        <div class="bar-label">Git Operations</div>
+        <div class="bar-track"><div class="bar-fill" style="width:89.65517241379311%;background:#2563eb"></div></div>
+        <div class="bar-value">26</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Implement Feature</div>
-        <div class="bar-track"><div class="bar-fill" style="width:42.10526315789473%;background:#2563eb"></div></div>
-        <div class="bar-value">8</div>
+        <div class="bar-track"><div class="bar-fill" style="width:62.06896551724138%;background:#2563eb"></div></div>
+        <div class="bar-value">18</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Implement Github Issue</div>
-        <div class="bar-track"><div class="bar-fill" style="width:42.10526315789473%;background:#2563eb"></div></div>
-        <div class="bar-value">8</div>
+        <div class="bar-label">Bug Fix</div>
+        <div class="bar-track"><div class="bar-fill" style="width:58.620689655172406%;background:#2563eb"></div></div>
+        <div class="bar-value">17</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Documentation Update</div>
-        <div class="bar-track"><div class="bar-fill" style="width:31.57894736842105%;background:#2563eb"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-label">Create Github Issue</div>
+        <div class="bar-track"><div class="bar-fill" style="width:51.724137931034484%;background:#2563eb"></div></div>
+        <div class="bar-value">15</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Feature Addition</div>
-        <div class="bar-track"><div class="bar-fill" style="width:31.57894736842105%;background:#2563eb"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-label">Feature Implementation</div>
+        <div class="bar-track"><div class="bar-fill" style="width:51.724137931034484%;background:#2563eb"></div></div>
+        <div class="bar-value">15</div>
       </div>
       </div>
       <div class="chart-card">
@@ -238,32 +238,32 @@
         <div class="bar-row">
         <div class="bar-label">Bash</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#0891b2"></div></div>
-        <div class="bar-value">395</div>
-      </div>
-<div class="bar-row">
-        <div class="bar-label">Edit</div>
-        <div class="bar-track"><div class="bar-fill" style="width:75.69620253164557%;background:#0891b2"></div></div>
-        <div class="bar-value">299</div>
+        <div class="bar-value">1028</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Read</div>
-        <div class="bar-track"><div class="bar-fill" style="width:74.17721518987341%;background:#0891b2"></div></div>
-        <div class="bar-value">293</div>
+        <div class="bar-track"><div class="bar-fill" style="width:47.081712062256805%;background:#0891b2"></div></div>
+        <div class="bar-value">484</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Edit</div>
+        <div class="bar-track"><div class="bar-fill" style="width:44.260700389105054%;background:#0891b2"></div></div>
+        <div class="bar-value">455</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">TodoWrite</div>
-        <div class="bar-track"><div class="bar-fill" style="width:45.56962025316456%;background:#0891b2"></div></div>
-        <div class="bar-value">180</div>
-      </div>
-<div class="bar-row">
-        <div class="bar-label">Write</div>
-        <div class="bar-track"><div class="bar-fill" style="width:15.18987341772152%;background:#0891b2"></div></div>
-        <div class="bar-value">60</div>
+        <div class="bar-track"><div class="bar-fill" style="width:19.64980544747082%;background:#0891b2"></div></div>
+        <div class="bar-value">202</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Grep</div>
-        <div class="bar-track"><div class="bar-fill" style="width:15.18987341772152%;background:#0891b2"></div></div>
-        <div class="bar-value">60</div>
+        <div class="bar-track"><div class="bar-fill" style="width:8.268482490272373%;background:#0891b2"></div></div>
+        <div class="bar-value">85</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Write</div>
+        <div class="bar-track"><div class="bar-fill" style="width:7.101167315175097%;background:#0891b2"></div></div>
+        <div class="bar-value">73</div>
       </div>
       </div>
     </div>
@@ -274,31 +274,31 @@
         <div class="bar-row">
         <div class="bar-label">Markdown</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#10b981"></div></div>
-        <div class="bar-value">153</div>
+        <div class="bar-value">222</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">JavaScript</div>
-        <div class="bar-track"><div class="bar-fill" style="width:17.647058823529413%;background:#10b981"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:12.162162162162163%;background:#10b981"></div></div>
         <div class="bar-value">27</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Python</div>
-        <div class="bar-track"><div class="bar-fill" style="width:8.49673202614379%;background:#10b981"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:5.8558558558558556%;background:#10b981"></div></div>
         <div class="bar-value">13</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Shell</div>
-        <div class="bar-track"><div class="bar-fill" style="width:4.57516339869281%;background:#10b981"></div></div>
+        <div class="bar-label">HTML</div>
+        <div class="bar-track"><div class="bar-fill" style="width:3.153153153153153%;background:#10b981"></div></div>
         <div class="bar-value">7</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">HTML</div>
-        <div class="bar-track"><div class="bar-fill" style="width:3.9215686274509802%;background:#10b981"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-label">Shell</div>
+        <div class="bar-track"><div class="bar-fill" style="width:3.153153153153153%;background:#10b981"></div></div>
+        <div class="bar-value">7</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">JSON</div>
-        <div class="bar-track"><div class="bar-fill" style="width:2.6143790849673203%;background:#10b981"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:1.8018018018018018%;background:#10b981"></div></div>
         <div class="bar-value">4</div>
       </div>
       </div>
@@ -307,22 +307,27 @@
         <div class="bar-row">
         <div class="bar-label">Multi Task</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#8b5cf6"></div></div>
-        <div class="bar-value">28</div>
-      </div>
-<div class="bar-row">
-        <div class="bar-label">Iterative Refinement</div>
-        <div class="bar-track"><div class="bar-fill" style="width:35.714285714285715%;background:#8b5cf6"></div></div>
-        <div class="bar-value">10</div>
-      </div>
-<div class="bar-row">
-        <div class="bar-label">Exploration</div>
-        <div class="bar-track"><div class="bar-fill" style="width:17.857142857142858%;background:#8b5cf6"></div></div>
-        <div class="bar-value">5</div>
+        <div class="bar-value">60</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Single Task</div>
-        <div class="bar-track"><div class="bar-fill" style="width:7.142857142857142%;background:#8b5cf6"></div></div>
-        <div class="bar-value">2</div>
+        <div class="bar-track"><div class="bar-fill" style="width:18.333333333333332%;background:#8b5cf6"></div></div>
+        <div class="bar-value">11</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Iterative Refinement</div>
+        <div class="bar-track"><div class="bar-fill" style="width:18.333333333333332%;background:#8b5cf6"></div></div>
+        <div class="bar-value">11</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Exploration</div>
+        <div class="bar-track"><div class="bar-fill" style="width:10%;background:#8b5cf6"></div></div>
+        <div class="bar-value">6</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Quick Question</div>
+        <div class="bar-track"><div class="bar-fill" style="width:1.6666666666666667%;background:#8b5cf6"></div></div>
+        <div class="bar-value">1</div>
       </div>
       </div>
     </div>
@@ -330,9 +335,9 @@
     
     <h2 id="section-usage">How You Use Claude Code</h2>
     <div class="narrative">
-      <p>You are a <strong>prolific project manager who treats Claude as a full-stack development partner</strong>, not just a coding assistant. Across 45 sessions in just over two weeks, you drove the KeyLens macOS app from early stages through multiple releases, consistently using a pattern of surveying GitHub issues, picking tasks, having Claude implement them, then committing, tagging, and releasing — often all in a single session. Your <strong>heavy use of TodoWrite (180 calls)</strong> reveals a structured, checklist-driven workflow where you break work into trackable items and march through them methodically. You frequently run marathon sessions where Claude implements 5-8 features/fixes in sequence, like your session picking the easiest GitHub issues and knocking out ~8 in one go.</p>
-<p>Your interaction style is <strong>directive but iterative</strong> — you give clear high-level goals (&quot;implement Phase 1 issues #25-#29&quot;, &quot;release v0.44 with DMG&quot;) and let Claude run with Bash (395 calls) and Edit (299 calls) autonomously, but you <strong>course-correct quickly when things drift</strong>. For example, you interrupted when Claude started adding excessive schema detail to the README, and you caught when release notes were written in Japanese instead of English. You also validate Claude's work through build-test cycles rather than reviewing code line-by-line, which explains your high fully-achieved rate (71%). Your workflow heavily integrates git operations (your top goal category at 19 sessions), treating Claude as your release engineer for version bumps, DMG builds, and GitHub releases. The friction you encounter is mostly environmental — permission errors, rate limits, venv mismatches — rather than fundamental misunderstandings, which speaks to how well-calibrated your prompting has become.</p>
-      <div class="key-insight"><strong>Key pattern:</strong> You operate as a project manager running structured sprints, delegating implementation and release engineering to Claude while maintaining tight control over scope and direction through quick course corrections.</div>
+      <p>You are a <strong>prolific, issue-driven developer</strong> who uses Claude Code as a full-stack development partner for your macOS app KeyLens. Across 89 sessions in a single month, you&apos;ve established a highly productive workflow centered around GitHub issues — picking them, implementing them, creating new ones, and closing them. Your typical session involves pointing Claude at a GitHub issue number and letting it handle the full cycle: <strong>reading the issue, editing multiple Swift files, building, committing, pushing, and closing the issue</strong>. With 202 TodoWrite calls and 48 multi-file change successes, you clearly trust Claude to orchestrate complex, multi-step tasks autonomously. Your 70 commits across 308 hours show you&apos;re shipping constantly, often bundling several features into a session and capping it off with a release pipeline.</p>
+<p>Your interaction style is <strong>iterative but delegation-heavy</strong>. You don&apos;t write detailed upfront specs — instead you point Claude at an issue and let it run, course-correcting when it goes wrong. The friction data reveals a telling pattern: misunderstood requests (19 instances) and wrong approaches (17 instances) are your most common issues, but you handle them quickly with brief corrections rather than lengthy explanations. For example, when Claude modified `topKeys()` filtering instead of just removing a UI row, you corrected it twice and moved on. When a chart fix was claimed done but wasn&apos;t, you simply sent a screenshot. You&apos;re <strong>tolerant of mistakes but expect fast recovery</strong>, and your 90%+ satisfaction rate confirms Claude mostly delivers. You also use Claude for non-coding tasks like syncing roadmap docs, creating GitHub issue comments with analysis, drafting X posts, and managing git operations — treating it as a true project co-pilot rather than just a code editor.</p>
+      <div class="key-insight"><strong>Key pattern:</strong> You operate as an issue-driven project manager who delegates full implementation cycles to Claude, steering with brief corrections rather than detailed specifications.</div>
     </div>
     
 
@@ -341,41 +346,41 @@
       <div class="chart-title">User Response Time Distribution</div>
       <div class="bar-row">
         <div class="bar-label">2-10s</div>
-        <div class="bar-track"><div class="bar-fill" style="width:31.25%;background:#6366f1"></div></div>
-        <div class="bar-value">30</div>
+        <div class="bar-track"><div class="bar-fill" style="width:38.18181818181819%;background:#6366f1"></div></div>
+        <div class="bar-value">63</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">10-30s</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1"></div></div>
-        <div class="bar-value">96</div>
+        <div class="bar-value">165</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">30s-1m</div>
-        <div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1"></div></div>
-        <div class="bar-value">96</div>
+        <div class="bar-track"><div class="bar-fill" style="width:90.9090909090909%;background:#6366f1"></div></div>
+        <div class="bar-value">150</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">1-2m</div>
-        <div class="bar-track"><div class="bar-fill" style="width:60.416666666666664%;background:#6366f1"></div></div>
-        <div class="bar-value">58</div>
+        <div class="bar-track"><div class="bar-fill" style="width:69.6969696969697%;background:#6366f1"></div></div>
+        <div class="bar-value">115</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">2-5m</div>
-        <div class="bar-track"><div class="bar-fill" style="width:33.33333333333333%;background:#6366f1"></div></div>
-        <div class="bar-value">32</div>
+        <div class="bar-track"><div class="bar-fill" style="width:47.27272727272727%;background:#6366f1"></div></div>
+        <div class="bar-value">78</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">5-15m</div>
-        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#6366f1"></div></div>
-        <div class="bar-value">24</div>
+        <div class="bar-track"><div class="bar-fill" style="width:35.15151515151515%;background:#6366f1"></div></div>
+        <div class="bar-value">58</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">>15m</div>
-        <div class="bar-track"><div class="bar-fill" style="width:7.291666666666667%;background:#6366f1"></div></div>
-        <div class="bar-value">7</div>
+        <div class="bar-track"><div class="bar-fill" style="width:15.757575757575756%;background:#6366f1"></div></div>
+        <div class="bar-value">26</div>
       </div>
       <div style="font-size: 12px; color: #64748b; margin-top: 8px;">
-        Median: 40.0s &bull; Average: 118.1s
+        Median: 46.4s &bull; Average: 160.1s
       </div>
     </div>
 
@@ -385,15 +390,15 @@
       
         <div style="display: flex; gap: 24px; margin: 12px 0;">
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">1</div>
+            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">9</div>
             <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">Overlap Events</div>
           </div>
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">2</div>
+            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">15</div>
             <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">Sessions Involved</div>
           </div>
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">1%</div>
+            <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">6%</div>
             <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">Of Messages</div>
           </div>
         </div>
@@ -422,26 +427,26 @@
         <div id="hour-histogram">
       <div class="bar-row">
         <div class="bar-label">Morning (6-12)</div>
-        <div class="bar-track"><div class="bar-fill" style="width:80.92485549132948%;background:#8b5cf6"></div></div>
-        <div class="bar-value">140</div>
+        <div class="bar-track"><div class="bar-fill" style="width:56.39810426540285%;background:#8b5cf6"></div></div>
+        <div class="bar-value">238</div>
       </div>
 
       <div class="bar-row">
         <div class="bar-label">Afternoon (12-18)</div>
-        <div class="bar-track"><div class="bar-fill" style="width:33.52601156069364%;background:#8b5cf6"></div></div>
-        <div class="bar-value">58</div>
+        <div class="bar-track"><div class="bar-fill" style="width:16.350710900473935%;background:#8b5cf6"></div></div>
+        <div class="bar-value">69</div>
       </div>
 
       <div class="bar-row">
         <div class="bar-label">Evening (18-24)</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#8b5cf6"></div></div>
-        <div class="bar-value">173</div>
+        <div class="bar-value">422</div>
       </div>
 
       <div class="bar-row">
         <div class="bar-label">Night (0-6)</div>
-        <div class="bar-track"><div class="bar-fill" style="width:40.46242774566474%;background:#8b5cf6"></div></div>
-        <div class="bar-value">70</div>
+        <div class="bar-track"><div class="bar-fill" style="width:30.80568720379147%;background:#8b5cf6"></div></div>
+        <div class="bar-value">130</div>
       </div></div>
       </div>
       <div class="chart-card">
@@ -449,54 +454,54 @@
         <div class="bar-row">
         <div class="bar-label">Command Failed</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#dc2626"></div></div>
-        <div class="bar-value">27</div>
+        <div class="bar-value">54</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Other</div>
-        <div class="bar-track"><div class="bar-fill" style="width:88.88888888888889%;background:#dc2626"></div></div>
-        <div class="bar-value">24</div>
+        <div class="bar-track"><div class="bar-fill" style="width:74.07407407407408%;background:#dc2626"></div></div>
+        <div class="bar-value">40</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">File Not Found</div>
-        <div class="bar-track"><div class="bar-fill" style="width:25.925925925925924%;background:#dc2626"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:12.962962962962962%;background:#dc2626"></div></div>
         <div class="bar-value">7</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Edit Failed</div>
-        <div class="bar-track"><div class="bar-fill" style="width:7.4074074074074066%;background:#dc2626"></div></div>
-        <div class="bar-value">2</div>
-      </div>
-<div class="bar-row">
         <div class="bar-label">User Rejected</div>
-        <div class="bar-track"><div class="bar-fill" style="width:7.4074074074074066%;background:#dc2626"></div></div>
-        <div class="bar-value">2</div>
+        <div class="bar-track"><div class="bar-fill" style="width:9.25925925925926%;background:#dc2626"></div></div>
+        <div class="bar-value">5</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">File Changed</div>
-        <div class="bar-track"><div class="bar-fill" style="width:3.7037037037037033%;background:#dc2626"></div></div>
-        <div class="bar-value">1</div>
+        <div class="bar-track"><div class="bar-fill" style="width:7.4074074074074066%;background:#dc2626"></div></div>
+        <div class="bar-value">4</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Edit Failed</div>
+        <div class="bar-track"><div class="bar-fill" style="width:5.555555555555555%;background:#dc2626"></div></div>
+        <div class="bar-value">3</div>
       </div>
       </div>
     </div>
 
     
     <h2 id="section-wins">Impressive Things You Did</h2>
-    <p class="section-intro">You've been intensively developing KeyLens, a macOS keystroke analytics app, shipping 37 commits across 45 sessions with a 71% full-achievement rate.</p>
+    <p class="section-intro">You&apos;ve had an exceptionally productive month with Claude Code across 89 sessions on your KeyLens macOS app, achieving full or mostly-achieved outcomes in 90% of sessions with a remarkably high satisfaction rate.</p>
     <div class="big-wins">
       
         <div class="big-win">
-          <div class="big-win-title">GitHub Issue-Driven Development Loop</div>
-          <div class="big-win-desc">You've built a highly structured workflow where you pick GitHub issues, implement them, commit, push, and close — often handling multiple issues per session. Your sessions implementing Phase 0, Phase 1, and Phase 2 features show disciplined milestone-based delivery, with Claude acting as your full-stack implementer across 8+ features in a single sitting.</div>
+          <div class="big-win-title">GitHub-Driven Development Pipeline</div>
+          <div class="big-win-desc">You&apos;ve built a highly effective workflow where you use Claude to triage GitHub issues, pick the next one to implement, code the solution, build, commit, push, and close the issue — all within a single session. With 29 sessions focused on implementing GitHub issues and 70 commits produced, you&apos;re treating Claude as a full-cycle development partner rather than just a code assistant.</div>
+        </div>
+      
+        <div class="big-win">
+          <div class="big-win-title">Structured Task Management with TodoWrite</div>
+          <div class="big-win-desc">Your heavy use of TodoWrite (202 invocations) shows you&apos;re effectively breaking complex sessions into tracked subtasks. This is especially evident in your multi-feature sessions where you implement several issues, manage releases, and update documentation all in one sitting — keeping everything organized and on track.</div>
         </div>
       
         <div class="big-win">
           <div class="big-win-title">End-to-End Release Automation</div>
-          <div class="big-win-desc">You've streamlined your release process by having Claude handle version bumps, DMG builds, changelog generation, GitHub Release creation, and tag management all in one session. This ship-ready pipeline lets you go from code complete to published release with minimal manual intervention.</div>
-        </div>
-      
-        <div class="big-win">
-          <div class="big-win-title">Strategic Planning Before Building</div>
-          <div class="big-win-desc">You consistently use Claude for ideation and feasibility analysis before committing to implementation — exploring feature ideas, posting analysis as GitHub issue comments, creating detailed plans, and triaging your roadmap. This think-first approach keeps your project well-organized and ensures you're building the right things.</div>
+          <div class="big-win-desc">You&apos;ve developed a smooth release pipeline where Claude handles version bumps, DMG builds, GitHub releases with changelog summaries, and even drafting X posts for announcements. Shipping multiple KeyLens releases (v0.55 through v0.61) this way shows you&apos;ve turned Claude into a reliable release engineering tool.</div>
         </div>
       
     </div>
@@ -508,75 +513,80 @@
         <div class="bar-row">
         <div class="bar-label">Multi-file Changes</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#16a34a"></div></div>
-        <div class="bar-value">25</div>
+        <div class="bar-value">48</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Correct Code Edits</div>
-        <div class="bar-track"><div class="bar-fill" style="width:36%;background:#16a34a"></div></div>
-        <div class="bar-value">9</div>
+        <div class="bar-track"><div class="bar-fill" style="width:43.75%;background:#16a34a"></div></div>
+        <div class="bar-value">21</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Good Explanations</div>
-        <div class="bar-track"><div class="bar-fill" style="width:20%;background:#16a34a"></div></div>
-        <div class="bar-value">5</div>
-      </div>
-<div class="bar-row">
-        <div class="bar-label">Proactive Help</div>
-        <div class="bar-track"><div class="bar-fill" style="width:8%;background:#16a34a"></div></div>
-        <div class="bar-value">2</div>
+        <div class="bar-track"><div class="bar-fill" style="width:20.833333333333336%;background:#16a34a"></div></div>
+        <div class="bar-value">10</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Good Debugging</div>
-        <div class="bar-track"><div class="bar-fill" style="width:8%;background:#16a34a"></div></div>
-        <div class="bar-value">2</div>
+        <div class="bar-track"><div class="bar-fill" style="width:8.333333333333332%;background:#16a34a"></div></div>
+        <div class="bar-value">4</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Proactive Help</div>
+        <div class="bar-track"><div class="bar-fill" style="width:6.25%;background:#16a34a"></div></div>
+        <div class="bar-value">3</div>
+      </div>
+<div class="bar-row">
+        <div class="bar-label">Fast/Accurate Search</div>
+        <div class="bar-track"><div class="bar-fill" style="width:2.083333333333333%;background:#16a34a"></div></div>
+        <div class="bar-value">1</div>
       </div>
       </div>
       <div class="chart-card">
         <div class="chart-title">Outcomes</div>
         <div class="bar-row">
         <div class="bar-label">Not Achieved</div>
-        <div class="bar-track"><div class="bar-fill" style="width:3.125%;background:#8b5cf6"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:1.7543859649122806%;background:#8b5cf6"></div></div>
         <div class="bar-value">1</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Partially Achieved</div>
-        <div class="bar-track"><div class="bar-fill" style="width:18.75%;background:#8b5cf6"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-track"><div class="bar-fill" style="width:14.035087719298245%;background:#8b5cf6"></div></div>
+        <div class="bar-value">8</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Mostly Achieved</div>
-        <div class="bar-track"><div class="bar-fill" style="width:18.75%;background:#8b5cf6"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-track"><div class="bar-fill" style="width:40.35087719298245%;background:#8b5cf6"></div></div>
+        <div class="bar-value">23</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Fully Achieved</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#8b5cf6"></div></div>
-        <div class="bar-value">32</div>
+        <div class="bar-value">57</div>
       </div>
       </div>
     </div>
 
     
     <h2 id="section-friction">Where Things Go Wrong</h2>
-    <p class="section-intro">Your workflow shows recurring friction from Claude not following project conventions, generating buggy first implementations, and struggling with macOS build/permission issues.</p>
+    <p class="section-intro">Your main friction points revolve around Claude misunderstanding your intent on first attempt, producing incorrect fixes it claims are done, and not following your preferred workflows autonomously.</p>
     <div class="friction-categories">
       
         <div class="friction-category">
-          <div class="friction-title">Ignoring Project Conventions (CLAUDE.md)</div>
-          <div class="friction-desc">Claude repeatedly missed rules defined in your CLAUDE.md, such as using the wrong build command, responding in the wrong language, or skipping the plan-before-implement step. You could try reinforcing critical conventions at the start of sessions or adding them to custom instructions.</div>
-          <ul class="friction-examples"><li>Claude used `swift build` instead of `./build.sh` as required by CLAUDE.md, breaking the expected workflow</li><li>Claude wrote release notes in Japanese when you wanted English, missing the language convention rule</li></ul>
+          <div class="friction-title">Misunderstood Requirements Leading to Rework</div>
+          <div class="friction-desc">Claude frequently misinterprets the scope or intent of your requests, forcing you to correct it multiple times. Being more specific upfront about what should and shouldn&apos;t change—or referencing the exact UI element/code location—can reduce these back-and-forth cycles.</div>
+          <ul class="friction-examples"><li>Claude misunderstood issue #162, modifying topKeys() filtering instead of just removing the Delete stat row, requiring you to correct it twice before it got the right scope</li><li>Claude initially designed the mouse/keyboard chart with dual bars and mismatched scales, requiring you to go through multiple iterations (normalization, then ratio line, then axis label fixes) to get what you wanted</li></ul>
         </div>
       
         <div class="friction-category">
-          <div class="friction-title">Buggy or Incorrect First Implementations</div>
-          <div class="friction-desc">Your sessions frequently required iteration cycles because Claude's initial implementation had layout bugs, wrong UI sizing, or incorrect logic. You might reduce this by providing more specific constraints upfront (e.g., exact dimensions, expected behavior) rather than relying on Claude to guess reasonable defaults.</div>
-          <ul class="friction-examples"><li>First popover implementation had text cut off due to a too-small window size, requiring a follow-up fix</li><li>The keystroke overlay showed '...' due to an NSHostingController retain leak and layout timing issues, triggering a full debugging cycle</li></ul>
+          <div class="friction-title">False Completion Claims on Bug Fixes</div>
+          <div class="friction-desc">Claude sometimes claims a fix is done when it isn&apos;t actually resolved, wasting your time verifying and re-requesting. You may want to ask Claude to show proof of the fix (build output, test results, or screenshots) before accepting completion.</div>
+          <ul class="friction-examples"><li>Chart X-axis label fix (#157) was claimed fixed but wasn&apos;t actually resolved until you pointed out it was still broken with a screenshot</li><li>Clipboard copy had wrong colors and required multiple failed debugging attempts before the real issue was found, with intermediate claims of progress that didn&apos;t hold up</li></ul>
         </div>
       
         <div class="friction-category">
-          <div class="friction-title">Build and Environment Permission Failures</div>
-          <div class="friction-desc">You hit repeated build failures from root-owned files and permission issues that Claude couldn't resolve from within its sandbox, stalling your sessions. Consider ensuring clean file ownership before starting sessions, and avoid using `sudo` for builds to prevent these cascading permission problems.</div>
-          <ul class="friction-examples"><li>Build failed twice due to root-owned files from a previous `sudo` build, requiring you to manually fix permissions in the terminal</li><li>Claude installed a Python package in a venv but you kept running with system python3, and the shebang fix didn't resolve the mismatch</li></ul>
+          <div class="friction-title">Workflow and Convention Mismatches</div>
+          <div class="friction-desc">Claude doesn&apos;t always follow your preferred git workflows, output formats, or autonomy expectations, causing unnecessary interruptions. Consider documenting these preferences in your CLAUDE.md so Claude consistently follows them.</div>
+          <ul class="friction-examples"><li>Claude committed directly to main instead of a feature branch, requiring git cleanup—a workflow convention it should have followed automatically</li><li>Claude created a DMG output instead of your preferred dmg.zip format, and separately asked for permission on git commands when you expected it to proceed autonomously</li></ul>
         </div>
       
     </div>
@@ -586,33 +596,33 @@
       <div class="chart-card">
         <div class="chart-title">Primary Friction Types</div>
         <div class="bar-row">
-        <div class="bar-label">Buggy Code</div>
+        <div class="bar-label">Misunderstood Request</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#dc2626"></div></div>
-        <div class="bar-value">8</div>
+        <div class="bar-value">19</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Wrong Approach</div>
-        <div class="bar-track"><div class="bar-fill" style="width:87.5%;background:#dc2626"></div></div>
-        <div class="bar-value">7</div>
+        <div class="bar-track"><div class="bar-fill" style="width:89.47368421052632%;background:#dc2626"></div></div>
+        <div class="bar-value">17</div>
       </div>
 <div class="bar-row">
-        <div class="bar-label">Misunderstood Request</div>
-        <div class="bar-track"><div class="bar-fill" style="width:75%;background:#dc2626"></div></div>
-        <div class="bar-value">6</div>
+        <div class="bar-label">Buggy Code</div>
+        <div class="bar-track"><div class="bar-fill" style="width:89.47368421052632%;background:#dc2626"></div></div>
+        <div class="bar-value">17</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Tool Limitation</div>
-        <div class="bar-track"><div class="bar-fill" style="width:62.5%;background:#dc2626"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:26.31578947368421%;background:#dc2626"></div></div>
         <div class="bar-value">5</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Permission Errors</div>
-        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#dc2626"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:10.526315789473683%;background:#dc2626"></div></div>
         <div class="bar-value">2</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Environment Issue</div>
-        <div class="bar-track"><div class="bar-fill" style="width:25%;background:#dc2626"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:10.526315789473683%;background:#dc2626"></div></div>
         <div class="bar-value">2</div>
       </div>
       </div>
@@ -620,28 +630,28 @@
         <div class="chart-title">Inferred Satisfaction (model-estimated)</div>
         <div class="bar-row">
         <div class="bar-label">Frustrated</div>
-        <div class="bar-track"><div class="bar-fill" style="width:0.7299270072992701%;background:#eab308"></div></div>
-        <div class="bar-value">1</div>
+        <div class="bar-track"><div class="bar-fill" style="width:0.7874015748031495%;background:#eab308"></div></div>
+        <div class="bar-value">2</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Dissatisfied</div>
-        <div class="bar-track"><div class="bar-fill" style="width:6.569343065693431%;background:#eab308"></div></div>
-        <div class="bar-value">9</div>
+        <div class="bar-track"><div class="bar-fill" style="width:6.299212598425196%;background:#eab308"></div></div>
+        <div class="bar-value">16</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Likely Satisfied</div>
         <div class="bar-track"><div class="bar-fill" style="width:100%;background:#eab308"></div></div>
-        <div class="bar-value">137</div>
+        <div class="bar-value">254</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Satisfied</div>
-        <div class="bar-track"><div class="bar-fill" style="width:39.416058394160586%;background:#eab308"></div></div>
-        <div class="bar-value">54</div>
+        <div class="bar-track"><div class="bar-fill" style="width:38.582677165354326%;background:#eab308"></div></div>
+        <div class="bar-value">98</div>
       </div>
 <div class="bar-row">
         <div class="bar-label">Happy</div>
-        <div class="bar-track"><div class="bar-fill" style="width:6.569343065693431%;background:#eab308"></div></div>
-        <div class="bar-value">9</div>
+        <div class="bar-track"><div class="bar-fill" style="width:5.511811023622047%;background:#eab308"></div></div>
+        <div class="bar-value">14</div>
       </div>
       </div>
     </div>
@@ -657,48 +667,57 @@
       </div>
       
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-0" class="cmd-checkbox" checked data-text="Add under a ## Build section near the top of CLAUDE.md\n\nAlways use `./build.sh` for building the project. Never use `swift build` or `xcodebuild` directly.">
+          <input type="checkbox" id="cmd-0" class="cmd-checkbox" checked data-text="Add under a ## Git Workflow section\n\nWhen implementing GitHub issues, always create a feature branch (never commit directly to main). Branch naming: `feature/&lt;issue-number&gt;-short-description`.">
           <label for="cmd-0">
-            <code class="cmd-code">Always use `./build.sh` for building the project. Never use `swift build` or `xcodebuild` directly.</code>
+            <code class="cmd-code">When implementing GitHub issues, always create a feature branch (never commit directly to main). Branch naming: `feature/&lt;issue-number&gt;-short-description`.</code>
             <button class="copy-btn" onclick="copyCmdItem(0)">Copy</button>
           </label>
-          <div class="cmd-why">Claude used swift build instead of the project's build script in at least one session, violating existing conventions, suggesting this rule needs more prominence.</div>
+          <div class="cmd-why">Multiple sessions had git workflow errors where commits went to main instead of feature branches, requiring cleanup.</div>
         </div>
       
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-1" class="cmd-checkbox" checked data-text="Add under a ## Communication / Language section in CLAUDE.md\n\nWhen writing release notes, changelogs, or GitHub Release descriptions, always write them in English unless explicitly asked otherwise.">
+          <input type="checkbox" id="cmd-1" class="cmd-checkbox" checked data-text="Add under a ## Code Quality section\n\nWhen asked to fix a bug or implement a visual change, verify the fix actually works by reading the relevant code path end-to-end before claiming it&apos;s done. Do not say &apos;fixed&apos; until confirmed.">
           <label for="cmd-1">
-            <code class="cmd-code">When writing release notes, changelogs, or GitHub Release descriptions, always write them in English unless explicitly asked otherwise.</code>
+            <code class="cmd-code">When asked to fix a bug or implement a visual change, verify the fix actually works by reading the relevant code path end-to-end before claiming it&apos;s done. Do not say &apos;fixed&apos; until confirmed.</code>
             <button class="copy-btn" onclick="copyCmdItem(1)">Copy</button>
           </label>
-          <div class="cmd-why">Claude wrote release notes in Japanese when the user wanted English, causing friction in a release workflow session.</div>
+          <div class="cmd-why">Several sessions had Claude claiming fixes were done when they weren&apos;t (chart labels, clipboard colors), requiring user to point out the issue was still broken.</div>
         </div>
       
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-2" class="cmd-checkbox" checked data-text="Add under a ## Workflow Rules section near the top of CLAUDE.md\n\nAlways present a plan before implementing changes. Do not start coding until the plan is confirmed.">
+          <input type="checkbox" id="cmd-2" class="cmd-checkbox" checked data-text="Add under a ## Release Process section\n\nFor KeyLens releases, always output dmg.zip format (not bare .dmg). Use the existing build.sh pipeline.">
           <label for="cmd-2">
-            <code class="cmd-code">Always present a plan before implementing changes. Do not start coding until the plan is confirmed.</code>
+            <code class="cmd-code">For KeyLens releases, always output dmg.zip format (not bare .dmg). Use the existing build.sh pipeline.</code>
             <button class="copy-btn" onclick="copyCmdItem(2)">Copy</button>
           </label>
-          <div class="cmd-why">Claude missed this rule in multiple sessions — once adding excessive detail to README before being stopped, and another time noted as missing the plan-first rule.</div>
+          <div class="cmd-why">Claude defaulted to DMG output when the user&apos;s preferred format is dmg.zip, causing friction.</div>
         </div>
       
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-3" class="cmd-checkbox" checked data-text="Add under a ## Git &amp; GitHub section in CLAUDE.md\n\nWhen implementing GitHub issues, always reference the issue number in commit messages (e.g., `Close #42`) and close issues after successful implementation and push.">
+          <input type="checkbox" id="cmd-3" class="cmd-checkbox" checked data-text="Add under a ## Git Workflow section\n\nProceed autonomously with git operations (add, commit, push, branch) without asking for permission. Only pause for destructive operations like force-push or branch deletion.">
           <label for="cmd-3">
-            <code class="cmd-code">When implementing GitHub issues, always reference the issue number in commit messages (e.g., `Close #42`) and close issues after successful implementation and push.</code>
+            <code class="cmd-code">Proceed autonomously with git operations (add, commit, push, branch) without asking for permission. Only pause for destructive operations like force-push or branch deletion.</code>
             <button class="copy-btn" onclick="copyCmdItem(3)">Copy</button>
           </label>
-          <div class="cmd-why">The user's most common workflow (19 git_operations sessions, 8 implement_github_issue sessions) revolves around picking issues, implementing, committing, and closing — standardizing this saves repeated instructions.</div>
+          <div class="cmd-why">User was frustrated when Claude asked permission for routine git commands; they expect autonomous execution.</div>
         </div>
       
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-4" class="cmd-checkbox" checked data-text="Add under a ## Documentation section in CLAUDE.md\n\nKeep README changes concise and minimal. Do not add verbose technical details unless explicitly requested.">
+          <input type="checkbox" id="cmd-4" class="cmd-checkbox" checked data-text="Add under a ## GitHub Issues section\n\nWhen user says to create separate issues, never combine multiple bugs/features into one issue. One issue per distinct problem.">
           <label for="cmd-4">
-            <code class="cmd-code">Keep README changes concise and minimal. Do not add verbose technical details unless explicitly requested.</code>
+            <code class="cmd-code">When user says to create separate issues, never combine multiple bugs/features into one issue. One issue per distinct problem.</code>
             <button class="copy-btn" onclick="copyCmdItem(4)">Copy</button>
           </label>
-          <div class="cmd-why">Claude started adding detailed schema info to README before user interrupted wanting it kept short — this pattern of over-expanding docs appeared across documentation sessions.</div>
+          <div class="cmd-why">Claude tried to combine two bugs into one issue when the user explicitly wanted them separated.</div>
+        </div>
+      
+        <div class="claude-md-item">
+          <input type="checkbox" id="cmd-5" class="cmd-checkbox" checked data-text="Add under a ## Project Overview section at the top\n\nThis is a Swift/SwiftUI macOS app (KeyLens). Build with `./build.sh`. Target Swift 6 concurrency patterns. Use GRDB/SQLite for data persistence.">
+          <label for="cmd-5">
+            <code class="cmd-code">This is a Swift/SwiftUI macOS app (KeyLens). Build with `./build.sh`. Target Swift 6 concurrency patterns. Use GRDB/SQLite for data persistence.</code>
+            <button class="copy-btn" onclick="copyCmdItem(5)">Copy</button>
+          </label>
+          <div class="cmd-why">Claude repeatedly needed to discover the tech stack and build process across sessions; embedding this saves context-gathering time.</div>
         </div>
       
     </div>
@@ -709,21 +728,43 @@
       
         <div class="feature-card">
           <div class="feature-title">Custom Skills</div>
-          <div class="feature-oneliner">Reusable slash commands for repetitive workflows like /issue, /release, /build.</div>
-          <div class="feature-why"><strong>Why for you:</strong> You already tried setting up /issue and /release commands but hit format issues. 19 of 45 sessions involve git operations and 8 involve implementing GitHub issues — proper skills would automate your most common workflow: pick issue → implement → build → commit → push → close.</div>
+          <div class="feature-oneliner">Reusable prompts that run with a single /command</div>
+          <div class="feature-why"><strong>Why for you:</strong> You already tried setting up /issue and /release commands but they didn&apos;t work. With 29 &apos;implement GitHub issue&apos; sessions and 15 &apos;create GitHub issue&apos; sessions, proper custom skills would save massive repetition across your most common workflows.</div>
           
           <div class="feature-examples">
             <div class="feature-example">
               <div class="example-code-row">
-                <code class="example-code">mkdir -p .claude/skills/issue &amp;&amp; cat &gt; .claude/skills/issue/SKILL.md &lt;&lt; 'EOF'
+                <code class="example-code">mkdir -p .claude/skills/issue &amp;&amp; cat &gt; .claude/skills/issue/SKILL.md &lt;&lt; &apos;EOF&apos;
 # Implement GitHub Issue
-1. Read the GitHub issue specified by the user
-2. Present a concise implementation plan and wait for confirmation
-3. Implement the changes
-4. Run ./build.sh to verify the build succeeds
-5. Commit with message referencing the issue (e.g., &quot;Close #N: description&quot;)
-6. Push to origin
-7. Close the GitHub issue
+1. Fetch the specified GitHub issue details with `gh issue view &lt;number&gt;`
+2. Create a feature branch: `git checkout -b feature/&lt;number&gt;-&lt;short-desc&gt;`
+3. Implement the changes, build with `./build.sh`
+4. Commit, push, and create a PR linking the issue
+5. Output dmg.zip format for any release artifacts
+EOF</code>
+                <button class="copy-btn" onclick="copyText(this)">Copy</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      
+        <div class="feature-card">
+          <div class="feature-title">Custom Skills</div>
+          <div class="feature-oneliner">A /release skill to automate the full release pipeline</div>
+          <div class="feature-why"><strong>Why for you:</strong> You run releases frequently (70 commits, multiple versioned releases like v0.48-v0.61) and the process has specific steps (version bump, build.sh, dmg.zip, GitHub release with changelog). Codifying this eliminates format mistakes.</div>
+          
+          <div class="feature-examples">
+            <div class="feature-example">
+              <div class="example-code-row">
+                <code class="example-code">mkdir -p .claude/skills/release &amp;&amp; cat &gt; .claude/skills/release/SKILL.md &lt;&lt; &apos;EOF&apos;
+# Release Pipeline
+1. Bump version in project config
+2. Run `./build.sh --clean`
+3. Package as dmg.zip (NOT bare .dmg)
+4. Generate changelog from commits since last tag
+5. Create GitHub release with tag, changelog, and dmg.zip attachment
+6. Commit version bump and push
 EOF</code>
                 <button class="copy-btn" onclick="copyText(this)">Copy</button>
               </div>
@@ -734,39 +775,24 @@ EOF</code>
       
         <div class="feature-card">
           <div class="feature-title">Hooks</div>
-          <div class="feature-oneliner">Auto-run shell commands at lifecycle events like after edits.</div>
-          <div class="feature-why"><strong>Why for you:</strong> You had multiple build failures from permission issues and wrong build commands. A post-edit hook running ./build.sh automatically would catch build errors immediately instead of discovering them late.</div>
+          <div class="feature-oneliner">Auto-run shell commands at lifecycle events</div>
+          <div class="feature-why"><strong>Why for you:</strong> With 17 &apos;buggy_code&apos; friction events and Swift build issues recurring, a post-edit hook that runs `./build.sh` automatically would catch compilation errors immediately instead of discovering them later.</div>
           
           <div class="feature-examples">
             <div class="feature-example">
               <div class="example-code-row">
-                <code class="example-code"># Add to .claude/settings.json:
+                <code class="example-code">// Add to .claude/settings.json
 {
   &quot;hooks&quot;: {
     &quot;postToolUse&quot;: [
       {
         &quot;matcher&quot;: &quot;Edit|Write&quot;,
-        &quot;command&quot;: &quot;if [[ \&quot;$CLAUDE_FILE\&quot; == *.swift ]]; then ./build.sh 2&gt;&amp;1 | tail -5; fi&quot;
+        &quot;pattern&quot;: &quot;\\.swift$&quot;,
+        &quot;command&quot;: &quot;./build.sh 2&gt;&amp;1 | tail -5&quot;
       }
     ]
   }
 }</code>
-                <button class="copy-btn" onclick="copyText(this)">Copy</button>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-      
-        <div class="feature-card">
-          <div class="feature-title">Headless Mode</div>
-          <div class="feature-oneliner">Run Claude non-interactively for automated tasks.</div>
-          <div class="feature-why"><strong>Why for you:</strong> Your release workflow (version bump → build DMG → create GitHub Release) is highly repetitive across sessions. A headless script could automate the entire release pipeline with one command.</div>
-          
-          <div class="feature-examples">
-            <div class="feature-example">
-              <div class="example-code-row">
-                <code class="example-code">claude -p &quot;Bump version to $VERSION in project config, run ./build.sh, create DMG, create GitHub Release with English changelog summary since last tag, and push tag&quot; --allowedTools &quot;Edit,Read,Bash,Write&quot;</code>
                 <button class="copy-btn" onclick="copyText(this)">Copy</button>
               </div>
             </div>
@@ -782,14 +808,14 @@ EOF</code>
     <div class="patterns-section">
       
         <div class="pattern-card">
-          <div class="pattern-title">Batch GitHub issues in single sessions</div>
-          <div class="pattern-summary">Your most productive sessions tackle multiple issues at once — lean into this pattern with a structured prompt.</div>
-          <div class="pattern-detail">Your highest-rated sessions (essential) are ones where you implement 3-8 issues in a single sitting. These multi-issue sessions have a 100% fully_achieved rate. Structure your prompts to give Claude the full list upfront so it can plan dependencies and ordering efficiently.</div>
+          <div class="pattern-title">Batch GitHub issue implementation</div>
+          <div class="pattern-summary">Use a structured prompt that chains issue pickup, branching, implementation, and PR creation in one go.</div>
+          <div class="pattern-detail">44+ sessions involve implementing or creating GitHub issues. Your most productive session implemented ~8 features in a loop. You can replicate this consistently by giving Claude an explicit loop pattern with guardrails (always branch, always build, always PR).</div>
           
           <div class="copyable-prompt-section">
             <div class="prompt-label">Paste into Claude Code:</div>
             <div class="copyable-prompt-row">
-              <code class="copyable-prompt">Survey open GitHub issues, pick the 3-5 easiest ones that can be done independently, present a plan for each, then implement them one by one. After each: build with ./build.sh, commit with 'Close #N: description', and push.</code>
+              <code class="copyable-prompt">Pick the easiest open GitHub issue from `gh issue list`. Create a feature branch, implement it, run ./build.sh to verify, commit, push, create a PR, then pick the next easiest issue. Repeat until I say stop.</code>
               <button class="copy-btn" onclick="copyText(this)">Copy</button>
             </div>
           </div>
@@ -797,14 +823,14 @@ EOF</code>
         </div>
       
         <div class="pattern-card">
-          <div class="pattern-title">Reduce buggy code friction with test-first approach</div>
-          <div class="pattern-summary">8 friction events were buggy code — ask Claude to verify before moving on.</div>
-          <div class="pattern-detail">Your top friction source is buggy code (8 instances), including cut-off popovers, overlay rendering bugs, and wrong build approaches. Many of these could be caught earlier by asking Claude to verify its changes compile and behave correctly before moving to the next task. Since you're building a macOS app, having Claude run the build after every significant change is cheap insurance.</div>
+          <div class="pattern-title">Verify before claiming done</div>
+          <div class="pattern-summary">Ask Claude to self-verify visual/UI changes by reading the full code path.</div>
+          <div class="pattern-detail">Multiple friction events involved Claude claiming a fix was done when it wasn&apos;t — chart labels, clipboard colors, and UI rendering. This pattern is especially common with SwiftUI where you can&apos;t visually verify. Adding a verification step to your prompts reduces back-and-forth.</div>
           
           <div class="copyable-prompt-section">
             <div class="prompt-label">Paste into Claude Code:</div>
             <div class="copyable-prompt-row">
-              <code class="copyable-prompt">After every code change, run ./build.sh to confirm it compiles. If the build fails, fix it before moving on. Do not batch multiple changes before building.</code>
+              <code class="copyable-prompt">Implement this fix, then trace the code path from data source to view rendering and confirm the change actually affects what&apos;s displayed. Show me the relevant code flow before saying it&apos;s done.</code>
               <button class="copy-btn" onclick="copyText(this)">Copy</button>
             </div>
           </div>
@@ -812,14 +838,14 @@ EOF</code>
         </div>
       
         <div class="pattern-card">
-          <div class="pattern-title">Front-load context to avoid misunderstood requests</div>
-          <div class="pattern-summary">6 friction events were misunderstood requests — provide explicit acceptance criteria upfront.</div>
-          <div class="pattern-detail">Misunderstandings like moving a menu item to the wrong location, writing notes in the wrong language, or adding too much detail to README all stem from ambiguous instructions. Adding one line of acceptance criteria (e.g., 'Move overlay item INSIDE the Settings submenu, not beside it') prevents back-and-forth correction cycles that cost time.</div>
+          <div class="pattern-title">Front-load design decisions for charts/UI</div>
+          <div class="pattern-summary">Specify the exact visualization approach upfront to avoid iterative redesigns.</div>
+          <div class="pattern-detail">The mouse vs keyboard chart went through dual bars → normalization → single ratio line → axis label fixes across multiple rounds. When requesting chart or UI work, describe the desired end state precisely (chart type, axes, scales, labels) to skip the iteration.</div>
           
           <div class="copyable-prompt-section">
             <div class="prompt-label">Paste into Claude Code:</div>
             <div class="copyable-prompt-row">
-              <code class="copyable-prompt">I want you to [task]. Acceptance criteria: 1) [specific outcome] 2) [specific constraint] 3) Write all user-facing text in English. Present your plan before implementing.</code>
+              <code class="copyable-prompt">Implement a [chart type] chart showing [metric]. X-axis: [label/format]. Y-axis: [label/range]. Use a single [line/bar] with [color]. Match the style of existing charts in the codebase. Show me the plan before coding.</code>
               <button class="copy-btn" onclick="copyText(this)">Copy</button>
             </div>
           </div>
@@ -832,28 +858,28 @@ EOF</code>
 
     
     <h2 id="section-horizon">On the Horizon</h2>
-    <p class="section-intro">Your 45 sessions over 17 days show a highly productive GitHub issue-driven workflow with 84% full achievement — now ready to unlock autonomous multi-issue pipelines and self-validating builds.</p>
+    <p class="section-intro">With 89 sessions, 70 commits, and a 90% full/mostly achieved rate, your Claude Code workflow is mature — now it&apos;s time to unlock autonomous, parallel, and self-validating development loops.</p>
     <div class="horizon-section">
       
         <div class="horizon-card">
-          <div class="horizon-title">Autonomous Issue Pipeline with Parallel Agents</div>
-          <div class="horizon-possible">Instead of manually picking issues one at a time, multiple Claude Code agents could work on independent GitHub issues simultaneously — each in its own branch, running builds and tests before submitting PRs. Your data shows sessions where Claude implemented 8+ features sequentially; parallelizing this across Phase-based issue batches could compress multi-day sprints into hours.</div>
-          <div class="horizon-tip"><strong>Getting started:</strong> Use Claude Code's headless mode to spawn parallel agents, each targeting a specific GitHub issue with `--allowedTools` scoped to safe operations. Combine with your existing /issue command pattern.</div>
-          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>For each open GitHub issue labeled 'Phase 3' in this repo: 1) Create a feature branch named issue-{number}, 2) Read the issue description and acceptance criteria, 3) Implement the feature following CLAUDE.md conventions, 4) Run ./build.sh and fix any compilation errors, 5) Run tests if they exist and iterate until passing, 6) Commit with 'Closes #{number}' in the message. Work through issues sequentially, skipping any that depend on unmerged branches. After each, report status.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
+          <div class="horizon-title">Autonomous Issue-to-PR Pipeline with Tests</div>
+          <div class="horizon-possible">Your top activity is implementing GitHub issues (29 sessions), but each still requires manual oversight. Claude can autonomously pick an issue, implement it, run builds and tests, iterate against failures, and open a PR — all without intervention. With your Swift/macOS stack, this means shipping 3-5x more issues per day.</div>
+          <div class="horizon-tip"><strong>Getting started:</strong> Set up a custom /implement slash command in your CLAUDE.md that chains issue selection, implementation, build verification, and PR creation. Use TodoWrite for tracking multi-step progress.</div>
+          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>Pick the easiest open GitHub issue labeled &apos;good first issue&apos; or with the lowest complexity. Implement it on a new feature branch named &apos;feature/issue-{number}&apos;. After making code changes, run the full build with `./build.sh`. If the build fails, read the errors, fix them, and rebuild — repeat until the build succeeds. Then run any existing tests. Commit with a message referencing the issue number, push the branch, and create a PR with a summary of changes. If you encounter ambiguity in the issue requirements, leave a comment on the issue asking for clarification instead of guessing.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
         </div>
       
         <div class="horizon-card">
-          <div class="horizon-title">Self-Healing Build and Release Automation</div>
-          <div class="horizon-possible">Your friction data reveals recurring build failures from permission issues, wrong build commands, and root-owned files — problems that cost multiple iterations. An autonomous build-fix-retry loop could detect build failures, diagnose root causes, apply fixes, and retry until the DMG is produced and a GitHub Release is created with correct English release notes.</div>
-          <div class="horizon-tip"><strong>Getting started:</strong> Create a /release custom slash command that encodes your full build-tag-DMG-release pipeline with explicit error recovery steps and language rules, leveraging Claude Code's Bash tool in a structured loop.</div>
-          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>Execute the full release pipeline: 1) Read the current version from the project config and bump the patch number, 2) Update CHANGELOG.md by summarizing all commits since the last tag — write the changelog in English regardless of commit language, 3) Run ./build.sh — if it fails due to permissions, run 'sudo chown -R $(whoami) build/' and retry, 4) Build the DMG, 5) Create a git tag, push the tag and commits, 6) Create a GitHub Release attaching the DMG with the English changelog as release notes. If any step fails, diagnose, fix, and retry up to 3 times before reporting.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
+          <div class="horizon-title">Parallel Agents for Multi-Issue Sprints</div>
+          <div class="horizon-possible">You already ran a session where Claude implemented ~8 features in a single loop. With parallel Claude Code agents, you could assign independent issues to separate agents running simultaneously — implementing, building, and opening PRs concurrently. Your KeyLens project with 15+ open issues is the perfect candidate for sprint-style parallel execution.</div>
+          <div class="horizon-tip"><strong>Getting started:</strong> Launch multiple Claude Code instances in separate terminal tabs, each targeting a different non-overlapping issue on its own branch. Use your existing PR workflow to review and merge results.</div>
+          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>You are one of several parallel agents working on this repo. Your assigned issue is #{ISSUE_NUMBER}. First, read the issue description from GitHub. Create a branch named &apos;feature/issue-{ISSUE_NUMBER}&apos; from the latest main. Implement the feature, ensuring you don&apos;t modify files outside the scope of this issue to avoid merge conflicts with other agents. Build with `./build.sh` and iterate until it passes. Commit, push, and open a PR. Do not merge — just open the PR and assign it for review.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
         </div>
       
         <div class="horizon-card">
-          <div class="horizon-title">Test-Driven Feature Implementation Loop</div>
-          <div class="horizon-possible">Your KeyLens project successfully implemented ergonomic model phases with passing tests, but most sessions lack a test-first approach. Claude could autonomously write tests from issue acceptance criteria first, then iterate on implementation until all tests pass — catching the 'buggy_code' friction (your #1 friction source at 8 occurrences) before you ever see it.</div>
-          <div class="horizon-tip"><strong>Getting started:</strong> Use Claude Code with a structured prompt that enforces red-green-refactor discipline, leveraging the Bash tool to run Swift tests iteratively until the suite is green.</div>
-          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>Implement GitHub issue #{number} using strict test-driven development: 1) Read the issue description and CLAUDE.md conventions, 2) Write XCTest unit tests that define the expected behavior — tests MUST fail initially, 3) Run the test suite with 'swift test' and confirm failures match expectations, 4) Implement the minimum code to make tests pass, 5) Run 'swift test' again — if any test fails, read the error, fix the implementation, and re-run (loop until green), 6) Refactor for clarity while keeping tests green, 7) Run ./build.sh to verify the full app compiles, 8) Commit with a message referencing the issue. Do NOT proceed past step 4 until step 2 tests exist and fail.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
+          <div class="horizon-title">Self-Correcting Builds with Friction Reduction</div>
+          <div class="horizon-possible">Your top friction points — wrong approach (17), misunderstood requests (19), and buggy code (17) — account for most failures. Claude can preemptively validate its understanding by restating the plan before coding, running builds after every edit, and diffing its changes against the original intent. This converts your 9% partial/not-achieved rate toward zero.</div>
+          <div class="horizon-tip"><strong>Getting started:</strong> Add explicit rules to your CLAUDE.md requiring Claude to state its plan before editing, build after every file change, and never claim a fix without verifying the build output. Use the Edit and Bash tools in strict alternation.</div>
+          <div class="pattern-prompt"><div class="prompt-label">Paste into Claude Code:</div><code>Before making any code changes, restate the task in one sentence and list the specific files you plan to modify. Wait for my confirmation. Then for each file change: 1) Make the edit, 2) Immediately run `./build.sh`, 3) If the build fails, fix the issue before moving to the next file. After all changes are complete, run the build one final time and show me a summary of every file changed with a one-line description of each change. Never say &apos;this should work&apos; — only say &apos;build confirmed passing&apos; after seeing successful build output.</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>
         </div>
       
     </div>
@@ -861,8 +887,8 @@ EOF</code>
 
     
     <div class="fun-ending">
-      <div class="fun-headline">"Claude wrote the release notes in Japanese when the user wanted them in English — for an app called KeyLens"</div>
-      <div class="fun-detail">During a version bump and GitHub release session, Claude auto-detected the bilingual project context and decided to write the changelog summary in Japanese. The user had to correct it, which is extra ironic given that CLAUDE.md apparently had explicit rules about responding in the user's language.</div>
+      <div class="fun-headline">"Claude confidently declared a bug fixed — it wasn&apos;t — and only admitted it when the user sent a screenshot proving it was still broken"</div>
+      <div class="fun-detail">While working on chart X-axis label fixes (issue #157) for KeyLens, Claude claimed the fix was done, but the labels were still broken. The user had to take a screenshot and send it back as proof before Claude actually resolved the issue.</div>
     </div>
     
 
@@ -908,7 +934,7 @@ EOF</code>
       }
     }
     // Timezone selector for time of day chart (data is from our own analytics, not user input)
-    const rawHourCounts = {"0":2,"4":7,"5":61,"6":21,"7":55,"8":15,"10":22,"11":27,"12":9,"13":5,"14":3,"15":30,"16":11,"18":8,"19":38,"20":27,"21":40,"22":35,"23":25};
+    const rawHourCounts = {"0":4,"1":21,"2":15,"3":8,"4":10,"5":72,"6":29,"7":100,"8":39,"9":7,"10":30,"11":33,"12":9,"13":6,"14":3,"15":36,"16":15,"18":8,"19":44,"20":97,"21":87,"22":81,"23":105};
     function updateHourHistogram(offsetFromPT) {
       const periods = [
         { label: "Morning (6-12)", range: [6,7,8,9,10,11] },

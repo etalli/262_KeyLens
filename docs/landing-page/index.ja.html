@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KeyLens — Keyboard layout optimizer for macOS</title>
+    <title>KeyLens — macOS向けキーボードレイアウト最適化ツール</title>
     <meta name="description"
-        content="KeyLens tracks keystrokes locally to recommend ergonomic layout changes based on your actual typing patterns.">
+        content="KeyLensはキーストロークをローカルで記録し、実際のタイピングパターンに基づいてエルゴノミクス的なレイアウト変更を提案します。">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,10 +22,10 @@
                 <span class="logo-accent">Key</span>Lens
             </div>
             <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#security">Security</a></li>
+                <li><a href="#features">機能</a></li>
+                <li><a href="#security">セキュリティ</a></li>
                 <li><a href="https://github.com/etalli/262_KeyLens" class="btn btn-secondary">GitHub</a></li>
-                <li><a href="index.ja.html" class="btn btn-secondary">日本語</a></li>
+                <li><a href="index.html" class="btn btn-secondary">English</a></li>
             </ul>
         </div>
     </nav>
@@ -33,26 +33,24 @@
     <header class="hero">
         <div class="container hero-grid">
             <div class="hero-text">
-                <h1 class="reveal-text">Optimize your layout with <span class="gradient-text">your own typing
-                        data</span></h1>
-                <p class="hero-subtitle">KeyLens tracks your keystrokes locally and recommends layout changes based on
-                    how you actually type.</p>
+                <h1 class="reveal-text"><span class="gradient-text">自分のタイピングデータ</span>でレイアウトを最適化</h1>
+                <p class="hero-subtitle">KeyLensはキーストロークをローカルで記録し、実際のタイピング習慣に基づいてレイアウト変更を提案します。</p>
                 <div class="hero-cta">
-                    <a href="https://github.com/etalli/262_KeyLens" class="btn btn-primary">Download for macOS</a>
-                    <a href="#optimization" class="btn btn-outline">Explore Features</a>
+                    <a href="https://github.com/etalli/262_KeyLens" class="btn btn-primary">macOS版をダウンロード</a>
+                    <a href="#optimization" class="btn btn-outline">機能を見る</a>
                 </div>
             </div>
             <div class="hero-image-wrapper">
                 <div class="hero-glow"></div>
-                <img src="hero.png" alt="KeyLens Hero Interface" class="hero-img floating">
+                <img src="hero.png" alt="KeyLens ヒーロー画面" class="hero-img floating">
             </div>
         </div>
     </header>
 
     <section id="features" class="features container">
         <div class="section-title">
-            <h2>Why KeyLens?</h2>
-            <p>What KeyLens tracks and shows.</p>
+            <h2>なぜKeyLens？</h2>
+            <p>KeyLensが追跡・表示する情報。</p>
         </div>
         <div class="features-grid">
             <div class="feature-card glass">
@@ -63,8 +61,8 @@
                         <path d="M18 12a2 2 0 000 4h4v-4h-4z"></path>
                     </svg>
                 </div>
-                <h3>Keystroke Tracking</h3>
-                <p>Tracks bigrams, trigrams, and modifier usage to map your typing behavior.</p>
+                <h3>キーストローク追跡</h3>
+                <p>バイグラム、トライグラム、修飾キーの使用状況を追跡し、タイピング行動をマッピングします。</p>
             </div>
             <div class="feature-card glass">
                 <div class="feature-icon icon-cyan">
@@ -72,8 +70,8 @@
                         <path d="M18 20V10M12 20V4M6 20v-6"></path>
                     </svg>
                 </div>
-                <h3>Heatmap Visualization</h3>
-                <p>2D heatmaps showing key frequency by day of week and hour of day.</p>
+                <h3>ヒートマップ表示</h3>
+                <p>曜日・時間帯別のキー入力頻度を2Dヒートマップで視覚化します。</p>
             </div>
             <div class="feature-card glass">
                 <div class="feature-icon icon-purple">
@@ -81,9 +79,8 @@
                         <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"></path>
                     </svg>
                 </div>
-                <h3>Layout Simulators</h3>
-                <p>Simulate how your speed and distance metrics would change across QWERTY, Colemak, Dvorak, or custom
-                    layouts.</p>
+                <h3>レイアウトシミュレーター</h3>
+                <p>QWERTY、Colemak、Dvorakやカスタムレイアウトに切り替えた場合の速度・指移動距離の変化をシミュレートします。</p>
             </div>
         </div>
     </section>
@@ -91,14 +88,12 @@
     <section id="security" class="security container">
         <div class="security-card glass">
             <div class="security-content">
-                <h2>Privacy <span class="gradient-text">Focused</span></h2>
-                <p>KeyLens records anonymous frequency counts for keys, pairs (bigrams), and triples (trigrams). It
-                    <strong>never</strong> records full text or passwords. All data is stored locally on your machine.
-                    Zero cloud sync. Zero telemetry.</p>
+                <h2>プライバシー<span class="gradient-text">重視</span></h2>
+                <p>KeyLensはキー単体・バイグラム・トライグラムの匿名頻度カウントのみを記録します。文章やパスワードは<strong>一切</strong>記録しません。すべてのデータはあなたのマシン上にローカル保存されます。クラウド同期なし。テレメトリなし。</p>
                 <div class="security-features">
-                    <div class="s-feat"><span>Local Storage Only</span></div>
-                    <div class="s-feat"><span>Open Source Engine</span></div>
-                    <div class="s-feat"><span>Anonymous Frequency Counts</span></div>
+                    <div class="s-feat"><span>ローカル保存のみ</span></div>
+                    <div class="s-feat"><span>オープンソースエンジン</span></div>
+                    <div class="s-feat"><span>匿名頻度カウント</span></div>
                 </div>
             </div>
         </div>
@@ -108,12 +103,12 @@
         <div class="container footer-content">
             <div class="footer-left">
                 <div class="logo"><span class="logo-accent">Key</span>Lens</div>
-                <p>© 2026 KeyLens Project. Open source under Apache 2.0.</p>
+                <p>© 2026 KeyLens Project. Apache 2.0 ライセンスのオープンソースです。</p>
             </div>
             <div class="footer-links">
-                <a href="https://github.com/etalli/262_KeyLens">Documentation</a>
-                <a href="https://github.com/etalli/262_KeyLens/releases">Releases</a>
-                <a href="https://github.com/etalli/262_KeyLens/issues">Support</a>
+                <a href="https://github.com/etalli/262_KeyLens">ドキュメント</a>
+                <a href="https://github.com/etalli/262_KeyLens/releases">リリース</a>
+                <a href="https://github.com/etalli/262_KeyLens/issues">サポート</a>
             </div>
         </div>
     </footer>

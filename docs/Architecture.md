@@ -404,7 +404,7 @@ Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON int
 
 ### [WeeklySummaryCard.swift](Sources/KeyLens/WeeklySummaryCard.swift)
 
-Self-contained `WeeklySummaryCardView` that renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone.
+`WeeklySummaryCardView` renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone.
 
 ---
 
@@ -489,7 +489,7 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 
 ### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
 
-SwiftUI view that renders a visual representation of the physical ANSI keyboard. Supports two display modes via a segmented `Picker`:
+SwiftUI view that renders the physical ANSI keyboard layout. Supports two display modes via a segmented `Picker`:
 
 - **Frequency** — each key coloured by total keystroke count (red = most pressed)
 - **Strain** — each key coloured by its cumulative high-strain bigram involvement score (red = frequent culprit)
