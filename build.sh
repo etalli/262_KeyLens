@@ -5,8 +5,7 @@
 #   ./build.sh             # Build App Bundle only
 #   ./build.sh --clean     # Remove all build artifacts (.build, app, dmg, zip)
 #   ./build.sh --run       # Build and launch immediately
-#   ./build.sh --install            # Build, install to /Applications, and launch (recommended)
-#   ./build.sh --install --reset-tcc  # Same, but also reset Accessibility permission
+#   ./build.sh --install   # Build, install to /Applications, and launch (recommended)
 #   ./build.sh --dmg       # Build and create a distributable DMG + ZIP
 #   ./build.sh --release   # Build DMG/ZIP and create a GitHub Release (draft)
 #   ./build.sh --release --publish  # Same, but publish immediately (no draft)
@@ -157,13 +156,10 @@ elif [[ "$1" == "--install" ]]; then
             msg "⚠️  Signing skipped" "⚠️  署名スキップ"
     fi
 
-    # Reset Accessibility TCC only when explicitly requested (--reset-tcc).
-    # Without a real Developer ID cert, macOS re-prompts anyway if the binary hash changes,
-    # but skipping this avoids unnecessary re-grants on routine rebuilds.
-    if [[ " $* " == *" --reset-tcc "* ]]; then
-        BUNDLE_ID=$(defaults read "$INSTALL_PATH/Contents/Info" CFBundleIdentifier 2>/dev/null)
-        [[ -n "$BUNDLE_ID" ]] && tccutil reset Accessibility "$BUNDLE_ID" &>/dev/null || true
-    fi
+    # Reset the Accessibility TCC entry for this bundle ID.
+    # Each new binary has a different hash; resetting forces a fresh permission request.
+    BUNDLE_ID=$(defaults read "$INSTALL_PATH/Contents/Info" CFBundleIdentifier 2>/dev/null)
+    [[ -n "$BUNDLE_ID" ]] && tccutil reset Accessibility "$BUNDLE_ID" &>/dev/null || true
 
     pkill -x KeyLens 2>/dev/null || true
     sleep 0.5
