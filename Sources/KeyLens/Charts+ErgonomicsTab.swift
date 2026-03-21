@@ -126,19 +126,12 @@ extension ChartsView {
                 Divider().gridCellUnsizedAxes(.horizontal)
 
                 ForEach(model.layoutEfficiency) { entry in
-                    let isBest = entry.id == best?.id && !entry.isUserLayout
-                    let valueColor: Color = entry.isUserLayout ? .blue : (isBest ? .green : .primary)
+                    let isBest = entry.id == best?.id
                     GridRow {
                         HStack(spacing: 4) {
-                            if entry.isUserLayout {
-                                Image(systemName: "person.fill")
-                                    .font(.footnote)
-                                    .foregroundStyle(.blue)
-                            }
                             Text(entry.name)
                                 .font(.callout)
-                                .fontWeight(entry.isUserLayout ? .semibold : (isBest ? .semibold : .regular))
-                                .foregroundStyle(entry.isUserLayout ? Color.blue : .primary)
+                                .fontWeight(isBest ? .semibold : .regular)
                             if isBest {
                                 Image(systemName: "crown.fill")
                                     .font(.footnote)
@@ -149,26 +142,26 @@ extension ChartsView {
 
                         Text(String(format: "%.1f%%", entry.sameFingerRate * 100))
                             .font(.callout.monospacedDigit())
-                            .foregroundStyle(valueColor)
+                            .foregroundStyle(isBest ? Color.green : .primary)
 
                         Text(String(format: "%.1f%%", entry.handAlternationRate * 100))
                             .font(.callout.monospacedDigit())
-                            .foregroundStyle(valueColor)
+                            .foregroundStyle(isBest ? Color.green : .primary)
 
                         Text(String(format: "%.1f", entry.ergonomicScore))
                             .font(.callout.monospacedDigit())
-                            .foregroundStyle(valueColor)
+                            .foregroundStyle(isBest ? Color.green : .primary)
 
                         Text(String(format: "%.0f", entry.travelDistance))
                             .font(.callout.monospacedDigit())
-                            .foregroundStyle(valueColor)
+                            .foregroundStyle(isBest ? Color.green : .primary)
                     }
                     .padding(.vertical, 5)
                 }
             }
             .padding(.vertical, 4)
 
-            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams. Your Layout is your current baseline; alternatives sorted by ergonomic score.")
+            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams. Sorted by ergonomic score — higher is better.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

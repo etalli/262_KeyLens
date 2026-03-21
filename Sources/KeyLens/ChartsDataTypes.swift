@@ -194,10 +194,8 @@ struct LayoutEfficiencyEntry: Identifiable {
     let ergonomicScore: Double      // higher is better [0, 100]
     let travelDistance: Double      // lower is better (grid units)
     let totalBigrams: Int
-    let isUserLayout: Bool          // true for the "Your Layout" baseline entry
     init(name: String, sameFingerRate: Double, handAlternationRate: Double,
-         ergonomicScore: Double, travelDistance: Double, totalBigrams: Int,
-         isUserLayout: Bool = false) {
+         ergonomicScore: Double, travelDistance: Double, totalBigrams: Int) {
         id = name
         self.name = name
         self.sameFingerRate = sameFingerRate
@@ -205,7 +203,6 @@ struct LayoutEfficiencyEntry: Identifiable {
         self.ergonomicScore = ergonomicScore
         self.travelDistance = travelDistance
         self.totalBigrams = totalBigrams
-        self.isUserLayout = isUserLayout
     }
 }
 
