@@ -130,7 +130,6 @@ struct ComparisonTabView: View {
 
 struct ComparisonResult {
     struct PeriodStats {
-        let label: String
         let totalKeystrokes: Int
         let activeDays: Int
         let dailyAverage: Int
@@ -161,7 +160,7 @@ struct ComparisonResult {
         let allDays = store.dailyTotals()
         let allErg  = store.dailyErgonomicRates()
 
-        func stats(start: Date, end: Date, label: String) -> PeriodStats {
+        func stats(start: Date, end: Date) -> PeriodStats {
             let dates   = dateRange(start, end)
             let dayData = allDays.filter { dates.contains($0.date) && $0.total > 0 }
             let total   = dayData.reduce(0) { $0 + $1.total }
@@ -178,7 +177,6 @@ struct ComparisonResult {
             }
 
             return PeriodStats(
-                label:          label,
                 totalKeystrokes: total,
                 activeDays:     active,
                 dailyAverage:   avg,
@@ -188,10 +186,9 @@ struct ComparisonResult {
             )
         }
 
-        let l = L10n.shared
         return ComparisonResult(
-            a: stats(start: startA, end: endA, label: l.comparisonRangeA),
-            b: stats(start: startB, end: endB, label: l.comparisonRangeB)
+            a: stats(start: startA, end: endA),
+            b: stats(start: startB, end: endB)
         )
     }
 }
@@ -200,15 +197,18 @@ struct ComparisonResult {
 
 struct ComparisonResultView: View {
     let result: ComparisonResult
-    private let l = L10n.shared
+    // Observing UserDefaults language key ensures SwiftUI re-renders this view
+    // immediately when the user switches language, without requiring a new Compare press.
+    @AppStorage("appLanguage") private var appLanguage: String = "system"
+    private var l: L10n { L10n.shared }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
+            // Header — labels resolved from L10n at render time so language changes apply instantly
             HStack {
-                Text("Metric").font(.caption).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-                Text(result.a.label).font(.caption).bold().frame(width: 120, alignment: .trailing)
-                Text(result.b.label).font(.caption).bold().frame(width: 120, alignment: .trailing)
+                Text(l.comparisonMetricLabel).font(.caption).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Text(l.comparisonRangeA).font(.caption).bold().frame(width: 120, alignment: .trailing)
+                Text(l.comparisonRangeB).font(.caption).bold().frame(width: 120, alignment: .trailing)
                 Text("Δ").font(.caption).foregroundColor(.secondary).frame(width: 80, alignment: .trailing)
             }
             .padding(.vertical, 6)

@@ -444,6 +444,10 @@ final class L10n {
         ja("比較する", en: "Compare")
     }
 
+    var comparisonMetricLabel: String {
+        ja("指標", en: "Metric")
+    }
+
     var comparisonMetricKeystrokes: String {
         ja("打鍵数 (合計)", en: "Total Keystrokes")
     }
