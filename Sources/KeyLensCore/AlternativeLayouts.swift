@@ -21,8 +21,12 @@ public struct ColemakLayout: KeyboardLayout {
     public let name = "Colemak"
     public init() {}
 
-    // CGKeyCode-based lookup is not used; return nil.
+        // CGKeyCode-based lookup is not used; return nil.
     public func position(for keyCode: CGKeyCode) -> KeyPosition? { nil }
+
+    public func position(for keyName: String) -> KeyPosition? {
+        ColemakLayout.positionNameTable[keyName]
+    }
 
     public func hand(for keyName: String) -> Hand? {
         ColemakLayout.handTable[keyName]
@@ -31,6 +35,28 @@ public struct ColemakLayout: KeyboardLayout {
     public func finger(for keyName: String) -> Finger? {
         ColemakLayout.fingerTable[keyName]
     }
+
+    // MARK: - Position table (for travel distance estimation)
+    // Built by starting from the ANSI table and overriding entries for the 17 remapped keys.
+    // Each entry: output character → physical key position on the ANSI board.
+    // For example: 'f' in Colemak is produced by the physical 'e' key → position("f") = ANSI["e"].
+    // ANSIテーブルをベースに17キーの再マッピングを反映した位置テーブル。
+    public static let positionNameTable: [String: KeyPosition] = {
+        let ansi = ANSILayout.positionNameTable
+        var table = ansi
+        // (qwertyPhysicalKey, colemakOutputChar) for all 17 changed keys.
+        let remap: [(String, String)] = [
+            ("e", "f"), ("r", "p"), ("t", "g"),
+            ("y", "j"), ("u", "l"), ("i", "u"), ("o", "y"), ("p", ";"),
+            ("s", "r"), ("d", "s"), ("f", "t"), ("g", "d"),
+            ("j", "n"), ("k", "e"), ("l", "i"), (";", "o"),
+            ("n", "k"),
+        ]
+        for (qwerty, colemak) in remap {
+            if let pos = ansi[qwerty] { table[colemak] = pos }
+        }
+        return table
+    }()
 
     // MARK: - Hand table
     // Keys that stay on the same hand as QWERTY are omitted and fall through to nil;
@@ -131,6 +157,10 @@ public struct DvorakLayout: KeyboardLayout {
 
     public func position(for keyCode: CGKeyCode) -> KeyPosition? { nil }
 
+    public func position(for keyName: String) -> KeyPosition? {
+        DvorakLayout.positionNameTable[keyName]
+    }
+
     public func hand(for keyName: String) -> Hand? {
         DvorakLayout.handTable[keyName]
     }
@@ -138,6 +168,34 @@ public struct DvorakLayout: KeyboardLayout {
     public func finger(for keyName: String) -> Finger? {
         DvorakLayout.fingerTable[keyName]
     }
+
+    // MARK: - Position table (for travel distance estimation)
+    // Built by starting from the ANSI table and overriding entries for all remapped keys.
+    // Each entry: output character → physical key position on the ANSI board.
+    // ANSIテーブルをベースに全再マッピングを反映した位置テーブル。
+    public static let positionNameTable: [String: KeyPosition] = {
+        let ansi = ANSILayout.positionNameTable
+        var table = ansi
+        // (qwertyPhysicalKey, dvorakOutputChar) for all remapped keys.
+        // Standard Dvorak Simplified Keyboard mapping.
+        let remap: [(String, String)] = [
+            // Top row
+            ("q", "'"), ("w", ","), ("e", "."), ("r", "p"), ("t", "y"),
+            ("y", "f"), ("u", "g"), ("i", "c"), ("o", "r"), ("p", "l"),
+            ("[", "/"), ("]", "="), ("-", "["), ("=", "]"),
+            // Home row
+            ("s", "o"), ("d", "e"), ("f", "u"), ("g", "i"),
+            ("h", "d"), ("j", "h"), ("k", "t"), ("l", "n"),
+            (";", "s"), ("'", "-"),
+            // Bottom row
+            ("z", ";"), ("x", "q"), ("c", "j"), ("v", "k"), ("b", "x"),
+            ("n", "b"), (",", "w"), (".", "v"), ("/", "z"),
+        ]
+        for (qwerty, dvorak) in remap {
+            if let pos = ansi[qwerty] { table[dvorak] = pos }
+        }
+        return table
+    }()
 
     // MARK: - Hand table
     // Dvorak physical layout (output char → hand):
