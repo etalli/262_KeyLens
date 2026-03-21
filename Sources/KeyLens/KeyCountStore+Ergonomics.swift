@@ -337,13 +337,17 @@ extension KeyCountStore {
         // Resolve the user's selected heatmap template from persistent storage.
         // All physical templates (ANSI / Ortho / JIS / Custom) share standard ANSI
         // touch-typing finger assignments, so ANSILayout() is the correct ergonomic model.
+        // When template is "Auto", check for an imported KLE JSON to detect Custom resolution
+        // (mirrors the effectiveTemplate logic in KeyboardHeatmapView).
         let templateRaw = UserDefaults.standard.string(forKey: "heatmapTemplate") ?? "ANSI"
+        let hasKLE = !(UserDefaults.standard.string(forKey: "kleCustomLayoutJSON") ?? "").isEmpty
         let userLayoutLabel: String = {
             switch templateRaw {
-            case "Ortho":   return "Your Layout (Ortho)"
-            case "JIS":     return "Your Layout (JIS)"
-            case "Custom":  return "Your Layout (Custom)"
-            default:        return "Your Layout (ANSI)"
+            case "Custom":                      return "Your Layout (Custom)"
+            case "Auto" where hasKLE:           return "Your Layout (Custom)"
+            case "Ortho":                       return "Your Layout (Ortho)"
+            case "JIS":                         return "Your Layout (JIS)"
+            default:                            return "Your Layout (ANSI)"
             }
         }()
 
