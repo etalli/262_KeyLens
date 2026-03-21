@@ -379,6 +379,11 @@ private struct SettingsMenuRow: View {
 
         func header(_ title: String) {
             let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            let attrs: [NSAttributedString.Key: Any] = [
+                .foregroundColor: NSColor.secondaryLabelColor,
+                .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
+            ]
+            item.attributedTitle = NSAttributedString(string: title, attributes: attrs)
             item.isEnabled = false
             menu.addItem(item)
         }
