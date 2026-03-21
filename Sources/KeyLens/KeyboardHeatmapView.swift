@@ -446,7 +446,7 @@ struct KeyboardHeatmapView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .frame(maxWidth: 180)
+                    .frame(maxWidth: 220)
 
                     Image(systemName: "info.circle")
                         .font(.body)
