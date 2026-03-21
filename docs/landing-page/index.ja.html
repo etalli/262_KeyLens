@@ -93,48 +93,91 @@
                 <p>アプリのリアルなスクリーンショット — あなたのデータを可視化。</p>
             </div>
             <div class="screenshot-tabs">
-                <button class="ss-tab active" data-tab="heatmap">ヒートマップ</button>
-                <button class="ss-tab" data-tab="layout">レイアウト</button>
+                <button class="ss-tab active" data-tab="overview">概要</button>
+                <button class="ss-tab" data-tab="heatmap-layout">ヒートマップ &amp; レイアウト</button>
                 <button class="ss-tab" data-tab="ergonomics">エルゴノミクス</button>
-                <button class="ss-tab" data-tab="charts">チャート</button>
+                <button class="ss-tab" data-tab="keys-timing">キーとタイミング</button>
+                <button class="ss-tab" data-tab="activity">アクティビティ</button>
                 <button class="ss-tab" data-tab="training">トレーニング</button>
                 <button class="ss-tab" data-tab="mouse">マウス</button>
             </div>
-            <div class="screenshot-panel active" data-panel="heatmap">
-                <div class="ss-grid ss-grid-2">
-                    <img src="../images/Keyboard Heatmap.png" alt="キーボードヒートマップ" class="ss-img">
-                    <img src="../images/Heatmap_Frequency.png" alt="ヒートマップ頻度" class="ss-img">
+
+            <div class="screenshot-panel active" data-panel="overview">
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Typing Profile.png" alt="タイピングプロフィール" class="ss-img">
+                    <img src="../images/Weekly Summary.png" alt="週間サマリー" class="ss-img">
+                    <img src="../images/Weekly Report.png" alt="週間レポート" class="ss-img">
+                    <img src="../images/Today's Fatigue Curve.png" alt="今日の疲労曲線" class="ss-img">
+                    <img src="../images/Sessions.png" alt="セッション" class="ss-img">
                 </div>
             </div>
-            <div class="screenshot-panel" data-panel="layout">
-                <div class="ss-grid ss-grid-2">
+
+            <div class="screenshot-panel" data-panel="heatmap-layout">
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Heatmap_Frequency.png" alt="ヒートマップ頻度" class="ss-img">
                     <img src="../images/Layout Efficiency Comparison.png" alt="レイアウト効率比較" class="ss-img">
                     <img src="../images/Layout Comparison.png" alt="レイアウト比較" class="ss-img">
+                    <img src="../images/ErgoDox_layout.png" alt="ErgoDoxレイアウト" class="ss-img">
                 </div>
             </div>
+
             <div class="screenshot-panel" data-panel="ergonomics">
-                <div class="ss-grid ss-grid-2">
+                <div class="ss-grid ss-grid-auto">
                     <img src="../images/Ergonomic Score by App.png" alt="アプリ別エルゴノミクススコア" class="ss-img">
+                    <img src="../images/Ergonomic Score by Device.png" alt="デバイス別エルゴノミクススコア" class="ss-img">
                     <img src="../images/Ergonomic Learning Curve.png" alt="エルゴノミクス学習曲線" class="ss-img">
                 </div>
             </div>
-            <div class="screenshot-panel" data-panel="charts">
-                <div class="ss-grid ss-grid-3">
+
+            <div class="screenshot-panel" data-panel="keys-timing">
+                <div class="ss-grid ss-grid-auto">
                     <img src="../images/Top 20 Keys — All Time.png" alt="全期間トップ20キー" class="ss-img">
-                    <img src="../images/Activity Calendar.png" alt="アクティビティカレンダー" class="ss-img">
+                    <img src="../images/Top 20 Bigrams.png" alt="トップ20バイグラム" class="ss-img">
+                    <img src="../images/Top 10 Keys per Day.png" alt="1日あたりトップ10キー" class="ss-img">
+                    <img src="../images/Key Categories.png" alt="キーカテゴリ" class="ss-img">
+                    <img src="../images/All Keyboard Combos.png" alt="全キーボードコンボ" class="ss-img">
+                    <img src="../images/⌘ Keyboard Shortcuts.png" alt="キーボードショートカット" class="ss-img">
+                    <img src="../images/Delete Key Usage (%).png" alt="Deleteキー使用率" class="ss-img">
+                    <img src="../images/Key Transition Analysis.png" alt="キー遷移分析" class="ss-img">
                     <img src="../images/Slow Bigrams (Avg IKI).png" alt="遅いバイグラム" class="ss-img">
+                    <img src="../images/Avg IKI per Finger.png" alt="指ごとの平均IKI" class="ss-img">
+                    <img src="../images/IKI Distribution Histogram.png" alt="IKI分布ヒストグラム" class="ss-img">
+                    <img src="../images/Recent 20 Keystrokes — Timing.png" alt="直近20打鍵タイミング" class="ss-img">
                 </div>
             </div>
+
+            <div class="screenshot-panel" data-panel="activity">
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Activity Calendar.png" alt="アクティビティカレンダー" class="ss-img">
+                    <img src="../images/Daily Totals.png" alt="日次合計" class="ss-img">
+                    <img src="../images/Monthly Totals.png" alt="月次合計" class="ss-img">
+                    <img src="../images/Hourly Distribution.png" alt="時間帯別分布" class="ss-img">
+                    <img src="../images/Top Apps — All Time.png" alt="全期間トップアプリ" class="ss-img">
+                    <img src="../images/Top Apps — Today.png" alt="今日のトップアプリ" class="ss-img">
+                    <img src="../images/Top Devices — All Time.png" alt="全期間トップデバイス" class="ss-img">
+                    <img src="../images/Top Devices — Today.png" alt="今日のトップデバイス" class="ss-img">
+                </div>
+            </div>
+
             <div class="screenshot-panel" data-panel="training">
-                <div class="ss-grid ss-grid-2">
+                <div class="ss-grid ss-grid-auto">
                     <img src="../images/Practice Drills.png" alt="練習ドリル" class="ss-img">
                     <img src="../images/Typing Speed (WPM).png" alt="タイピング速度 WPM" class="ss-img">
+                    <img src="../images/Typing Speedometer.png" alt="タイピング速度計" class="ss-img">
+                    <img src="../images/Training History.png" alt="トレーニング履歴" class="ss-img">
+                    <img src="../images/Training Targets.png" alt="トレーニング目標" class="ss-img">
+                    <img src="../images/Trigram Training Targets.png" alt="トライグラムトレーニング目標" class="ss-img">
                 </div>
             </div>
+
             <div class="screenshot-panel" data-panel="mouse">
-                <div class="ss-grid ss-grid-2">
+                <div class="ss-grid ss-grid-auto">
                     <img src="../images/Daily Mouse Travel (Last 30 Days).png" alt="日次マウス移動距離" class="ss-img">
+                    <img src="../images/Hourly Mouse Activity.png" alt="時間帯別マウスアクティビティ" class="ss-img">
+                    <img src="../images/Mouse Click Count.png" alt="マウスクリック数" class="ss-img">
                     <img src="../images/Mouse vs Keyboard Balance.png" alt="マウスとキーボードのバランス" class="ss-img">
+                    <img src="../images/Daily Direction Breakdown.png" alt="日次方向別内訳" class="ss-img">
+                    <img src="../images/Direction Breakdown.png" alt="方向別内訳" class="ss-img">
                 </div>
             </div>
         </div>

@@ -370,12 +370,8 @@ nav {
     gap: 20px;
 }
 
-.ss-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.ss-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+.ss-grid-auto {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .ss-img {
@@ -391,8 +387,8 @@ nav {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
 
-@media (max-width: 768px) {
-    .ss-grid-2, .ss-grid-3 {
+@media (max-width: 600px) {
+    .ss-grid-auto {
         grid-template-columns: 1fr;
     }
 }
