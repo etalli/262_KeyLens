@@ -468,6 +468,43 @@ final class L10n {
         ja("平均WPM", en: "Avg WPM")
     }
 
+    var helpComparison: String {
+        ja(
+            """
+            2つの期間を並べてタイピング統計を比較します。
+
+            • 範囲A — ベースライン（古い期間）
+            • 範囲B — 比較対象（新しい期間）
+
+            各指標の説明:
+            • 打鍵数 (合計) — 期間中の総キーストローク数
+            • 1日平均打鍵数 — 入力があった日の1日あたり平均
+            • 入力日数 — 1回以上入力した日数
+            • 平均WPM — キーストローク間隔から推定した平均タイピング速度
+            • 同指連打率 — 同じ指で連続して打鍵した割合（低いほど良い）
+            • 手交互率 — 左右交互に打鍵した割合（高いほど良い）
+
+            Δ列の色: 緑 = 改善、赤 = 低下
+            """,
+            en: """
+            Compare keystroke statistics across two date ranges side by side.
+
+            • Range A — baseline (the earlier period)
+            • Range B — comparison (the more recent period)
+
+            Metrics:
+            • Total Keystrokes — total key presses in the period
+            • Daily Average — average keystrokes per active day
+            • Active Days — days with at least one keystroke
+            • Avg WPM — estimated typing speed from inter-keystroke intervals
+            • Same-Finger Rate — consecutive presses on the same finger (lower is better)
+            • Alternation Rate — left/right hand alternation (higher is better)
+
+            Δ column: green = improvement, red = regression
+            """
+        )
+    }
+
     var comparisonNoData: String {
         ja("この期間のデータはありません", en: "No data for this period")
     }

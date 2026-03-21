@@ -39,6 +39,8 @@ struct ChartsView: View {
     @State var trainingResetToken = UUID()
     /// Controls the confirmation alert for clearing training history.
     @State var showClearHistoryAlert = false
+    /// Holds the current comparison result so it can be wrapped in chartSection for save/copy.
+    @State var comparisonResult: ComparisonResult? = nil
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

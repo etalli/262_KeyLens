@@ -4,13 +4,24 @@ import SwiftUI
 
 extension ChartsView {
     var comparisonTab: some View {
-        ComparisonTabView()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                ComparisonTabView(result: $comparisonResult)
+                if let r = comparisonResult {
+                    chartSection(L10n.shared.comparisonTabTitle, helpText: L10n.shared.helpComparison) {
+                        ComparisonResultView(result: r)
+                    }
+                }
+            }
+            .padding(20)
+        }
     }
 }
 
 // MARK: - ComparisonTabView
 
-/// Period comparison tab — lets the user pick two date ranges and compare keystroke stats side by side.
+/// Date-range picker and preset controls for the Compare tab.
+/// The result is surfaced via `result` binding so the parent can wrap it in `chartSection`.
 struct ComparisonTabView: View {
     private let l = L10n.shared
 
@@ -22,19 +33,13 @@ struct ComparisonTabView: View {
     @State private var startB: Date = Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
     @State private var endB:   Date = Date()
 
-    @State private var result: ComparisonResult? = nil
+    @Binding var result: ComparisonResult?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                presetsRow
-                pickerGrid
-                compareButton
-                if let r = result {
-                    ComparisonResultView(result: r)
-                }
-            }
-            .padding(20)
+        VStack(alignment: .leading, spacing: 20) {
+            presetsRow
+            pickerGrid
+            compareButton
         }
     }
 
