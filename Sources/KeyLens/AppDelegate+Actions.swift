@@ -130,13 +130,13 @@ extension AppDelegate {
         }
     }
 
-    // MARK: - Obsidian Export
+    // MARK: - Markdown Daily Note Export
 
-    private static let obsidianBookmarkKey = "obsidianFolderBookmark"
+    private static let dailyNoteBookmarkKey = "dailyNoteFolderBookmark"
 
-    /// Returns the previously saved Obsidian folder URL by resolving the stored security-scoped bookmark.
-    private func resolvedObsidianFolder() -> URL? {
-        guard let data = UserDefaults.standard.data(forKey: Self.obsidianBookmarkKey) else { return nil }
+    /// Returns the previously saved daily note folder URL by resolving the stored security-scoped bookmark.
+    private func resolvedDailyNoteFolder() -> URL? {
+        guard let data = UserDefaults.standard.data(forKey: Self.dailyNoteBookmarkKey) else { return nil }
         var isStale = false
         return try? URL(resolvingBookmarkData: data,
                         options: .withSecurityScope,
@@ -145,34 +145,34 @@ extension AppDelegate {
     }
 
     /// Saves a security-scoped bookmark for the given folder URL.
-    private func saveObsidianBookmark(for url: URL) {
+    private func saveDailyNoteBookmark(for url: URL) {
         let data = try? url.bookmarkData(options: .withSecurityScope,
                                          includingResourceValuesForKeys: nil,
                                          relativeTo: nil)
-        UserDefaults.standard.set(data, forKey: Self.obsidianBookmarkKey)
+        UserDefaults.standard.set(data, forKey: Self.dailyNoteBookmarkKey)
     }
 
-    func exportObsidian() {
-        if let folder = resolvedObsidianFolder() {
-            writeObsidianNote(to: folder)
+    func exportDailyNote() {
+        if let folder = resolvedDailyNoteFolder() {
+            writeDailyNote(to: folder)
         } else {
-            pickObsidianFolder { [weak self] folder in
-                self?.writeObsidianNote(to: folder)
+            pickDailyNoteFolder { [weak self] folder in
+                self?.writeDailyNote(to: folder)
             }
         }
     }
 
-    func changeObsidianFolder() {
-        pickObsidianFolder { [weak self] folder in
-            self?.writeObsidianNote(to: folder)
+    func changeDailyNoteFolder() {
+        pickDailyNoteFolder { [weak self] folder in
+            self?.writeDailyNote(to: folder)
         }
     }
 
-    private func pickObsidianFolder(then completion: @escaping (URL) -> Void) {
+    private func pickDailyNoteFolder(then completion: @escaping (URL) -> Void) {
         let l = L10n.shared
         let panel = NSOpenPanel()
-        panel.title = l.obsidianFolderPickerTitle
-        panel.prompt = l.obsidianFolderPickerButton
+        panel.title = l.dailyNoteFolderPickerTitle
+        panel.prompt = l.dailyNoteFolderPickerButton
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true
@@ -180,18 +180,18 @@ extension AppDelegate {
         NSApp.activate(ignoringOtherApps: true)
         panel.begin { [weak self] response in
             guard response == .OK, let url = panel.url else { return }
-            self?.saveObsidianBookmark(for: url)
+            self?.saveDailyNoteBookmark(for: url)
             completion(url)
         }
     }
 
-    private func writeObsidianNote(to folder: URL) {
+    private func writeDailyNote(to folder: URL) {
         let l = L10n.shared
         let dateFmt = DateFormatter()
         dateFmt.dateFormat = "yyyy-MM-dd"
         let today = dateFmt.string(from: Date())
 
-        let markdown = KeyCountStore.shared.exportObsidianMarkdown(date: today)
+        let markdown = KeyCountStore.shared.exportDailyNoteMarkdown(date: today)
         let fileURL = folder.appendingPathComponent("\(today).md")
 
         _ = folder.startAccessingSecurityScopedResource()
@@ -211,15 +211,15 @@ extension AppDelegate {
             }
             DispatchQueue.main.async {
                 let alert = NSAlert()
-                alert.messageText = l.obsidianExportSuccess
+                alert.messageText = l.dailyNoteExportSuccess
                 alert.informativeText = fileURL.path
                 alert.runModal()
             }
         } catch {
-            KeyLens.log("Obsidian export failed: \(error)")
+            KeyLens.log("Daily note export failed: \(error)")
             DispatchQueue.main.async {
                 let alert = NSAlert()
-                alert.messageText = l.obsidianExportFailed
+                alert.messageText = l.dailyNoteExportFailed
                 alert.informativeText = error.localizedDescription
                 alert.runModal()
             }

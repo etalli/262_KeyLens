@@ -418,28 +418,28 @@ final class L10n {
         ja("ここに保存", en: "Save Here")
     }
 
-    var exportObsidianMenuItem: String {
-        ja("Obsidian デイリーノートに書き出し", en: "Export to Obsidian Daily Note")
+    var exportDailyNoteMenuItem: String {
+        ja("Markdown デイリーノートに書き出し", en: "Export to Markdown Daily Note")
     }
 
-    var changeObsidianFolderMenuItem: String {
-        ja("Obsidian フォルダを変更…", en: "Change Obsidian Folder…")
+    var changeDailyNoteFolderMenuItem: String {
+        ja("デイリーノートフォルダを変更…", en: "Change Daily Note Folder…")
     }
 
-    var obsidianFolderPickerTitle: String {
-        ja("Obsidian Vault フォルダを選択", en: "Select Obsidian Vault Folder")
+    var dailyNoteFolderPickerTitle: String {
+        ja("デイリーノートフォルダを選択", en: "Select Daily Note Folder")
     }
 
-    var obsidianFolderPickerButton: String {
+    var dailyNoteFolderPickerButton: String {
         ja("このフォルダを使用", en: "Use This Folder")
     }
 
-    var obsidianExportSuccess: String {
-        ja("Obsidian デイリーノートに書き出しました", en: "Exported to Obsidian daily note")
+    var dailyNoteExportSuccess: String {
+        ja("Markdown デイリーノートに書き出しました", en: "Exported to Markdown daily note")
     }
 
-    var obsidianExportFailed: String {
-        ja("Obsidian への書き出しに失敗しました", en: "Failed to export to Obsidian")
+    var dailyNoteExportFailed: String {
+        ja("Markdown デイリーノートへの書き出しに失敗しました", en: "Failed to export to Markdown daily note")
     }
 
     var backupMenuItem: String {

@@ -39,9 +39,9 @@ extension KeyCountStore {
         }
     }
 
-    /// Generates a Markdown block suitable for appending to an Obsidian daily note.
+    /// Generates a Markdown block suitable for appending to a daily note file (Obsidian, Logseq, etc.).
     /// Includes today's keystroke count, estimated WPM, backspace rate, and ergonomic score.
-    func exportObsidianMarkdown(date: String) -> String {
+    func exportDailyNoteMarkdown(date: String) -> String {
         let store = KeyCountStore.shared
         let todayKeys = store.todayCount
         let wpm = store.estimatedWPM.map { String(format: "%.1f", $0) } ?? "—"
