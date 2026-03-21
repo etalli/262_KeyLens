@@ -11,8 +11,8 @@ private final class SpeedometerViewModel: ObservableObject {
     private var decayTimer: Timer?
     private var observer: NSObjectProtocol?
 
-    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
-    private static let decayFactor: Double = 0.82
+    // 0.65× per 0.5 s tick → half-life ≈ 1.5 s, reaches ~0 in ~4 s.
+    private static let decayFactor: Double = 0.65
 
     init() {
         // Stable timer: not tied to view struct lifecycle.
