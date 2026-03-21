@@ -315,6 +315,7 @@ private struct DataMenuRow: View {
         add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
         add(l.exportSQLiteMenuItem)    { appDelegate.exportSQLite() }
         add(l.exportSummaryCardMenuItem) { appDelegate.exportWeeklySummaryCard() }
+        add(l.exportYearInReviewMenuItem) { appDelegate.exportYearInReviewCard() }
         add(l.exportDailyNoteMenuItem)  { appDelegate.exportDailyNote() }
         add(l.changeDailyNoteFolderMenuItem) { appDelegate.changeDailyNoteFolder() }
         add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem) {
