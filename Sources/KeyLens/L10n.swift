@@ -464,6 +464,10 @@ final class L10n {
         ja("手交互率", en: "Alternation Rate")
     }
 
+    var comparisonMetricAvgWPM: String {
+        ja("平均WPM", en: "Avg WPM")
+    }
+
     var comparisonNoData: String {
         ja("この期間のデータはありません", en: "No data for this period")
     }

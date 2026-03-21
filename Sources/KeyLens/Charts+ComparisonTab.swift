@@ -129,6 +129,7 @@ struct ComparisonResult {
         let totalKeystrokes: Int
         let activeDays: Int
         let dailyAverage: Int
+        let averageWPM: Double?
         let sameFingerRate: Double?
         let alternationRate: Double?
     }
@@ -162,6 +163,9 @@ struct ComparisonResult {
             let active  = dayData.count
             let avg     = active > 0 ? total / active : 0
 
+            let wpmVals = store.dailyWPM().filter { dates.contains($0.date) }.map(\.wpm)
+            let avgWPM: Double? = wpmVals.isEmpty ? nil : wpmVals.reduce(0, +) / Double(wpmVals.count)
+
             let ergData = allErg.filter { dates.contains($0.date) }
             func avgRate(_ selector: (Double, Double, Double) -> Double) -> Double? {
                 let vals = ergData.map { selector($0.sameFingerRate, $0.handAltRate, $0.highStrainRate) }
@@ -173,6 +177,7 @@ struct ComparisonResult {
                 totalKeystrokes: total,
                 activeDays:     active,
                 dailyAverage:   avg,
+                averageWPM:     avgWPM,
                 sameFingerRate: avgRate { sf, _, _ in sf },
                 alternationRate: avgRate { _, ha, _ in ha }
             )
@@ -229,6 +234,16 @@ struct ComparisonResultView: View {
                 lowerIsBetter: false,
                 format: { "\($0)" }
             )
+
+            // WPM row (optional)
+            if let wpmA = result.a.averageWPM, let wpmB = result.b.averageWPM {
+                doubleRow(
+                    label: l.comparisonMetricAvgWPM,
+                    a: wpmA, b: wpmB,
+                    lowerIsBetter: false,
+                    format: { String(format: "%.1f wpm", $0) }
+                )
+            }
 
             // Ergonomic rate rows (optional)
             if let sfA = result.a.sameFingerRate, let sfB = result.b.sameFingerRate {
