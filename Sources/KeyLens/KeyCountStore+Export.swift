@@ -62,6 +62,7 @@ extension KeyCountStore {
 | Ergonomic Score | \(ergo) / 100 |
 | Same-Finger Bigrams | \(sfRate) |
 | Hand Alternation | \(altRate) |
+
 """
     }
 
