@@ -453,6 +453,14 @@ final class L10n {
         ja("コピーしました！", en: "Copied!")
     }
 
+    var saveChartAsImage: String {
+        ja("画像として保存", en: "Save as Image")
+    }
+
+    var savedConfirmation: String {
+        ja("保存しました！", en: "Saved!")
+    }
+
     var heatmapLayoutLabel: String {
         ja("レイアウト", en: "Layout")
     }

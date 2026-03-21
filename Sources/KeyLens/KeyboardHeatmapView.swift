@@ -494,7 +494,7 @@ struct KeyboardHeatmapView: View {
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
-        panel.nameFieldStringValue = "KeyLens_Heatmap_\(mode.rawValue).png"
+        panel.nameFieldStringValue = "Heatmap_\(mode.rawValue).png"
 
         if panel.runModal() == .OK, let url = panel.url {
             if let image = renderer.nsImage {

@@ -13,6 +13,8 @@ struct ChartsView: View {
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State var copiedSection: String? = nil
+    /// Title of the section whose image save just succeeded (cleared after 1.5 s).
+    @State var savedSection: String? = nil
     /// Stores each chart section's SwiftUI global frame and the Charts NSWindow reference.
     @State var snapperStore = SnapperStore()
     /// Timer that drives real-time refresh on the Live tab.
@@ -129,6 +131,19 @@ struct ChartsView: View {
                         .frame(width: 80)
                     }
 
+                    // Save image button
+                    let isSaved = savedSection == title
+                    Button {
+                        saveImageToFile(title: title)
+                    } label: {
+                        Image(systemName: isSaved ? "checkmark" : "square.and.arrow.down")
+                            .font(.body)
+                            .foregroundStyle(isSaved ? .green : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(isSaved ? L10n.shared.savedConfirmation : L10n.shared.saveChartAsImage)
+                    .animation(.easeInOut(duration: 0.2), value: isSaved)
+
                     // Copy to clipboard button
                     Button {
                         snapshotToClipboard(title: title)
@@ -138,7 +153,7 @@ struct ChartsView: View {
                             .foregroundStyle(isCopied ? .green : .secondary)
                     }
                     .buttonStyle(.plain)
-                    .help("Copy chart as image")
+                    .help(isCopied ? L10n.shared.copiedConfirmation : "Copy chart as image")
                     .animation(.easeInOut(duration: 0.2), value: isCopied)
                 }
                 contentView
@@ -184,6 +199,51 @@ struct ChartsView: View {
         copiedSection = title
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             if copiedSection == title { copiedSection = nil }
+        }
+    }
+
+    /// Captures the section image and saves it as a PNG file via NSSavePanel.
+    func saveImageToFile(title: String) {
+        guard let snapper = snapperStore.views[title],
+              let superview = snapper.superview,
+              let window = superview.window else { return }
+
+        let scale = window.backingScaleFactor
+        let inWindow   = superview.convert(snapper.frame, to: nil)
+        let onScreen   = window.convertToScreen(inWindow)
+        let winOnScreen = window.frame
+
+        guard let windowImage = CGWindowListCreateImage(
+            .null,
+            .optionIncludingWindow,
+            CGWindowID(window.windowNumber),
+            [.bestResolution, .boundsIgnoreFraming]
+        ) else { return }
+
+        let cropRect = CGRect(
+            x:      (onScreen.minX - winOnScreen.minX) * scale,
+            y:      (winOnScreen.maxY - onScreen.maxY) * scale,
+            width:  onScreen.width  * scale,
+            height: onScreen.height * scale
+        )
+        guard let cropped = windowImage.cropping(to: cropRect) else { return }
+
+        let img = NSImage(cgImage: cropped,
+                          size: NSSize(width: onScreen.width, height: onScreen.height))
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.png]
+        panel.nameFieldStringValue = "\(title).png"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        if let tiffData = img.tiffRepresentation,
+           let bitmap = NSBitmapImageRep(data: tiffData),
+           let pngData = bitmap.representation(using: .png, properties: [:]) {
+            try? pngData.write(to: url)
+            savedSection = title
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                if savedSection == title { savedSection = nil }
+            }
         }
     }
 
