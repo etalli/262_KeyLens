@@ -522,6 +522,63 @@ extension KeyCountStore {
         }
     }
 
+    /// Average keystroke count per (weekday, hour) cell across all recorded dates.
+    /// weekday: 0 = Sunday … 6 = Saturday  |  hour: 0–23
+    /// Used by the Weekly Activity Heatmap (Issue #78).
+    func hourlyCountsByDayOfWeek() -> [(weekday: Int, hour: Int, avgCount: Double)] {
+        queue.sync {
+            // sums[weekday][hour] = cumulative keystroke count
+            // days[weekday]       = set of distinct dates seen for that weekday
+            var sums = [Int: [Int: Int]]()
+            var days = [Int: Set<String>]()
+
+            if let db = dbQueue,
+               let rows = try? db.read({ db in
+                   try Row.fetchAll(db, sql: """
+                       SELECT date,
+                              CAST(strftime('%w', date) AS INTEGER) AS weekday,
+                              hour,
+                              count
+                       FROM hourly_counts
+                       """)
+               }) {
+                for row in rows {
+                    let date: String = row["date"]
+                    let wd: Int      = row["weekday"]
+                    let h: Int       = row["hour"]
+                    let c: Int       = row["count"]
+                    guard h < 24 else { continue }
+                    sums[wd, default: [:]][h, default: 0] += c
+                    days[wd, default: []].insert(date)
+                }
+            }
+
+            // Merge pending in-memory data.
+            let cal = Calendar.current
+            for (date, hours) in pending.hourly {
+                guard let d = Self.dayFormatter.date(from: date) else { continue }
+                // Calendar.weekday: 1 = Sunday … 7 = Saturday  →  convert to 0-based
+                let wd = cal.component(.weekday, from: d) - 1
+                days[wd, default: []].insert(date)
+                for (h, v) in hours where h < 24 {
+                    sums[wd, default: [:]][h, default: 0] += v
+                }
+            }
+
+            // Build result ordered by weekday then hour.
+            var result: [(weekday: Int, hour: Int, avgCount: Double)] = []
+            for wd in 0..<7 {
+                let dayCount = days[wd]?.count ?? 0
+                for h in 0..<24 {
+                    let sum = sums[wd]?[h] ?? 0
+                    let avg = dayCount > 0 ? Double(sum) / Double(dayCount) : 0.0
+                    result.append((weekday: wd, hour: h, avgCount: avg))
+                }
+            }
+            return result
+        }
+    }
+
     /// Aggregate hourly keystroke counts across all recorded dates.
     func hourlyDistribution() -> [Int] {
         queue.sync {
