@@ -1,5 +1,49 @@
 import SwiftUI
 
+// MARK: - Speedometer ViewModel
+// Owns the timer and state as a class so it survives parent view rebuilds.
+// @StateObject ensures one instance per view lifetime, not one per render pass.
+private final class SpeedometerViewModel: ObservableObject {
+    @Published var currentWPM: Double = 0
+    @Published var peakWPM: Double = 0
+
+    private var lastKeystrokeDate: Date = .distantPast
+    private var decayTimer: Timer?
+    private var observer: NSObjectProtocol?
+
+    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
+    private static let decayFactor: Double = 0.82
+
+    init() {
+        // Stable timer: not tied to view struct lifecycle.
+        decayTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.tick()
+        }
+        observer = NotificationCenter.default.addObserver(
+            forName: .keystrokeInput, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.onKeystroke()
+        }
+    }
+
+    deinit {
+        decayTimer?.invalidate()
+        if let obs = observer { NotificationCenter.default.removeObserver(obs) }
+    }
+
+    private func onKeystroke() {
+        lastKeystrokeDate = Date()
+        let wpm = KeyCountStore.shared.rollingWPM()
+        currentWPM = wpm
+        if wpm > peakWPM { peakWPM = wpm }
+    }
+
+    private func tick() {
+        guard Date().timeIntervalSince(lastKeystrokeDate) > 0.3 else { return }
+        currentWPM = max(0, currentWPM * Self.decayFactor)
+    }
+}
+
 // MARK: - Speedometer View (Issue #115)
 // Arc gauge showing rolling WPM from the last 5-second keystroke window.
 // Arc sweeps from 8 o'clock (0 WPM) clockwise through 12 o'clock (50 WPM) to 4 o'clock (100 WPM).
@@ -10,15 +54,7 @@ struct SpeedometerView: View {
     private static let startDeg: Double = 150  // ~8 o'clock position (0 WPM)
     private static let sweepDeg: Double = 240  // total arc span in degrees
 
-    @State private var currentWPM: Double = 0
-    @State private var peakWPM: Double = 0
-    @State private var lastKeystrokeDate: Date = .distantPast
-
-    // 0.82× per 0.5 s tick → half-life ≈ 3 s, reaches ~0 in ~8 s.
-    private static let decayFactor: Double = 0.82
-
-    // Timer drives inertia decay when idle.
-    private let idleTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    @StateObject private var vm = SpeedometerViewModel()
 
     var body: some View {
         VStack(spacing: 6) {
@@ -29,41 +65,26 @@ struct SpeedometerView: View {
                 drawTrack(ctx: ctx, center: center, radius: radius)
                 drawColorZones(ctx: ctx, center: center, radius: radius)
                 drawTicks(ctx: ctx, center: center, radius: radius)
-                if peakWPM > 0 {
-                    drawPeakNeedle(ctx: ctx, center: center, radius: radius, wpm: peakWPM)
+                if vm.peakWPM > 0 {
+                    drawPeakNeedle(ctx: ctx, center: center, radius: radius, wpm: vm.peakWPM)
                 }
-                drawNeedle(ctx: ctx, center: center, radius: radius, wpm: currentWPM)
+                drawNeedle(ctx: ctx, center: center, radius: radius, wpm: vm.currentWPM)
                 drawHub(ctx: ctx, center: center)
             }
             .frame(width: 260, height: 200)
 
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(verbatim: "\(Int(currentWPM))")
+                Text(verbatim: "\(Int(vm.currentWPM))")
                     .font(.system(size: 44, weight: .bold, design: .monospaced))
                 Text(L10n.shared.speedometerWPMLabel)
                     .font(.title2)
                     .foregroundStyle(.secondary)
             }
 
-            Text(L10n.shared.speedometerPeakLabel(Int(peakWPM)))
+            Text(L10n.shared.speedometerPeakLabel(Int(vm.peakWPM)))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .opacity(peakWPM > 0 ? 1 : 0)
-        }
-        // On every keystroke: track time and follow measured WPM exactly.
-        .onReceive(NotificationCenter.default.publisher(for: .keystrokeInput)) { _ in
-            lastKeystrokeDate = Date()
-            currentWPM = KeyCountStore.shared.rollingWPM()
-            if currentWPM > peakWPM { peakWPM = currentWPM }
-        }
-        // Timer only applies decay — never reads rollingWPM (stale buffer would reset the needle).
-        // Decay starts 0.3 s after the last keystroke; during active typing the timer is a no-op.
-        .onReceive(idleTimer) { _ in
-            guard Date().timeIntervalSince(lastKeystrokeDate) > 0.3 else { return }
-            currentWPM = max(0, currentWPM * Self.decayFactor)
-        }
-        .onAppear {
-            currentWPM = KeyCountStore.shared.rollingWPM()
+                .opacity(vm.peakWPM > 0 ? 1 : 0)
         }
     }
 
