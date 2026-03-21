@@ -182,21 +182,26 @@ struct SlowBigramEntry: Identifiable {
     init(_ t: (bigram: String, avgIKI: Double)) { id = t.bigram; bigram = t.bigram; avgIKI = t.avgIKI }
 }
 
-/// Layout efficiency comparison entry (Issue #61).
-/// One row per keyboard layout: shows same-finger bigram rate and hand-alternation rate
-/// computed from the user's actual bigram frequency distribution.
-/// レイアウト効率比較の1行：ユーザーの実打鍵ビグラムに基づく同指率・交互打鍵率。
+/// Layout efficiency comparison entry (Issues #61, #72).
+/// One row per keyboard layout: shows SFB rate, hand-alternation rate, ergonomic score,
+/// and estimated finger travel distance computed from the user's actual typing data.
+/// レイアウト効率比較の1行：ユーザーの実打鍵データに基づく同指率・交互打鍵率・エルゴスコア・移動距離。
 struct LayoutEfficiencyEntry: Identifiable {
     let id: String          // layout name e.g. "QWERTY"
     let name: String
     let sameFingerRate: Double      // lower is better
     let handAlternationRate: Double // higher is better
+    let ergonomicScore: Double      // higher is better [0, 100]
+    let travelDistance: Double      // lower is better (grid units)
     let totalBigrams: Int
-    init(name: String, sameFingerRate: Double, handAlternationRate: Double, totalBigrams: Int) {
+    init(name: String, sameFingerRate: Double, handAlternationRate: Double,
+         ergonomicScore: Double, travelDistance: Double, totalBigrams: Int) {
         id = name
         self.name = name
         self.sameFingerRate = sameFingerRate
         self.handAlternationRate = handAlternationRate
+        self.ergonomicScore = ergonomicScore
+        self.travelDistance = travelDistance
         self.totalBigrams = totalBigrams
     }
 }

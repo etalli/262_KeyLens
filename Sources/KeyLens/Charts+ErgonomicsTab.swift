@@ -106,7 +106,7 @@ extension ChartsView {
                 .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
         } else {
             let best = model.layoutEfficiency.first
-            Grid(alignment: .trailing, horizontalSpacing: 24, verticalSpacing: 0) {
+            Grid(alignment: .trailing, horizontalSpacing: 20, verticalSpacing: 0) {
                 // Header
                 GridRow {
                     Text("Layout")
@@ -115,6 +115,10 @@ extension ChartsView {
                     Text(L10n.shared.layoutEfficiencySFBHeader)
                         .font(.footnote).bold().foregroundStyle(.secondary)
                     Text(L10n.shared.layoutEfficiencyAltHeader)
+                        .font(.footnote).bold().foregroundStyle(.secondary)
+                    Text("Ergo Score")
+                        .font(.footnote).bold().foregroundStyle(.secondary)
+                    Text("Travel")
                         .font(.footnote).bold().foregroundStyle(.secondary)
                 }
                 .padding(.bottom, 6)
@@ -143,13 +147,21 @@ extension ChartsView {
                         Text(String(format: "%.1f%%", entry.handAlternationRate * 100))
                             .font(.callout.monospacedDigit())
                             .foregroundStyle(isBest ? Color.green : .primary)
+
+                        Text(String(format: "%.1f", entry.ergonomicScore))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(isBest ? Color.green : .primary)
+
+                        Text(String(format: "%.0f", entry.travelDistance))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(isBest ? Color.green : .primary)
                     }
                     .padding(.vertical, 5)
                 }
             }
             .padding(.vertical, 4)
 
-            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams")
+            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams. Sorted by ergonomic score — higher is better.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

@@ -330,7 +330,7 @@ extension KeyCountStore {
     ///
     /// - Returns: One entry per layout, sorted by hand-alternation rate descending (best first).
     func layoutEfficiencyScores() -> [LayoutEfficiencyEntry] {
-        let bigrams = queue.sync { store.ergonomics.bigramCounts }
+        let (bigrams, keyCounts) = queue.sync { (store.ergonomics.bigramCounts, store.counts) }
         guard !bigrams.isEmpty else { return [] }
 
         let layouts: [(name: String, layout: any KeyboardLayout)] = [
@@ -340,34 +340,22 @@ extension KeyCountStore {
         ]
 
         return layouts.map { layoutName, layout in
-            var sfbCount = 0
-            var altCount = 0
-            var total    = 0
-
-            for (bigramKey, count) in bigrams {
-                guard let b     = Bigram.parse(bigramKey),
-                      let handA = layout.hand(for: b.from),
-                      let handB = layout.hand(for: b.to) else { continue }
-                total += count
-                if handA != handB {
-                    altCount += count
-                } else if let fingerA = layout.finger(for: b.from),
-                          let fingerB = layout.finger(for: b.to),
-                          fingerA == fingerB {
-                    sfbCount += count
-                }
-            }
-
-            let sfbRate = total > 0 ? Double(sfbCount) / Double(total) : 0
-            let altRate = total > 0 ? Double(altCount) / Double(total) : 0
+            let simRegistry = LayoutRegistry.forSimulation(layout: layout)
+            let snapshot    = ErgonomicSnapshot.capture(
+                bigramCounts: bigrams,
+                keyCounts:    keyCounts,
+                layout:       simRegistry
+            )
             return LayoutEfficiencyEntry(
-                name: layoutName,
-                sameFingerRate: sfbRate,
-                handAlternationRate: altRate,
-                totalBigrams: total
+                name:               layoutName,
+                sameFingerRate:     snapshot.sameFingerRate,
+                handAlternationRate: snapshot.handAlternationRate,
+                ergonomicScore:     snapshot.ergonomicScore,
+                travelDistance:     snapshot.estimatedTravelDistance,
+                totalBigrams:       bigrams.values.reduce(0, +)
             )
         }
-        .sorted { $0.handAlternationRate > $1.handAlternationRate }
+        .sorted { $0.ergonomicScore > $1.ergonomicScore }
     }
 }
 
