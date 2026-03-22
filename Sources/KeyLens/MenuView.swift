@@ -85,10 +85,7 @@ struct MenuView: View {
                     }
                 case .estimatedWPM:
                     if let wpm = store.estimatedWPM {
-                        menuRow(String(format: l.estimatedWPMFormat, wpm), icon: "speedometer") {
-                            UserDefaults.standard.set(ChartTab.activity.rawValue, forKey: "selectedChartTab")
-                            appDelegate.showCharts()
-                        }
+                        infoRow(String(format: l.estimatedWPMFormat, wpm), icon: "speedometer")
                     }
                 case .backspaceRate:
                     if let bs = store.todayBackspaceRate {
@@ -122,8 +119,6 @@ struct MenuView: View {
                     let count = KeyCountStore.shared.slowEventCount
                     if count > 0 {
                         infoRow(l.slowEventsDisplay(count))
-                    } else {
-                        infoRow(l.slowEventsNone)
                     }
                 }
             }
