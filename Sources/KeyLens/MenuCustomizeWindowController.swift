@@ -118,8 +118,9 @@ private struct MenuCustomizeView: View {
                 items = MenuWidgetStore.defaultOrder
                 MenuWidgetStore.shared.allOrdered = items
                 for w in MenuWidget.allCases {
-                    enabled[w] = true
-                    MenuWidgetStore.shared.setEnabled(w, true)
+                    let on = MenuWidgetStore.defaultEnabled(w)
+                    enabled[w] = on
+                    MenuWidgetStore.shared.setEnabled(w, on)
                 }
             }
             .font(.system(size: 12))

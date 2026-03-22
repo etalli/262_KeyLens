@@ -13,10 +13,7 @@ struct MenuView: View {
         VStack(alignment: .leading, spacing: 0) {
             statusRow
             divider
-            ScrollView {
-                statsSection
-            }
-            .frame(maxHeight: 300)
+            statsSection
             divider
             actionRow
             divider
@@ -87,10 +84,6 @@ struct MenuView: View {
                     if let wpm = store.estimatedWPM {
                         infoRow(String(format: l.estimatedWPMFormat, wpm), icon: "speedometer")
                     }
-                case .backspaceRate:
-                    if let bs = store.todayBackspaceRate {
-                        infoRow(String(format: l.backspaceRateFormat, bs))
-                    }
                 case .miniChart:
                     MiniDailyBarChart()
                 case .streak:
@@ -118,7 +111,11 @@ struct MenuView: View {
                 case .slowEvents:
                     let count = KeyCountStore.shared.slowEventCount
                     if count > 0 {
-                        infoRow(l.slowEventsDisplay(count), icon: "exclamationmark.triangle")
+                        menuRow(l.slowEventsDisplay(count), icon: "exclamationmark.triangle") {
+                            let logDir = FileManager.default.homeDirectoryForCurrentUser
+                                .appendingPathComponent("Library/Logs/KeyLens")
+                            NSWorkspace.shared.open(logDir)
+                        }
                     }
                 }
             }

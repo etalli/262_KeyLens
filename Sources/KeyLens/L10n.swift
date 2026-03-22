@@ -1305,7 +1305,6 @@ final class L10n {
         case .todayTotal:     return ja("本日 / 合計", en: "Today / Total")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
-        case .backspaceRate:  return ja("Delete使用率", en: "Delete Usage")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
         case .streak:               return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:   return ja("ショートカット効率", en: "Shortcut Efficiency")
