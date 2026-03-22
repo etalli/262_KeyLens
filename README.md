@@ -203,5 +203,4 @@ See [docs/HowToBuild.md](docs/HowToBuild.md) for prerequisites, build commands, 
 
 For internal design details, see [Architecture](docs/Architecture.md).
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
-
 Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).
