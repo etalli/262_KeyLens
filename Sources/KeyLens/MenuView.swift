@@ -158,7 +158,7 @@ struct MenuView: View {
         return VStack(spacing: 0) {
             menuRow(l.aboutMenuItem)             { appDelegate.showAboutPanel() }
             menuRow(l.checkForUpdatesMenuItem)   { appDelegate.checkForUpdates() }
-            menuRow(l.quit)                      { appDelegate.quit() }
+            menuRow(l.quit, icon: "power")       { appDelegate.quit() }
         }
     }
 
