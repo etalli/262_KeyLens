@@ -535,10 +535,6 @@ final class L10n {
         ja("SQLite の書き出しに失敗しました", en: "Failed to export SQLite database")
     }
 
-    var exportHeatmap: String {
-        ja("ヒートマップを保存", en: "Save Heatmap")
-    }
-
     var exportSuccess: String {
         ja("保存しました", en: "Saved successfully")
     }
@@ -600,10 +596,6 @@ final class L10n {
 
     var copyDataMenuItem: String {
         ja("データをコピー", en: "Copy Data to Clipboard")
-    }
-
-    var copyHeatmap: String {
-        ja("画像をコピー", en: "Copy Image")
     }
 
     var copiedConfirmation: String {

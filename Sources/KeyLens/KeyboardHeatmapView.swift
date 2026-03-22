@@ -55,7 +55,6 @@ struct KeyboardHeatmapView: View {
     @State private var showModeHelp: Bool = false
     @State private var showStrainLegendHelp: Bool = false
     @State private var showKLEHelp: Bool = false
-    @State private var copyConfirmed = false
     @State private var showImportError = false
     @State private var importErrorMessage = ""
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
@@ -465,19 +464,6 @@ struct KeyboardHeatmapView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         }
 
-                    Button(action: exportAsPNG) {
-                        Label(L10n.shared.exportHeatmap, systemImage: "square.and.arrow.down")
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-
-                    Button(action: copyToClipboard) {
-                        Image(systemName: copyConfirmed ? "checkmark" : "doc.on.doc")
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help(copyConfirmed ? L10n.shared.copiedConfirmation : L10n.shared.copyHeatmap)
-
                     Spacer()
 
                     if !deviceNames.isEmpty {
@@ -501,40 +487,6 @@ struct KeyboardHeatmapView: View {
         }
     }
 
-    // MARK: - Export Logic
-
-    @MainActor
-    private func exportAsPNG() {
-        let view = HeatmapExportView(
-            counts: counts,
-            mode: mode,
-            template: effectiveTemplate,
-            keyboardKeyNames: keyboardKeyNames,
-            strainScores: strainScores,
-            speedScores: speedScores,
-            customKeys: customKeys
-        )
-        .frame(width: 800) // Base width for export
-        .background(Color(NSColor.windowBackgroundColor))
-
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 2.0 // Retain scale
-
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.png]
-        panel.nameFieldStringValue = "Heatmap_\(mode.rawValue).png"
-
-        if panel.runModal() == .OK, let url = panel.url {
-            if let image = renderer.nsImage {
-                if let tiffData = image.tiffRepresentation,
-                   let bitmap = NSBitmapImageRep(data: tiffData),
-                   let pngData = bitmap.representation(using: .png, properties: [:]) {
-                    try? pngData.write(to: url)
-                }
-            }
-        }
-    }
-
     @MainActor
     private func importKLELayout() {
         let panel = NSOpenPanel()
@@ -553,32 +505,6 @@ struct KeyboardHeatmapView: View {
         }
     }
 
-    @MainActor
-    private func copyToClipboard() {
-        let view = HeatmapExportView(
-            counts: counts,
-            mode: mode,
-            template: effectiveTemplate,
-            keyboardKeyNames: keyboardKeyNames,
-            strainScores: strainScores,
-            speedScores: speedScores,
-            customKeys: customKeys
-        )
-        .frame(width: 800)
-        .background(Color(NSColor.windowBackgroundColor))
-
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 2.0
-
-        guard let image = renderer.nsImage else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.writeObjects([image])
-
-        copyConfirmed = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            copyConfirmed = false
-        }
-    }
 }
 
 // MARK: - HeatmapExportView
@@ -859,31 +785,26 @@ struct HeatmapExportView: View {
 
         func s(_ i: Int) -> String { i < slots.count ? slots[i] : "" }
 
+        // Each slot is overlaid at its keycap position using ZStack alignment.
+        // Using independent frames (not split columns) so each text gets full
+        // key width to work with and can render at a readable size.
         let cell = ZStack {
             RoundedRectangle(cornerRadius: 5).fill(bgColor)
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    Text(s(0)).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(s(8)).frame(maxWidth: .infinity, alignment: .center)
-                    Text(s(2)).frame(maxWidth: .infinity, alignment: .trailing)
-                }
-                Spacer(minLength: 0)
-                HStack(spacing: 0) {
-                    Text(s(6)).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(s(9)).frame(maxWidth: .infinity, alignment: .center)
-                    Text(s(7)).frame(maxWidth: .infinity, alignment: .trailing)
-                }
-                Spacer(minLength: 0)
-                HStack(spacing: 0) {
-                    Text(s(1)).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(s(10)).frame(maxWidth: .infinity, alignment: .center)
-                    Text(s(3)).frame(maxWidth: .infinity, alignment: .trailing)
-                }
+            Group {
+                if !s(0).isEmpty  { Text(s(0)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading) }
+                if !s(8).isEmpty  { Text(s(8)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top) }
+                if !s(2).isEmpty  { Text(s(2)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing) }
+                if !s(6).isEmpty  { Text(s(6)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading) }
+                if !s(9).isEmpty  { Text(s(9)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center) }
+                if !s(7).isEmpty  { Text(s(7)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing) }
+                if !s(1).isEmpty  { Text(s(1)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading) }
+                if !s(10).isEmpty { Text(s(10)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom) }
+                if !s(3).isEmpty  { Text(s(3)).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing) }
             }
-            .font(.system(size: 7, weight: .regular))
+            .font(.system(size: 9, weight: .medium))
             .foregroundStyle(fgColor)
             .lineLimit(1)
-            .minimumScaleFactor(0.5)
+            .minimumScaleFactor(0.7)
             .padding(2)
         }
         .frame(width: width, height: height ?? keyHeight)
