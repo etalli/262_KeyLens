@@ -51,7 +51,7 @@ final class FullErgonomicOptimizerTests: XCTestCase {
         XCTAssertFalse(swaps.isEmpty, "Optimizer should find at least one improvement")
         guard let swap = swaps.first else { return }
         
-        XCTAssertGreaterThan(swap.projectedScoreImprovement, 0.0)
+        XCTAssertGreaterThan(swap.projectedImprovement, 0.0)
         
         // Verify actual improvement
         var map: [String: String] = [:]
@@ -65,7 +65,7 @@ final class FullErgonomicOptimizerTests: XCTestCase {
         ).ergonomicScore
         
         XCTAssertGreaterThan(newScore, baselineScore)
-        XCTAssertEqual(newScore - baselineScore, swap.projectedScoreImprovement, accuracy: 1e-9)
+        XCTAssertEqual(newScore - baselineScore, swap.projectedImprovement, accuracy: 1e-9)
     }
 
     func test_optimize_respectsConstraints() {
@@ -124,7 +124,7 @@ final class FullErgonomicOptimizerTests: XCTestCase {
         
         // As long as score improves and we found at least 2 swaps to fix all SFBs, it's successful.
         XCTAssertGreaterThanOrEqual(swaps.count, 2)
-        XCTAssertGreaterThan(swaps[0].projectedScoreImprovement, 0.0)
+        XCTAssertGreaterThan(swaps[0].projectedImprovement, 0.0)
     }
 
     func test_optimize_thumbRelocation_improvesScore() {
@@ -151,7 +151,7 @@ final class FullErgonomicOptimizerTests: XCTestCase {
         XCTAssertFalse(swaps.isEmpty)
         if let swap = swaps.first {
             XCTAssertTrue(swap.from == "e" || swap.to == "e")
-            XCTAssertGreaterThan(swap.projectedScoreImprovement, 0.0)
+            XCTAssertGreaterThan(swap.projectedImprovement, 0.0)
         }
     }
 }

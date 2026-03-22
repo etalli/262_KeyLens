@@ -37,21 +37,22 @@ import Foundation
 
 // MARK: - KeySwap
 
-/// A recommended key swap with its projected ergonomic benefit.
-/// 推奨キースワップとその予測エルゴノミクス改善量。
+/// A recommended key swap with its projected benefit.
+/// Semantics of `projectedImprovement` vary by optimizer (positive = better).
+/// 推奨キースワップとその予測改善量。値の意味はオプティマイザによって異なる（正値＝改善）。
 public struct KeySwap: Equatable {
     /// The key whose current position will be swapped.
     public let from: String
     /// The key it will be swapped with.
     public let to: String
-    /// Reduction in total SFB penalty score (positive means improvement).
-    /// SFBペナルティスコアの減少量（正値＝改善）。
-    public let projectedSFBReduction: Double
+    /// Projected improvement value (positive means better).
+    /// 予測改善量（正値＝改善）。
+    public let projectedImprovement: Double
 
-    public init(from: String, to: String, projectedSFBReduction: Double) {
+    public init(from: String, to: String, projectedImprovement: Double) {
         self.from = from
         self.to = to
-        self.projectedSFBReduction = projectedSFBReduction
+        self.projectedImprovement = projectedImprovement
     }
 }
 
@@ -82,8 +83,9 @@ public struct SameFingerOptimizer {
     ///   - layout: The base keyboard layout to optimize against.
     ///   - constraints: Keys that must not be moved. Defaults to macOS system key preset.
     ///   - maxSwaps: Maximum number of swaps to propose (default 5).
-    /// - Returns: Ordered list of `KeySwap` values, each improving SFB score. May be empty
-    ///   if no beneficial swap exists or all candidate keys are fixed.
+    /// - Returns: Ordered list of `KeySwap` values, each improving the SFB score
+    ///   (`projectedImprovement` = SFB score reduction). May be empty if no beneficial swap
+    ///   exists or all candidate keys are fixed.
     ///
     /// bigramCounts は KeyCountStore の "k1→k2" 形式を使うこと。
     /// 結果は SFB スコアを改善する順に並ぶ。改善スワップが存在しない場合は空リストを返す。
@@ -152,7 +154,7 @@ public struct SameFingerOptimizer {
             guard let (k1, k2) = bestPair else { break }
             KeyRelocationSimulator.applySwap(key1: k1, key2: k2, to: &currentMap)
             currentScore -= bestReduction
-            result.append(KeySwap(from: k1, to: k2, projectedSFBReduction: bestReduction))
+            result.append(KeySwap(from: k1, to: k2, projectedImprovement: bestReduction))
         }
 
         return result

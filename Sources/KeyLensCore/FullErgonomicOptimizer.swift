@@ -24,23 +24,9 @@ import Foundation
 
 // MARK: - ErgonomicSwap
 
-/// A recommended key relocation with its projected impact on the unified score.
-/// 推奨されるキー移動と、統合スコアへの予測影響。
-public struct ErgonomicSwap: Equatable {
-    /// The key whose current position will be swapped.
-    public let from: String
-    /// The key it will be swapped with.
-    public let to: String
-    /// Improvement in the unified ergonomic score [0, 100].
-    /// 統合エルゴノミクススコアの改善量。
-    public let projectedScoreImprovement: Double
-
-    public init(from: String, to: String, projectedScoreImprovement: Double) {
-        self.from = from
-        self.to = to
-        self.projectedScoreImprovement = projectedScoreImprovement
-    }
-}
+/// Backward-compatible alias for `KeySwap`.
+/// `ErgonomicSwap` has been unified into `KeySwap` (Issue #218).
+public typealias ErgonomicSwap = KeySwap
 
 // MARK: - FullErgonomicOptimizer
 
@@ -65,14 +51,14 @@ public struct FullErgonomicOptimizer {
     ///   - layout: The base layout registry to optimize against.
     ///   - constraints: Keys that must not be moved.
     ///   - maxSwaps: Maximum number of swaps to propose.
-    /// - Returns: Ordered list of `ErgonomicSwap` values.
+    /// - Returns: Ordered list of `KeySwap` values (`projectedImprovement` = unified ergonomic score gain).
     public func optimize(
         bigramCounts: [String: Int],
         keyCounts: [String: Int],
         layout: LayoutRegistry = .shared,
         constraints: LayoutConstraints = .macOSDefaults,
         maxSwaps: Int = 3
-    ) -> [ErgonomicSwap] {
+    ) -> [KeySwap] {
         guard !bigramCounts.isEmpty, maxSwaps > 0 else { return [] }
 
         // 1. Build relocatable key set: in data, in layout, not fixed.
@@ -82,7 +68,7 @@ public struct FullErgonomicOptimizer {
         }
         guard relocatable.count >= 2 else { return [] }
 
-        var result: [ErgonomicSwap] = []
+        var result: [KeySwap] = []
         var currentMap: [String: String] = [:]
         
         let currentSnapshot = ErgonomicSnapshot.capture(
@@ -131,7 +117,7 @@ public struct FullErgonomicOptimizer {
             guard let (k1, k2) = bestPair, bestImprovement > 0.001 else { break }
             KeyRelocationSimulator.applySwap(key1: k1, key2: k2, to: &currentMap)
             currentScore += bestImprovement
-            result.append(ErgonomicSwap(from: k1, to: k2, projectedScoreImprovement: bestImprovement))
+            result.append(KeySwap(from: k1, to: k2, projectedImprovement: bestImprovement))
         }
 
         return result

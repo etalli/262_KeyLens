@@ -206,9 +206,9 @@ final class SameFingerOptimizerTests: XCTestCase {
             layout: KeyRelocationSimulator.layout(applying: map, over: layout)
         )
         let actualReduction = baseline - actualScore
-        XCTAssertEqual(swap.projectedSFBReduction, actualReduction, accuracy: 1e-9,
-                       "projectedSFBReduction must match the actual score drop")
-        XCTAssertGreaterThan(swap.projectedSFBReduction, 0,
+        XCTAssertEqual(swap.projectedImprovement, actualReduction, accuracy: 1e-9,
+                       "projectedImprovement must match the actual score drop")
+        XCTAssertGreaterThan(swap.projectedImprovement, 0,
                              "Accepted swap must have a positive reduction")
     }
 
