@@ -85,6 +85,7 @@ struct ActivityCalendarView: View {
                                     .font(.system(size: 9, design: .monospaced))
                                     .foregroundStyle(.secondary)
                                     .frame(width: cellSize, height: cellSize)
+                                    .accessibilityHidden(true)
                             }
                         }
 
@@ -96,16 +97,21 @@ struct ActivityCalendarView: View {
                                     let idx = col * 7 + row
                                     if idx < days.count && !days[idx].date.isEmpty {
                                         let day = days[idx]
+                                        let dateLabel = accessibilityDate(day.date)
                                         RoundedRectangle(cornerRadius: 2)
                                             .fill(intensityColor(count: day.count, max: max))
                                             .frame(width: cellSize, height: cellSize)
                                             .help("\(day.date): \(day.count.formatted()) keystrokes")
+                                            .accessibilityLabel(
+                                                L10n.shared.calendarDayAccessibilityLabel(
+                                                    dateLabel: dateLabel, count: day.count))
                                     } else {
                                         // Empty padding slot or out-of-range
                                         // 空スロット
                                         RoundedRectangle(cornerRadius: 2)
                                             .fill(Color.clear)
                                             .frame(width: cellSize, height: cellSize)
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
@@ -133,7 +139,21 @@ struct ActivityCalendarView: View {
                 }
                 Text("More").font(.caption2).foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.shared.calendarLegendAccessibility)
         }
+    }
+
+    /// Converts an ISO date string ("yyyy-MM-dd") to a human-readable label for VoiceOver.
+    /// VoiceOver 向けに ISO 日付文字列を読みやすい形式に変換する。
+    private func accessibilityDate(_ iso: String) -> String {
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd"
+        guard let date = parser.date(from: iso) else { return iso }
+        let fmt = DateFormatter()
+        fmt.dateStyle = .long
+        fmt.timeStyle = .none
+        return fmt.string(from: date)
     }
 
     /// Returns a color for a given count relative to the maximum.

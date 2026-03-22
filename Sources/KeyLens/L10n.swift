@@ -1685,6 +1685,18 @@ final class L10n {
         }
     }
 
+    // MARK: - Activity Calendar Accessibility
+
+    func calendarDayAccessibilityLabel(dateLabel: String, count: Int) -> String {
+        count == 0
+            ? ja("\(dateLabel)、打鍵なし", en: "\(dateLabel), no keystrokes")
+            : ja("\(dateLabel)、\(count)打鍵", en: "\(dateLabel), \(count) keystrokes")
+    }
+
+    var calendarLegendAccessibility: String {
+        ja("打鍵強度の凡例：少ない から 多い", en: "Keystroke intensity legend, from less to more")
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {
