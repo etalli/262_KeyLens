@@ -1310,6 +1310,7 @@ final class L10n {
         case .streak:               return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:   return ja("ショートカット効率", en: "Shortcut Efficiency")
         case .mouseDistance:        return ja("マウス移動距離", en: "Mouse Distance")
+        case .slowEvents:           return ja("低速イベント数", en: "Slow Events")
         }
     }
 
@@ -1420,6 +1421,16 @@ final class L10n {
 
     var mouseDistanceNoData: String {
         ja("🖱 移動距離データなし", en: "🖱 No mouse distance data yet")
+    }
+
+    // MARK: - Slow Events
+
+    func slowEventsDisplay(_ count: Int) -> String {
+        ja("⚠︎ 低速イベント: \(count)件", en: "⚠︎ Slow events: \(count)")
+    }
+
+    var slowEventsNone: String {
+        ja("⚠︎ 低速イベント: なし", en: "⚠︎ Slow events: none")
     }
 
     // MARK: - Mouse Tab (Charts window)

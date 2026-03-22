@@ -15,6 +15,7 @@ enum MenuWidget: String, CaseIterable, Identifiable {
     case streak               = "streak"
     case shortcutEfficiency   = "shortcutEfficiency"
     case mouseDistance        = "mouseDistance"
+    case slowEvents           = "slowEvents"
 
     var id: String { rawValue }
 

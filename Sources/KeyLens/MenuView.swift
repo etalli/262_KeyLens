@@ -118,6 +118,13 @@ struct MenuView: View {
                     } else {
                         infoRow(l.mouseDistanceNoData)
                     }
+                case .slowEvents:
+                    let count = KeyCountStore.shared.slowEventCount
+                    if count > 0 {
+                        infoRow(l.slowEventsDisplay(count))
+                    } else {
+                        infoRow(l.slowEventsNone)
+                    }
                 }
             }
         }

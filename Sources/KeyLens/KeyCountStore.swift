@@ -234,6 +234,14 @@ final class KeyCountStore {
     private(set) var rhythmIKIs: [Double] = []
     private let rhythmIKICapacity = 50
 
+    // In-memory slow-event counter (resets on app relaunch, not persisted).
+    private(set) var slowEventCount: Int = 0
+
+    /// Increments the slow-event counter. Thread-safe: must be called from outside the store queue.
+    func recordSlowEvent() {
+        queue.async { self.slowEventCount += 1 }
+    }
+
     // Manual WPM measurement session (Issue #150). All access on `queue`.
     var wpmSessionStart: Date? = nil
     var wpmSessionKeystrokes: Int = 0

@@ -7,6 +7,10 @@ struct KeystrokeEvent {
     let keyCode: UInt16
 }
 
+/// Threshold in milliseconds above which handleEvent is considered slow.
+/// この値を超えた場合、app.log に警告を記録し slowEventCount をインクリメントする。
+private let kHandleEventSlowThresholdMs: Double = 5.0
+
 /// CGEventTap でグローバルキー入力を監視するクラス
 final class KeyboardMonitor {
     private(set) var eventTap: CFMachPort?
@@ -222,7 +226,13 @@ extension KeyboardMonitor {
 
         let now = Date()
         let appName = NSWorkspace.shared.frontmostApplication?.localizedName
+        let incrementStart = Date()
         let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)
+        let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
+        if elapsedMs > kHandleEventSlowThresholdMs {
+            KeyLens.log("[perf] handleEvent slow: \(String(format: "%.1f", elapsedMs))ms (key: \(name))")
+            KeyCountStore.shared.recordSlowEvent()
+        }
         BreakReminderManager.shared.didType()
 
         if result.milestone {
