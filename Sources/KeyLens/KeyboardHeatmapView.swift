@@ -707,9 +707,10 @@ struct HeatmapExportView: View {
                                     let cellW = max(4, CGFloat(key.w) * unitW - keySpacing)
                                     let cellH = max(20, CGFloat(key.h) * unitW - keySpacing)
                                     let (displayCount, displayMax) = keyDisplayValues(for: key.keyName)
-                                    heatCell(
+                                    kleHeatCell(
                                         cellID: "custom-\(idx)-\(key.keyName)",
                                         label: key.label,
+                                        slots: key.legendSlots,
                                         count: displayCount,
                                         max: displayMax,
                                         width: cellW,
@@ -805,6 +806,85 @@ struct HeatmapExportView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
                 .padding(.horizontal, 2)
+        }
+        .frame(width: width, height: height ?? keyHeight)
+
+        guard let selectedCellID else { return AnyView(cell) }
+
+        let isPresented = Binding(
+            get: { selectedCellID.wrappedValue == cellID },
+            set: { if !$0 { selectedCellID.wrappedValue = nil } }
+        )
+
+        return AnyView(
+            cell
+                .contentShape(RoundedRectangle(cornerRadius: 5))
+                .onTapGesture {
+                    selectedCellID.wrappedValue = cellID
+                }
+                .popover(isPresented: isPresented, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(tooltipOverride ?? tooltipText(for: count, style: tooltipStyle))
+                            .font(.callout.monospacedDigit())
+                    }
+                    .padding(10)
+                }
+        )
+    }
+
+    // Renders a KLE custom key with all legend slots positioned in a 3×3 grid:
+    //   Top row:    TL(0)  TC(8)  TR(2)
+    //   Center row: CL(6)  C(9)   CR(7)
+    //   Bottom row: BL(1)  BC(10) BR(3)
+    // Front legends (4,5,11) are omitted (not visible in top-down 2D view).
+    private func kleHeatCell(
+        cellID: String,
+        label: String,
+        slots: [String],
+        count: Int,
+        max: Int,
+        width: CGFloat,
+        height: CGFloat? = nil,
+        tooltipStyle: HeatmapTooltipStyle,
+        tooltipOverride: String? = nil
+    ) -> some View {
+        let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
+        let baseHue = ThemeStore.shared.current.heatmapBaseHue
+        let hue = (1.0 - t) * baseHue
+        let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : emptyKeyColor
+        let fgColor: Color = count > 0 ? .white : .secondary
+
+        func s(_ i: Int) -> String { i < slots.count ? slots[i] : "" }
+
+        let cell = ZStack {
+            RoundedRectangle(cornerRadius: 5).fill(bgColor)
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    Text(s(0)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(s(8)).frame(maxWidth: .infinity, alignment: .center)
+                    Text(s(2)).frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: 0) {
+                    Text(s(6)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(s(9)).frame(maxWidth: .infinity, alignment: .center)
+                    Text(s(7)).frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: 0) {
+                    Text(s(1)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(s(10)).frame(maxWidth: .infinity, alignment: .center)
+                    Text(s(3)).frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            }
+            .font(.system(size: 7, weight: .regular))
+            .foregroundStyle(fgColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            .padding(2)
         }
         .frame(width: width, height: height ?? keyHeight)
 

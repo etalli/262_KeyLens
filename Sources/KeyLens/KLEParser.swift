@@ -4,13 +4,33 @@ import Foundation
 
 /// A keyboard key with absolute position computed from the KLE coordinate system.
 struct KLEAbsoluteKey: Codable {
-    let cx: Double      // rotated center x in KLE units
-    let cy: Double      // rotated center y in KLE units
-    let w: Double       // width in KLE units (1.0 = standard key)
-    let h: Double       // height in KLE units (1.0 = standard key)
-    let r: Double       // visual rotation in degrees (0 = upright)
-    let label: String   // display label
-    let keyName: String // key used to look up counts (matches KeyCountStore keys)
+    let cx: Double          // rotated center x in KLE units
+    let cy: Double          // rotated center y in KLE units
+    let w: Double           // width in KLE units (1.0 = standard key)
+    let h: Double           // height in KLE units (1.0 = standard key)
+    let r: Double           // visual rotation in degrees (0 = upright)
+    let label: String       // primary display label (for keyName lookup and tooltip)
+    let keyName: String     // key used to look up counts (matches KeyCountStore keys)
+    let legendSlots: [String] // all 12 KLE legend positions (index = slot number)
+    // Slot index → keycap position:
+    //   0=Top-Left   1=Bottom-Left  2=Top-Right    3=Bottom-Right
+    //   4=Front-Left 5=Front-Right  6=Center-Left  7=Center-Right
+    //   8=Top-Center 9=Center       10=Bottom-Center 11=Front-Center
+}
+
+extension KLEAbsoluteKey {
+    // Backward-compatible decoder: old stored JSON without legendSlots decodes to [].
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        cx          = try c.decode(Double.self, forKey: .cx)
+        cy          = try c.decode(Double.self, forKey: .cy)
+        w           = try c.decode(Double.self, forKey: .w)
+        h           = try c.decode(Double.self, forKey: .h)
+        r           = try c.decode(Double.self, forKey: .r)
+        label       = try c.decode(String.self, forKey: .label)
+        keyName     = try c.decode(String.self, forKey: .keyName)
+        legendSlots = (try? c.decode([String].self, forKey: .legendSlots)) ?? []
+    }
 }
 
 // MARK: - KLE parse errors
@@ -96,19 +116,16 @@ struct KLEParser {
                 } else if let rawLabel = item as? String {
                     let cleaned = cleanLabel(rawLabel)
 
-                    // KLE encodes up to 12 legend slots as newline-separated text.
-                    // Slot index → keycap position:
-                    //   0=Top-Left   1=Bottom-Left  2=Top-Right    3=Bottom-Right
-                    //   4=Front-Left 5=Front-Right  6=Center-Left  7=Center-Right
-                    //   8=Top-Center 9=Center       10=Bottom-Center 11=Front-Center
-                    let slots = cleaned.components(separatedBy: "\n")
+                    // Parse all 12 KLE legend slots (newline-separated, padded to 12 entries).
+                    let rawSlots = cleaned.components(separatedBy: "\n")
                         .map { $0.trimmingCharacters(in: .whitespaces) }
+                    let slots = rawSlots + Array(repeating: "", count: max(0, 12 - rawSlots.count))
 
-                    // Pick display label by priority: Top-Left(0) → Top-Center(8) → Center(9) → first non-empty
+                    // Pick primary label by priority: Top-Left(0) → Top-Center(8) → Center(9) → first non-empty
                     let priorityOrder = [0, 8, 9, 1, 2, 3, 6, 7, 10, 4, 5, 11]
                     let trimmed = priorityOrder
-                        .compactMap { $0 < slots.count ? slots[$0] : nil }
-                        .first(where: { !$0.isEmpty }) ?? ""
+                        .first(where: { !slots[$0].isEmpty })
+                        .map { slots[$0] } ?? ""
 
                     // Compute the unrotated center of this key in KLE units
                     let px = currentX + currentW / 2
@@ -142,7 +159,8 @@ struct KLEParser {
                         h: currentH,
                         r: currentR,
                         label: trimmed,
-                        keyName: keyName
+                        keyName: keyName,
+                        legendSlots: slots
                     ))
 
                     currentX += currentW
