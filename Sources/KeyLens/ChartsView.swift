@@ -41,6 +41,9 @@ struct ChartsView: View {
     @State var showClearHistoryAlert = false
     /// Holds the current comparison result so it can be wrapped in chartSection for save/copy.
     @State var comparisonResult: ComparisonResult? = nil
+    /// Whether the thumb key optimization subsection is shown in Layout Comparison (Issue #208).
+    /// 親指キー最適化サブセクションを Layout Comparison に表示するか（Issue #208）。
+    @AppStorage("thumbOptimizationEnabled") var thumbOptimizationEnabled: Bool = false
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

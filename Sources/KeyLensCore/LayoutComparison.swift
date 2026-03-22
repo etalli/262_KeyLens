@@ -55,10 +55,21 @@ public struct LayoutComparison: Equatable {
     /// オプティマイザが提案するキー移動（改善量降順）。
     public let recommendedSwaps: [ErgonomicSwap]
 
-    public init(current: ErgonomicSnapshot, proposed: ErgonomicSnapshot, recommendedSwaps: [ErgonomicSwap]) {
-        self.current          = current
-        self.proposed         = proposed
-        self.recommendedSwaps = recommendedSwaps
+    /// Thumb key relocation recommendations from ThumbRecommendationEngine.
+    /// Empty when no alpha keys benefit from being moved to a thumb cluster.
+    /// ThumbRecommendationEngine による親指キー移動推薦。親指移動の恩恵がない場合は空。
+    public let thumbRecommendations: [ThumbRecommendation]
+
+    public init(
+        current: ErgonomicSnapshot,
+        proposed: ErgonomicSnapshot,
+        recommendedSwaps: [ErgonomicSwap],
+        thumbRecommendations: [ThumbRecommendation] = []
+    ) {
+        self.current              = current
+        self.proposed             = proposed
+        self.recommendedSwaps     = recommendedSwaps
+        self.thumbRecommendations = thumbRecommendations
     }
 
     // MARK: - Delta properties (positive = improvement)
@@ -163,10 +174,16 @@ public struct LayoutComparison: Equatable {
             estimator:    estimator
         )
 
+        // 5. Compute thumb relocation recommendations using ThumbRecommendationEngine.
+        // ThumbRecommendationEngine で親指キー移動推薦を計算する。
+        let thumbRecs = ThumbRecommendationEngine(constraints: .macOSDefaults)
+            .topRecommendations(from: keyCounts, layout: base)
+
         return LayoutComparison(
-            current:          currentSnapshot,
-            proposed:         proposedSnapshot,
-            recommendedSwaps: swaps
+            current:              currentSnapshot,
+            proposed:             proposedSnapshot,
+            recommendedSwaps:     swaps,
+            thumbRecommendations: thumbRecs
         )
     }
 }

@@ -1685,6 +1685,30 @@ final class L10n {
         }
     }
 
+    // MARK: - Thumb Optimization (Issue #208)
+
+    var handLeft:  String { ja("左", en: "Left") }
+    var handRight: String { ja("右", en: "Right") }
+
+    var thumbOptimizationToggle: String {
+        ja("親指キー最適化を有効にする（スプリットキーボード向け）",
+           en: "Enable Thumb Key Optimization (for split keyboards)")
+    }
+
+    var thumbSuggestionsHeader: String {
+        ja("親指キー提案", en: "Thumb Key Suggestions")
+    }
+
+    var thumbSuggestionsEmpty: String {
+        ja("現在のデータでは親指キーへの移動提案はありません",
+           en: "No thumb key relocation suggestions with current data")
+    }
+
+    func thumbSuggestionRow(key: String, slot: String, reduction: Double) -> String {
+        ja("「\(key)」→ \(slot)親指クラスター（負荷軽減 \(String(format: "%.0f", reduction))）",
+           en: "\"\(key)\" → \(slot) thumb cluster (burden reduction \(String(format: "%.0f", reduction)))")
+    }
+
     // MARK: - Activity Calendar Accessibility
 
     func calendarDayAccessibilityLabel(dateLabel: String, count: Int) -> String {

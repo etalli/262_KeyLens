@@ -445,6 +445,18 @@ extension ChartsView {
                     )
                 }
                 .padding(.vertical, 8)
+
+                Divider()
+
+                // Thumb Key Optimization toggle + suggestions (Issue #208)
+                // 親指キー最適化トグルと提案（Issue #208）
+                Toggle(L10n.shared.thumbOptimizationToggle, isOn: $thumbOptimizationEnabled)
+                    .font(.callout)
+                    .toggleStyle(.checkbox)
+
+                if thumbOptimizationEnabled {
+                    thumbSuggestionsView(cmp.thumbRecommendations)
+                }
             }
         } else if model.isLayoutComparisonLoading {
             HStack(spacing: 8) {
@@ -500,6 +512,43 @@ extension ChartsView {
     /// Formats a rate delta as percentage points (e.g. 0.042 → "+4.2pp").
     /// 比率差をパーセントポイント表記に変換する。
     func pp(_ delta: Double) -> String { String(format: "%+.1fpp", delta * 100) }
+
+    /// Thumb key suggestions subsection shown below the Layout Comparison table (Issue #208).
+    /// Layout Comparison テーブルの下に表示する親指キー提案サブセクション（Issue #208）。
+    @ViewBuilder
+    func thumbSuggestionsView(_ recs: [ThumbRecommendation]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.shared.thumbSuggestionsHeader)
+                .font(.callout).bold()
+
+            if recs.isEmpty {
+                Text(L10n.shared.thumbSuggestionsEmpty)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(recs.enumerated()), id: \.offset) { _, rec in
+                    let slotLabel = rec.suggestedSlot == .left
+                        ? L10n.shared.handLeft
+                        : L10n.shared.handRight
+                    HStack(spacing: 6) {
+                        Text(rec.key)
+                            .font(.system(.callout, design: .monospaced))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.15))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        Text("→ \(slotLabel) \(L10n.shared.thumbSuggestionsHeader.lowercased())")
+                            .font(.callout)
+                        Spacer()
+                        Text(String(format: "−%.0f", rec.burdenReduction))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
 
     @ViewBuilder
     var learningCurveChart: some View {

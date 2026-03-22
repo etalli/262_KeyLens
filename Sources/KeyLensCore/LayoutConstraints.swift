@@ -47,6 +47,25 @@ public struct LayoutConstraints: Equatable {
         "⌘Cmd", "⌥Option", "⌃Ctrl", "⇧Shift",
     ])
 
+    /// Preset for programmable split keyboards (Ergodox, Moonlander, Corne, etc.).
+    /// Thumb-cluster keys (Space, ⌘Cmd, ⌥Option) are NOT fixed so the optimizer
+    /// can propose thumb key reassignments based on actual typing data.
+    ///
+    /// プログラマブルスプリットキーボード向けプリセット。
+    /// 親指クラスターキー（Space, ⌘Cmd, ⌥Option）を固定しないため、打鍵データに基づく
+    /// 親指キー再配置の提案が可能になる。
+    public static let splitKeyboard = LayoutConstraints(fixedKeys: [
+        // Command shortcuts — still keep alpha shortcuts fixed.
+        // アルファキーのショートカットは引き続き固定。
+        "q", "w", "a", "s", "c", "v", "x", "z",
+        // Essential structural keys
+        // 必須構造キー
+        "Return", "Tab", "Escape", "Delete",
+        // Note: Space, ⌘Cmd, ⌥Option are intentionally NOT fixed —
+        // these are fully remappable on thumb clusters.
+        // Space, ⌘Cmd, ⌥Option は意図的に除外 — 親指クラスターで再配置可能。
+    ])
+
     /// No constraints — every key in the layout is a candidate for relocation.
     /// 制約なし — すべてのキーが移動候補になる。
     public static let none = LayoutConstraints(fixedKeys: [])
