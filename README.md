@@ -84,28 +84,28 @@ Open via **Charts** in the menu. Sections (scroll down):
 #### Ergonomics tab
 | Section | What it shows |
 |---------|---------------|
-| **Keyboard Heatmap** | Physical key layout colored by frequency or ergonomic strain; supports ANSI / Ortho / JIS / Custom (KLE import) layouts; click a key to see the exact value |
-| **Top 20 Keys** | Horizontal bar chart coloured by key type |
-| **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
-| **Ergonomic Learning Curve** | Same-finger rate, hand alternation rate, high-strain rate over time |
-| **Today's Fatigue Curve** | Hourly WPM and ergonomic rates for today; shows how typing speed and strain change across the day |
-| **Weekly Delta Report** | Last 7 days vs prior 7 days — keystrokes and ergonomic rates with trend arrows |
-| **Key Categories** | Donut chart of key-type distribution |
+| **Keyboard Heatmap** | Key layout colored by frequency or strain; supports ANSI / Ortho / JIS / Custom (KLE import) |
+| **Top 20 Keys** | Most-pressed keys by type |
+| **Top 20 Bigrams** | Most frequent key pairs with hand alternation stats |
+| **Ergonomic Learning Curve** | Same-finger and high-strain rates over time |
+| **Today's Fatigue Curve** | Hourly WPM and ergonomic rates for today |
+| **Weekly Delta Report** | Last 7 days vs prior 7 days with trend arrows |
+| **Key Categories** | Key-type distribution chart |
 | **Keyboard Shortcuts** | Top modifier+key combinations |
-| **Apps** | Per-application keystroke bar charts (all-time and today) and ergonomic score table |
-| **Devices** | Per-device keystroke bar charts (all-time and today) and ergonomic score table |
+| **Apps** | Keystroke counts and ergonomic scores per application |
+| **Devices** | Keystroke counts and ergonomic scores per device |
 
 #### Activity tab
 | Section | What it shows |
 |---------|---------------|
-| **Live IKI** | Bar chart of inter-keystroke intervals for the last 20 keystrokes, updated every 0.5s; bars color-coded green/orange/red by speed |
-| **IKI Distribution** | Histogram of keystroke interval buckets showing the distribution of your typing rhythm |
-| **Daily Totals** | Line chart of per-day keystroke counts |
+| **Live IKI** | Recent inter-keystroke intervals, updated live |
+| **IKI Distribution** | Histogram of your typing rhythm |
+| **Daily Totals** | Per-day keystroke counts |
 | **Typing Speed** | Daily average WPM over time |
-| **Backspace Rate** | Daily backspace/correction rate over time |
-| **Hourly Distribution** | Aggregate keystroke count by hour of day (0–23) |
+| **Backspace Rate** | Daily correction rate over time |
+| **Hourly Distribution** | Keystroke count by hour of day |
 | **Monthly Totals** | Keystroke count per calendar month |
-| **Weekly Activity Heatmap** | 2D grid (Day of Week × Hour of Day) showing average keystroke density — reveals peak activity times and fatigue patterns |
+| **Weekly Activity Heatmap** | Keystroke density by day of week and hour |
 
 #### Summary tab
 | Section | What it shows |
@@ -113,48 +113,33 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Activity Calendar** | GitHub-style heatmap of daily keystroke activity |
 | **Weekly Report** | Last 7 days vs prior 7 days with trend arrows |
 | **Typing Profile** | Inferred typing style and fatigue risk level |
-| **Mouse vs Keyboard Balance** | Daily ratio line showing whether you leaned toward mouse or keyboard (0% = keyboard-only, 100% = mouse-only) |
+| **Mouse vs Keyboard Balance** | Daily ratio of mouse vs keyboard usage |
 
 #### Training tab
 | Section | What it shows |
 |---------|---------------|
-| **Practice Drills** | Interactive typing drills generated from your slowest bigrams and trigrams; select Short / Normal / Long session length |
-| **Training History** | Past session results with accuracy, WPM, and before/after IKI comparison per target |
-| **Training Targets** | Top bigrams ranked by training priority (mean IKI × log-frequency score) with tier labels and prior training annotations |
-| **Trigram Training Targets** | Top 3-key sequences ranked by estimated latency (sum of constituent bigram IKIs) with drill preview |
+| **Practice Drills** | Typing drills based on your slowest bigrams and trigrams |
+| **Training History** | Past drill results with accuracy and WPM |
+| **Training Targets** | Top bigrams ranked by training priority |
+| **Trigram Training Targets** | Top 3-key sequences ranked by latency |
 
 #### Compare tab
 | Section | What it shows |
 |---------|---------------|
-| **Period Comparison** | Side-by-side stats for two custom date ranges: total keystrokes, daily average, active days, same-finger rate, alternation rate; delta column color-coded green/red; preset buttons for "Last 7 days vs Prior 7 days" and "This Month vs Last Month" |
+| **Period Comparison** | Side-by-side stats for two custom date ranges |
 
 #### Mouse tab
 | Section | What it shows |
 |---------|---------------|
-| **Daily Distance** | Total mouse travel distance per day (px) |
+| **Daily Distance** | Mouse travel distance per day |
 | **Hourly Distribution** | Mouse activity by hour of day |
-| **Direction Breakdown** | Proportion of movement in each direction (left/right/up/down) |
-| **Daily Direction Table** | Per-day breakdown of directional mouse movement |
-| **Mouse Click Count** | Total left, middle, and right button click counts |
+| **Direction Breakdown** | Proportion of movement in each direction |
+| **Daily Direction Table** | Per-day directional mouse movement |
+| **Mouse Click Count** | Left, middle, and right button click counts |
 
 ### AI Analysis
 
-Export your keystroke data and analyze it with an AI assistant for layout optimization advice.
-
-1. Open **Settings… > Data > Export CSV** to export your keystroke data as a CSV file
-2. Open **Settings… > Data > Edit AI Prompt** to review or customize the analysis prompt
-3. Copy the exported CSV and paste it into an AI tool (e.g. Claude, ChatGPT) along with the prompt
-
-**Example prompt workflow:**
-
-```
-[Paste the built-in prompt]
-
-Here is my keystroke data:
-[Paste CSV content]
-```
-
-The default prompt asks the AI to compute same-finger rates, hand alternation rates, bigram/trigram frequencies, and recommend thumb-key assignments for a split keyboard.
+Export your keystroke data (Settings… > Data > Export CSV) and paste it into an AI tool (Claude, ChatGPT, etc.) along with the built-in prompt (Settings… > Data > Edit AI Prompt) for layout optimization advice.
 
 ---
 
