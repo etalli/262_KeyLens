@@ -84,7 +84,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 #### Ergonomics tab
 | Section | What it shows |
 |---------|---------------|
-| **Keyboard Heatmap** | Physical key layout colored by frequency or ergonomic strain; toggle layout template (ANSI / Ortho / JIS / Custom); custom KLE layouts render all legend positions (Top-Left, Center, Bottom-Right, etc.) in a 3×3 grid per key; click a key to see the exact value |
+| **Keyboard Heatmap** | Physical key layout colored by frequency or ergonomic strain; supports ANSI / Ortho / JIS / Custom (KLE import) layouts; click a key to see the exact value |
 | **Top 20 Keys** | Horizontal bar chart coloured by key type |
 | **Top 20 Bigrams** | Most frequent consecutive key pairs; same-finger rate and hand alternation summary |
 | **Ergonomic Learning Curve** | Same-finger rate, hand alternation rate, high-strain rate over time |
