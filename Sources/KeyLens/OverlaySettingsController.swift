@@ -118,7 +118,7 @@ struct OverlaySettingsView: View {
             .padding(20)
         }
         .frame(width: 380, height: 560)
-        .onChange(of: config) { newConfig in
+        .onChange(of: config) { _, newConfig in
             newConfig.save()
             previewVM.config = newConfig
         }

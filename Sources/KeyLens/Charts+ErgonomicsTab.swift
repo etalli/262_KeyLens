@@ -214,7 +214,7 @@ extension ChartsView {
                 TextField(L10n.shared.keyTransitionPlaceholder, text: $keyTransitionTarget)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 160)
-                    .onChange(of: keyTransitionTarget) { newValue in
+                    .onChange(of: keyTransitionTarget) { _, newValue in
                         model.reloadKeyTransitions(for: newValue)
                     }
 

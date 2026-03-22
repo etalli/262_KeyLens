@@ -169,39 +169,40 @@ struct ChartsView: View {
         }
     }
 
-    /// Captures the composited on-screen pixels for `title`'s section and writes to NSPasteboard.
-    /// Uses GeometryReader (SwiftUI global frame) + CGWindowListCreateImage (Metal-compatible).
-    func snapshotToClipboard(title: String) {
-        guard let snapper = snapperStore.views[title],
-              let superview = snapper.superview,
-              let window = superview.window else { return }
+    /// Renders `snapper` and its siblings by capturing the window's content view into a bitmap,
+    /// then crops to the snapper's region. Works with SwiftUI/CALayer content without requiring
+    /// screen-recording permission.
+    private func captureSnapperImage(_ snapper: NSView) -> NSImage? {
+        guard let superview = snapper.superview,
+              let window = superview.window,
+              let contentView = window.contentView else { return nil }
 
         let scale = window.backingScaleFactor
+        // Convert snapper frame from superview coords into contentView coords.
+        let rectInContent = contentView.convert(snapper.frame, from: superview)
 
-        // Convert snapper.frame (superview coords) → window coords → screen coords.
-        // snapper is a ZStack sibling of contentView, so its frame matches contentView exactly.
-        let inWindow   = superview.convert(snapper.frame, to: nil)
-        let onScreen   = window.convertToScreen(inWindow)
-        let winOnScreen = window.frame
+        // Render the full contentView into a bitmap (captures CALayer / SwiftUI content).
+        guard let bitmapRep = contentView.bitmapImageRepForCachingDisplay(in: contentView.bounds)
+        else { return nil }
+        contentView.cacheDisplay(in: contentView.bounds, to: bitmapRep)
 
-        guard let windowImage = CGWindowListCreateImage(
-            .null,
-            .optionIncludingWindow,
-            CGWindowID(window.windowNumber),
-            [.bestResolution, .boundsIgnoreFraming]
-        ) else { return }
-
-        // Map screen rect → CGImage pixel rect (top-left origin).
-        let cropRect = CGRect(
-            x:      (onScreen.minX - winOnScreen.minX) * scale,
-            y:      (winOnScreen.maxY - onScreen.maxY) * scale,
-            width:  onScreen.width  * scale,
-            height: onScreen.height * scale
+        // NSView origin is bottom-left; CGImage origin is top-left → flip Y.
+        let pixelRect = CGRect(
+            x:      rectInContent.minX * scale,
+            y:      (contentView.bounds.height - rectInContent.maxY) * scale,
+            width:  rectInContent.width  * scale,
+            height: rectInContent.height * scale
         )
-        guard let cropped = windowImage.cropping(to: cropRect) else { return }
+        guard let cgImage = bitmapRep.cgImage,
+              let cropped = cgImage.cropping(to: pixelRect) else { return nil }
+        return NSImage(cgImage: cropped,
+                       size: NSSize(width: rectInContent.width, height: rectInContent.height))
+    }
 
-        let img = NSImage(cgImage: cropped,
-                          size: NSSize(width: onScreen.width, height: onScreen.height))
+    /// Captures the section image and writes it to NSPasteboard.
+    func snapshotToClipboard(title: String) {
+        guard let snapper = snapperStore.views[title],
+              let img = captureSnapperImage(snapper) else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.writeObjects([img])
         copiedSection = title
@@ -213,31 +214,7 @@ struct ChartsView: View {
     /// Captures the section image and saves it as a PNG file via NSSavePanel.
     func saveImageToFile(title: String) {
         guard let snapper = snapperStore.views[title],
-              let superview = snapper.superview,
-              let window = superview.window else { return }
-
-        let scale = window.backingScaleFactor
-        let inWindow   = superview.convert(snapper.frame, to: nil)
-        let onScreen   = window.convertToScreen(inWindow)
-        let winOnScreen = window.frame
-
-        guard let windowImage = CGWindowListCreateImage(
-            .null,
-            .optionIncludingWindow,
-            CGWindowID(window.windowNumber),
-            [.bestResolution, .boundsIgnoreFraming]
-        ) else { return }
-
-        let cropRect = CGRect(
-            x:      (onScreen.minX - winOnScreen.minX) * scale,
-            y:      (winOnScreen.maxY - onScreen.maxY) * scale,
-            width:  onScreen.width  * scale,
-            height: onScreen.height * scale
-        )
-        guard let cropped = windowImage.cropping(to: cropRect) else { return }
-
-        let img = NSImage(cgImage: cropped,
-                          size: NSSize(width: onScreen.width, height: onScreen.height))
+              let img = captureSnapperImage(snapper) else { return }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
