@@ -1426,11 +1426,11 @@ final class L10n {
     // MARK: - Slow Events
 
     func slowEventsDisplay(_ count: Int) -> String {
-        ja("⚠︎ 低速イベント: \(count)件", en: "⚠︎ Slow events: \(count)")
+        ja("低速イベント: \(count)件", en: "Slow events: \(count)")
     }
 
     var slowEventsNone: String {
-        ja("⚠︎ 低速イベント: なし", en: "⚠︎ Slow events: none")
+        ja("低速イベント: なし", en: "Slow events: none")
     }
 
     // MARK: - Mouse Tab (Charts window)

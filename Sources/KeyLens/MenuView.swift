@@ -118,7 +118,7 @@ struct MenuView: View {
                 case .slowEvents:
                     let count = KeyCountStore.shared.slowEventCount
                     if count > 0 {
-                        infoRow(l.slowEventsDisplay(count))
+                        infoRow(l.slowEventsDisplay(count), icon: "exclamationmark.triangle")
                     }
                 }
             }
