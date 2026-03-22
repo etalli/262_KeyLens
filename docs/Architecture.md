@@ -401,7 +401,7 @@ Manages the global hotkey for toggling manual WPM measurement (Issue #151). Defa
 
 ### [KLEParser.swift](Sources/KeyLens/KLEParser.swift)
 
-Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON into `KLEAbsoluteKey` structs with center-position, size, rotation, and key-name fields. Used by `KeyboardHeatmapView` to support custom physical keyboard layouts beyond the built-in ANSI template.
+Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON into `KLEAbsoluteKey` structs with center-position, size, rotation, key-name, and a 12-slot legend array (`legendSlots`). The 12 slots follow the KLE spec (0=Top-Left, 8=Top-Center, 9=Center, etc.); `label` holds the primary display string selected by priority order. Backward-compatible `Codable` decoder defaults `legendSlots` to `[]` when reading older stored JSON. Used by `KeyboardHeatmapView` to support custom physical keyboard layouts beyond the built-in ANSI template.
 
 ---
 
@@ -504,6 +504,8 @@ SwiftUI view that renders the physical ANSI keyboard layout. Supports two displa
 - **Strain** — each key coloured by its cumulative high-strain bigram involvement score (red = frequent culprit)
 
 A hover-triggered popover (ⓘ icon) explains the active mode. Strain scores are computed from `KeyCountStore.shared.topHighStrainBigrams(limit: 1000)` by summing bigram counts for each participating key. Used inside `ChartsView` as the first chart section.
+
+Custom KLE layouts use `kleHeatCell` instead of `heatCell`. `kleHeatCell` renders a 3×3 legend grid (Top-Left/Center/Right, Center-Left/Center/Right, Bottom-Left/Center/Right) from `KLEAbsoluteKey.legendSlots`. Save/Copy export is handled by the `chartSection` header icons — no export buttons are embedded in the view itself.
 
 ---
 
