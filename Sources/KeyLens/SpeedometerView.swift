@@ -16,7 +16,7 @@ private final class SpeedometerViewModel: ObservableObject {
 
     init() {
         // Stable timer: not tied to view struct lifecycle.
-        decayTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        decayTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.liveRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.tick()
         }
         observer = NotificationCenter.default.addObserver(
@@ -39,7 +39,7 @@ private final class SpeedometerViewModel: ObservableObject {
     }
 
     private func tick() {
-        guard Date().timeIntervalSince(lastKeystrokeDate) > 0.3 else { return }
+        guard Date().timeIntervalSince(lastKeystrokeDate) > AppConfiguration.speedometerKeystrokeCooldownSecs else { return }
         currentWPM = max(0, currentWPM * Self.decayFactor)
     }
 }

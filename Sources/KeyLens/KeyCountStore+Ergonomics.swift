@@ -23,7 +23,7 @@ extension KeyCountStore {
     func rollingWPM(windowSeconds: Double = 5.0) -> Double {
         queue.sync {
             guard let last = store.activity.lastInputTime,
-                  Date().timeIntervalSince(last) <= 1.5 else { return 0.0 }
+                  Date().timeIntervalSince(last) <= AppConfiguration.wpmIdleDecaySecs else { return 0.0 }
             let windowMs = windowSeconds * 1000.0
             var totalMs = 0.0
             var count = 0

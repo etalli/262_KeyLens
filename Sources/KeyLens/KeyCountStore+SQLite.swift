@@ -181,7 +181,7 @@ extension KeyCountStore {
 
     func startFlushTimer() {
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now() + 30, repeating: 30)
+        timer.schedule(deadline: .now() + AppConfiguration.flushIntervalSecs, repeating: AppConfiguration.flushIntervalSecs)
         timer.setEventHandler { [weak self] in self?.flushLocked() }
         timer.resume()
         flushTimer = timer

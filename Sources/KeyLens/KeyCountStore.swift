@@ -341,7 +341,7 @@ final class KeyCountStore {
             // Welford IKI update (≤1000ms only)
             if let last = store.activity.lastInputTime {
                 let intervalMs = timestamp.timeIntervalSince(last) * 1000
-                if intervalMs <= 1000 {
+                if intervalMs <= AppConfiguration.ikiCutoffMs {
                     // Global Welford
                     store.activity.avgIntervalCount += 1
                     store.activity.avgIntervalMs += (intervalMs - store.activity.avgIntervalMs) / Double(store.activity.avgIntervalCount)
@@ -409,7 +409,7 @@ final class KeyCountStore {
                 // Bigram IKI → SQLite pending (Issue #24)
                 if let prevTime = prevInputTime {
                     let iki = timestamp.timeIntervalSince(prevTime) * 1000
-                    if iki <= 1000 {
+                    if iki <= AppConfiguration.ikiCutoffMs {
                         let existing = pending.bigramIKI[pair] ?? (sum: 0, count: 0)
                         pending.bigramIKI[pair] = (sum: existing.sum + iki, count: existing.count + 1)
                     }

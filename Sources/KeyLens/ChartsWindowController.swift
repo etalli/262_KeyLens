@@ -286,11 +286,11 @@ final class ChartsWindowController: NSWindowController {
 
     private func startLiveTimer() {
         guard liveTimer == nil else { return }
-        liveTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        liveTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.liveRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.model.refreshLiveData()
         }
         // Refresh fatigue curve every 10s so it updates without reopening the window.
-        fatigueTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+        fatigueTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.fatigueRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.model.fatigueCurve = KeyCountStore.shared.todayHourlyFatigueCurve()
         }
     }

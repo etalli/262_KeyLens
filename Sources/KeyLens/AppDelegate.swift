@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     /// アクセシビリティ権限が付与されるまで 3 秒ごとにリトライする
     private func schedulePermissionRetry() {
         guard permissionTimer == nil else { return }
-        permissionTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] timer in
+        permissionTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.permissionRetryIntervalSecs, repeats: true) { [weak self] timer in
             guard let self else { return }
             let trusted = AXIsProcessTrusted()
             KeyLens.log("permission retry tick — AXIsProcessTrusted: \(trusted)")
@@ -81,7 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     /// 5 秒ごとに監視状態を確認し、停止していれば自動でリトライを開始する
     private func setupHealthCheck() {
-        healthTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+        healthTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.healthCheckIntervalSecs, repeats: true) { [weak self] _ in
             guard let self else { return }
             let running = self.monitor.isRunning
             if self.isMonitoring != running { self.isMonitoring = running }
