@@ -94,9 +94,21 @@ struct KLEParser {
                     if let w = props["w"] { currentW = doubleValue(w) }
                     if let h = props["h"] { currentH = doubleValue(h) }
                 } else if let rawLabel = item as? String {
-                    let cleaned   = cleanLabel(rawLabel)
-                    let firstLine = cleaned.components(separatedBy: "\n").first ?? ""
-                    let trimmed   = firstLine.trimmingCharacters(in: .whitespaces)
+                    let cleaned = cleanLabel(rawLabel)
+
+                    // KLE encodes up to 12 legend slots as newline-separated text.
+                    // Slot index → keycap position:
+                    //   0=Top-Left   1=Bottom-Left  2=Top-Right    3=Bottom-Right
+                    //   4=Front-Left 5=Front-Right  6=Center-Left  7=Center-Right
+                    //   8=Top-Center 9=Center       10=Bottom-Center 11=Front-Center
+                    let slots = cleaned.components(separatedBy: "\n")
+                        .map { $0.trimmingCharacters(in: .whitespaces) }
+
+                    // Pick display label by priority: Top-Left(0) → Top-Center(8) → Center(9) → first non-empty
+                    let priorityOrder = [0, 8, 9, 1, 2, 3, 6, 7, 10, 4, 5, 11]
+                    let trimmed = priorityOrder
+                        .compactMap { $0 < slots.count ? slots[$0] : nil }
+                        .first(where: { !$0.isEmpty }) ?? ""
 
                     // Compute the unrotated center of this key in KLE units
                     let px = currentX + currentW / 2
