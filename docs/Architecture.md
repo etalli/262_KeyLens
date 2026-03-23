@@ -504,6 +504,8 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 | `SessionConfig` / `TrainingSession` | `TrainingSession.swift` | Session parameters (target count, tier boundaries, repetitions) and the assembled drill sequence |
 | `PracticeStep` / `PracticeSequence` | `PracticeSequence.swift` | Ordered sequence of typed tokens; consumed by the Training tab UI to advance linearly through a drill |
 
+For a full breakdown of design patterns used across the codebase, see [design_pattern_analysis.md](design_pattern_analysis.md).
+
 #### Ergonomic scoring logic
 
 Within `KeyLensCore`, finger load is quantified through four steps:
