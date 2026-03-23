@@ -226,7 +226,7 @@ extension KeyCountStore {
     /// Unified ergonomic score (0–100) from cumulative keystroke data (Issue #29).
     var currentErgonomicScore: Double {
         queue.sync {
-            ergonomicScore(
+            KeyMetricsComputation.ergonomicScore(
                 sfCount:      store.ergonomics.sameFingerCount,
                 hsCount:      store.ergonomics.highStrainBigramCount,
                 altCount:     store.ergonomics.handAlternationCount,
@@ -310,7 +310,7 @@ extension KeyCountStore {
             for date in allDatesLocked() {
                 let bigrams = store.ergonomics.dailyTotalBigramCount[date] ?? 0
                 guard bigrams > 0 else { continue }
-                result[date] = ergonomicScore(
+                result[date] = KeyMetricsComputation.ergonomicScore(
                     sfCount:     store.ergonomics.dailySameFingerCount[date]       ?? 0,
                     hsCount:     store.ergonomics.dailyHighStrainBigramCount[date] ?? 0,
                     altCount:    store.ergonomics.dailyHandAlternationCount[date]  ?? 0,
@@ -389,25 +389,3 @@ extension KeyCountStore {
     }
 }
 
-// MARK: - Private helpers
-
-extension KeyCountStore {
-
-    /// Computes a unified ergonomic score (0–100) from raw bigram counters.
-    /// Must be called from inside `queue.sync`.
-    func ergonomicScore(
-        sfCount:     Int,
-        hsCount:     Int,
-        altCount:    Int,
-        bigramCount: Int,
-        keyCounts:   [String: Int]? = nil
-    ) -> Double {
-        KeyMetricsComputation.ergonomicScore(
-            sfCount:     sfCount,
-            hsCount:     hsCount,
-            altCount:    altCount,
-            bigramCount: bigramCount,
-            keyCounts:   keyCounts
-        )
-    }
-}

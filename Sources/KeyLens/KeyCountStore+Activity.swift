@@ -80,7 +80,7 @@ extension KeyCountStore {
                 .compactMap { (app, keystrokes) -> (app: String, score: Double, keystrokes: Int)? in
                     let bigrams = store.appTracker.appTotalBigramCount[app] ?? 0
                     guard bigrams > 0 else { return nil }
-                    let score = ergonomicScore(
+                    let score = KeyMetricsComputation.ergonomicScore(
                         sfCount:     store.appTracker.appSameFingerCount[app]       ?? 0,
                         hsCount:     store.appTracker.appHighStrainBigramCount[app] ?? 0,
                         altCount:    store.appTracker.appHandAlternationCount[app]  ?? 0,
@@ -100,7 +100,7 @@ extension KeyCountStore {
                 .compactMap { (device, keystrokes) -> (device: String, score: Double, keystrokes: Int)? in
                     let bigrams = store.appTracker.deviceTotalBigramCount[device] ?? 0
                     guard bigrams > 0 else { return nil }
-                    let score = ergonomicScore(
+                    let score = KeyMetricsComputation.ergonomicScore(
                         sfCount:     store.appTracker.deviceSameFingerCount[device]       ?? 0,
                         hsCount:     store.appTracker.deviceHighStrainBigramCount[device] ?? 0,
                         altCount:    store.appTracker.deviceHandAlternationCount[device]  ?? 0,
