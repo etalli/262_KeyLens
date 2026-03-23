@@ -117,6 +117,47 @@ extension KeyCountStore {
             KeyLens.log("KeyCountStore: migration error: \(error)")
         }
     }
+
+    // MARK: - One-time migration: counts.json scalars → keylens.db scalars table
+
+    private static let scalarsV1Key = "com.keylens.scalarsV1"
+
+    func migrateScalarsIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: Self.scalarsV1Key) else { return }
+        guard let db = dbQueue else {
+            UserDefaults.standard.set(true, forKey: Self.scalarsV1Key)
+            return
+        }
+
+        guard let jsonData = try? Data(contentsOf: saveURL) else {
+            // No counts.json → fresh install, nothing to migrate
+            UserDefaults.standard.set(true, forKey: Self.scalarsV1Key)
+            return
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        guard let legacy = try? decoder.decode(CountData.self, from: jsonData) else {
+            KeyLens.log("KeyCountStore: scalars migration failed — could not decode counts.json")
+            UserDefaults.standard.set(true, forKey: Self.scalarsV1Key)
+            return
+        }
+
+        do {
+            try db.write { db in
+                for (key, value) in legacy.toScalars() {
+                    try db.execute(
+                        sql: "INSERT OR REPLACE INTO scalars (key, value) VALUES (?, ?)",
+                        arguments: [key, value])
+                }
+            }
+            UserDefaults.standard.set(true, forKey: Self.scalarsV1Key)
+            KeyLens.log("KeyCountStore: scalars migration complete")
+        } catch {
+            // Do not set the flag — will retry on next launch
+            KeyLens.log("KeyCountStore: scalars migration error: \(error)")
+        }
+    }
 }
 
 // MARK: - Legacy JSON model (only used during migration)

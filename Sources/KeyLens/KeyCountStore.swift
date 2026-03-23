@@ -55,9 +55,10 @@ struct ShortcutData {
 
 // MARK: - Data model
 
-/// Persisted scalars and small fixed-size maps. Large per-day dictionaries
-/// are stored in keylens.db (see KeyCountStore+SQLite.swift).
-/// 永続化するスカラー値と小規模マップ。大きな日次ディクショナリは keylens.db に移行済み。
+/// In-memory snapshot of all keystroke counters. Persisted to keylens.db via the
+/// `scalars` table (see KeyCountStore+SQLite.swift). Large time-series data is in
+/// separate time-series tables in the same database.
+/// キーストロークカウンターのインメモリスナップショット。keylens.db の scalars テーブルに永続化される。
 struct CountData: Codable {
     var startedAt: Date
     var counts: [String: Int]           // all-time per-key cumulative count
@@ -191,14 +192,118 @@ struct CountData: Codable {
         try c.encode(shortcuts.modifiedCounts,                forKey: .modifiedCounts)
         try c.encode(shortcuts.dailyModifiedCount,            forKey: .dailyModifiedCount)
     }
+
+    // MARK: - SQLite scalars serialization
+
+    /// Serializes all persistent fields to (key, value) pairs for the `scalars` SQLite table.
+    func toScalars() -> [(key: String, value: String)] {
+        var entries: [(String, String)] = []
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        // Simple scalars
+        entries.append(("startedAt",              fmt.string(from: startedAt)))
+        if let t = activity.lastInputTime {
+            entries.append(("lastInputTime",      fmt.string(from: t)))
+        }
+        entries.append(("avgIntervalMs",          "\(activity.avgIntervalMs)"))
+        entries.append(("avgIntervalCount",       "\(activity.avgIntervalCount)"))
+        entries.append(("sameFingerCount",        "\(ergonomics.sameFingerCount)"))
+        entries.append(("totalBigramCount",       "\(ergonomics.totalBigramCount)"))
+        entries.append(("handAlternationCount",   "\(ergonomics.handAlternationCount)"))
+        entries.append(("alternationRewardScore", "\(ergonomics.alternationRewardScore)"))
+        entries.append(("highStrainBigramCount",  "\(ergonomics.highStrainBigramCount)"))
+        entries.append(("highStrainTrigramCount", "\(ergonomics.highStrainTrigramCount)"))
+
+        // JSON blob entries
+        let enc = JSONEncoder()
+        func js<V: Encodable>(_ v: V) -> String {
+            (try? String(data: enc.encode(v), encoding: .utf8)) ?? "{}"
+        }
+        entries.append(("keyCounts",                       js(counts)))
+        entries.append(("bigramCounts",                    js(ergonomics.bigramCounts)))
+        entries.append(("trigramCounts",                   js(ergonomics.trigramCounts)))
+        entries.append(("appCounts",                       js(appTracker.appCounts)))
+        entries.append(("deviceCounts",                    js(appTracker.deviceCounts)))
+        entries.append(("appSameFingerCount",               js(appTracker.appSameFingerCount)))
+        entries.append(("appTotalBigramCount",              js(appTracker.appTotalBigramCount)))
+        entries.append(("appHandAlternationCount",          js(appTracker.appHandAlternationCount)))
+        entries.append(("appHighStrainBigramCount",         js(appTracker.appHighStrainBigramCount)))
+        entries.append(("deviceSameFingerCount",            js(appTracker.deviceSameFingerCount)))
+        entries.append(("deviceTotalBigramCount",           js(appTracker.deviceTotalBigramCount)))
+        entries.append(("deviceHandAlternationCount",       js(appTracker.deviceHandAlternationCount)))
+        entries.append(("deviceHighStrainBigramCount",      js(appTracker.deviceHighStrainBigramCount)))
+        entries.append(("modifiedCounts",                  js(shortcuts.modifiedCounts)))
+        entries.append(("dailyModifiedCount",               js(shortcuts.dailyModifiedCount)))
+        entries.append(("dailyMinIntervalMs",               js(activity.dailyMinIntervalMs)))
+        entries.append(("dailyAvgIntervalMs",               js(activity.dailyAvgIntervalMs)))
+        entries.append(("dailyAvgIntervalCount",            js(activity.dailyAvgIntervalCount)))
+        entries.append(("dailySameFingerCount",             js(ergonomics.dailySameFingerCount)))
+        entries.append(("dailyTotalBigramCount",            js(ergonomics.dailyTotalBigramCount)))
+        entries.append(("dailyHandAlternationCount",        js(ergonomics.dailyHandAlternationCount)))
+        entries.append(("dailyHighStrainBigramCount",       js(ergonomics.dailyHighStrainBigramCount)))
+        entries.append(("dailyHighStrainTrigramCount",      js(ergonomics.dailyHighStrainTrigramCount)))
+        return entries
+    }
+
+    /// Restores all persistent fields from key-value pairs read from the `scalars` SQLite table.
+    mutating func loadScalars(_ dict: [String: String]) {
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let dec = JSONDecoder()
+
+        if let s = dict["startedAt"],              let d = fmt.date(from: s) { startedAt = d }
+        if let s = dict["lastInputTime"],          let d = fmt.date(from: s) { activity.lastInputTime = d }
+        if let s = dict["avgIntervalMs"],          let v = Double(s)         { activity.avgIntervalMs = v }
+        if let s = dict["avgIntervalCount"],       let v = Int(s)            { activity.avgIntervalCount = v }
+        if let s = dict["sameFingerCount"],        let v = Int(s)            { ergonomics.sameFingerCount = v }
+        if let s = dict["totalBigramCount"],       let v = Int(s)            { ergonomics.totalBigramCount = v }
+        if let s = dict["handAlternationCount"],   let v = Int(s)            { ergonomics.handAlternationCount = v }
+        if let s = dict["alternationRewardScore"], let v = Double(s)         { ergonomics.alternationRewardScore = v }
+        if let s = dict["highStrainBigramCount"],  let v = Int(s)            { ergonomics.highStrainBigramCount = v }
+        if let s = dict["highStrainTrigramCount"], let v = Int(s)            { ergonomics.highStrainTrigramCount = v }
+
+        func intDict(_ key: String) -> [String: Int] {
+            guard let s = dict[key], let data = s.data(using: .utf8) else { return [:] }
+            return (try? dec.decode([String: Int].self, from: data)) ?? [:]
+        }
+        func doubleDict(_ key: String) -> [String: Double] {
+            guard let s = dict[key], let data = s.data(using: .utf8) else { return [:] }
+            return (try? dec.decode([String: Double].self, from: data)) ?? [:]
+        }
+
+        counts                                     = intDict("keyCounts")
+        ergonomics.bigramCounts                    = intDict("bigramCounts")
+        ergonomics.trigramCounts                   = intDict("trigramCounts")
+        appTracker.appCounts                       = intDict("appCounts")
+        appTracker.deviceCounts                    = intDict("deviceCounts")
+        appTracker.appSameFingerCount              = intDict("appSameFingerCount")
+        appTracker.appTotalBigramCount             = intDict("appTotalBigramCount")
+        appTracker.appHandAlternationCount         = intDict("appHandAlternationCount")
+        appTracker.appHighStrainBigramCount        = intDict("appHighStrainBigramCount")
+        appTracker.deviceSameFingerCount           = intDict("deviceSameFingerCount")
+        appTracker.deviceTotalBigramCount          = intDict("deviceTotalBigramCount")
+        appTracker.deviceHandAlternationCount      = intDict("deviceHandAlternationCount")
+        appTracker.deviceHighStrainBigramCount     = intDict("deviceHighStrainBigramCount")
+        shortcuts.modifiedCounts                   = intDict("modifiedCounts")
+        shortcuts.dailyModifiedCount               = intDict("dailyModifiedCount")
+        activity.dailyMinIntervalMs                = doubleDict("dailyMinIntervalMs")
+        activity.dailyAvgIntervalMs                = doubleDict("dailyAvgIntervalMs")
+        activity.dailyAvgIntervalCount             = intDict("dailyAvgIntervalCount")
+        ergonomics.dailySameFingerCount            = intDict("dailySameFingerCount")
+        ergonomics.dailyTotalBigramCount           = intDict("dailyTotalBigramCount")
+        ergonomics.dailyHandAlternationCount       = intDict("dailyHandAlternationCount")
+        ergonomics.dailyHighStrainBigramCount      = intDict("dailyHighStrainBigramCount")
+        ergonomics.dailyHighStrainTrigramCount     = intDict("dailyHighStrainTrigramCount")
+    }
 }
 
 // MARK: - Store
 
 /// Singleton that manages keystroke counts.
-/// Scalars are persisted to counts.json; large per-day data is persisted to keylens.db.
+/// All data is persisted to keylens.db (scalars table + time-series tables).
 /// キーストロークカウントを管理するシングルトン。
-/// スカラー値は counts.json、大きな日次データは keylens.db に永続化する。
+/// すべてのデータは keylens.db に永続化する (scalars テーブル + 時系列テーブル)。
 final class KeyCountStore {
     static let shared = KeyCountStore()
 
@@ -259,9 +364,10 @@ final class KeyCountStore {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         saveURL = dir.appendingPathComponent("counts.json")
         store = CountData(startedAt: Date(), counts: [:])
-        setupDatabase()      // creates keylens.db and schema
-        migrateIfNeeded()    // one-time import from counts.json
-        load()               // load slim JSON scalars
+        setupDatabase()            // creates keylens.db and schema
+        migrateIfNeeded()          // one-time import of legacy daily data from counts.json
+        migrateScalarsIfNeeded()   // one-time import of scalars from counts.json
+        loadFromSQLite()           // load scalars from keylens.db
         // Prime today count cache from SQLite
         let today = todayKey
         _todayCacheDate = today
@@ -300,7 +406,7 @@ final class KeyCountStore {
         let deviceName = LayoutRegistry.shared.currentDeviceLabel
 
         let count: Int = queue.sync {
-            // All-time per-key count (stays in JSON)
+            // All-time per-key count (in-memory; persisted via scalars table)
             store.counts[key, default: 0] += 1
 
             // Per-day key count → SQLite pending
@@ -524,10 +630,10 @@ final class KeyCountStore {
         queue.sync { store.startedAt }
     }
 
-    /// Reload JSON scalars from disk; resets pending and rolling state.
+    /// Reload scalars from SQLite; resets pending and rolling state.
     func reload() {
         queue.sync {
-            load()
+            loadFromSQLite()
             pending = PendingStore()
             lastKeyName = nil
             secondLastKeyName = nil
@@ -559,7 +665,7 @@ final class KeyCountStore {
                 try? db.write { db in
                     for table in ["daily_keys","daily_bigrams","daily_trigrams",
                                   "daily_apps","daily_devices","hourly_counts",
-                                  "bigram_iki","iki_buckets","sessions"] {
+                                  "bigram_iki","iki_buckets","sessions","scalars"] {
                         try db.execute(sql: "DELETE FROM \(table)")
                     }
                 }
@@ -646,9 +752,9 @@ final class KeyCountStore {
         }
     }
 
-    // MARK: - Persistence (JSON scalars)
+    // MARK: - Persistence (SQLite scalars)
 
-    /// Debounces JSON scalar writes: schedules a save 2 seconds after the last call.
+    /// Debounces SQLite scalar writes: schedules a save 2 seconds after the last call.
     private func scheduleSave() {
         saveWorkItem?.cancel()
         let item = DispatchWorkItem { [weak self] in self?.snapshotAndSave() }
@@ -656,25 +762,34 @@ final class KeyCountStore {
         queue.asyncAfter(deadline: .now() + 2.0, execute: item)
     }
 
-    // Captures a snapshot of `store` on `queue`, then encodes and writes on `saveQueue`.
-    // This prevents JSON encoding (O(store size)) from blocking `queue.sync` in increment().
+    // Captures a snapshot of `store` on `queue`, then writes scalars to SQLite on `saveQueue`.
+    // This prevents serialization (O(store size)) from blocking `queue.sync` in increment().
     private func snapshotAndSave() {
         let snapshot = store
-        let url = saveURL
+        guard let db = dbQueue else { return }
         saveQueue.async {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            guard let data = try? encoder.encode(snapshot) else { return }
-            try? data.write(to: url, options: .atomic)
+            do {
+                try db.write { db in
+                    for (key, value) in snapshot.toScalars() {
+                        try db.execute(
+                            sql: "INSERT OR REPLACE INTO scalars (key, value) VALUES (?, ?)",
+                            arguments: [key, value])
+                    }
+                }
+            } catch {
+                KeyLens.log("KeyCountStore: scalars write error: \(error)")
+            }
         }
     }
 
-    private func load() {
-        guard let data = try? Data(contentsOf: saveURL) else { return }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        if let decoded = try? decoder.decode(CountData.self, from: data) {
-            store = decoded
-        }
+    private func loadFromSQLite() {
+        guard let db = dbQueue else { return }
+        let rows = (try? db.read { db in
+            try Row.fetchAll(db, sql: "SELECT key, value FROM scalars")
+        }) ?? []
+        guard !rows.isEmpty else { return }
+        var dict: [String: String] = [:]
+        for row in rows { dict[row["key"]] = (row["value"] as String?) ?? "" }
+        store.loadScalars(dict)
     }
 }
