@@ -504,6 +504,65 @@ A separate Swift library target that exposes keyboard ergonomic abstractions dec
 | `SessionConfig` / `TrainingSession` | `TrainingSession.swift` | Session parameters (target count, tier boundaries, repetitions) and the assembled drill sequence |
 | `PracticeStep` / `PracticeSequence` | `PracticeSequence.swift` | Ordered sequence of typed tokens; consumed by the Training tab UI to advance linearly through a drill |
 
+#### Ergonomic scoring logic
+
+Within `KeyLensCore`, finger load is quantified through four steps:
+
+**1. Base Capability Values (`FingerLoadWeight`)**
+
+Each finger has a relative strength weight (0 < w ≤ 1.0). Load is `keystrokes / weight`, so weaker fingers incur higher load per keystroke.
+
+| Finger | Weight |
+|--------|--------|
+| Index  | 1.0    |
+| Middle | 0.9    |
+| Thumb  | 0.8    |
+| Ring   | 0.6    |
+| Pinky  | 0.5    |
+
+**2. Same-Finger Bigram Penalty (`SameFingerPenalty`)**
+
+Penalty = `fingerWeight × distanceFactor²`. Distance tiers:
+
+| Tier | Example | Factor | Penalty (index finger) |
+|------|---------|--------|------------------------|
+| Same key | key repeat | 0.5 | 0.25× |
+| Adjacent (same row) | F → G | 1.0 | 1.0× |
+| 1-row vertical | F → R | 2.0 | 4.0× |
+| 2+ rows vertical | F → 4 | 4.0 | 16.0× |
+
+**3. High-Strain Detection (`HighStrainDetector`)**
+
+A bigram is "High Strain" when: same finger **and** same hand **and** vertical distance ≥ 1 row. Cross-hand pairs are never flagged. These are visualised in the **Strain** heatmap mode.
+
+**4. Integrated Score (`ErgonomicScoreEngine`)**
+
+All sub-metrics are normalised to [0, 100] and combined into a single score clamped to [0, 100]:
+
+| Component | Direction | Weight |
+|-----------|-----------|--------|
+| Same-finger bigram rate | Penalty | −0.30 |
+| High-strain sequence rate | Penalty | −0.25 |
+| Thumb imbalance (L vs R) | Penalty | −0.15 |
+| Hand alternation rate | Bonus | +0.20 |
+| Thumb efficiency coefficient | Bonus | +0.10 |
+
+**Layout Optimization (`FullErgonomicOptimizer`)**
+
+Hill-climb optimizer that proposes key swaps maximising the integrated ergonomic score:
+
+1. Build relocatable key set: in data, in layout, not in `fixedKeys`.
+2. Compute baseline `ErgonomicSnapshot`.
+3. For each candidate pair, simulate the swap and score it.
+4. Accept the swap with the largest improvement; repeat up to `maxSwaps` times.
+
+`LayoutConstraints` presets:
+
+| Preset | Thumb keys fixed? | Use case |
+|--------|-------------------|----------|
+| `macOSDefaults` | Yes (Space, ⌘Cmd, ⌥Option fixed) | Standard keyboards |
+| `splitKeyboard` | No | Programmable split keyboards (Ergodox, Moonlander, Corne) |
+
 ---
 
 ### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
