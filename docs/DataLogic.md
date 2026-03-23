@@ -44,3 +44,23 @@ Finally, all metrics are aggregated into a single score out of 100:
 
 **Summary**:
 Rather than simply counting "which key was pressed how many times," KeyLens simulates the physical strain based on "which finger was used, how far it had to stretch, and how much it was used consecutively."
+
+---
+
+## Layout Optimization (FullErgonomicOptimizer)
+
+`FullErgonomicOptimizer` uses a hill-climb algorithm to propose key swaps that increase the integrated ergonomic score:
+
+1. Build the set of relocatable keys (in data, in layout, not in `fixedKeys`).
+2. Compute the baseline `ErgonomicSnapshot`.
+3. For each candidate pair, simulate the swap and compute the new score.
+4. Accept the swap with the largest improvement; repeat up to `maxSwaps` times.
+
+### LayoutConstraints presets
+
+| Preset | Thumb keys fixed? | Use case |
+|---|---|---|
+| `macOSDefaults` | Yes (Space, ⌘Cmd, ⌥Option fixed) | Standard keyboards — thumb keys not remappable |
+| `splitKeyboard` | No | Programmable split keyboards (Ergodox, Moonlander, Corne) — optimizer can propose thumb key reassignments |
+
+The `splitKeyboard` preset enables thumb key optimization: Space, ⌘Cmd, and ⌥Option are removed from `fixedKeys`, so the optimizer can propose relocating high-burden keys to thumb positions based on actual typing data.
