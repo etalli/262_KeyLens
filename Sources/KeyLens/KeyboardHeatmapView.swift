@@ -723,6 +723,7 @@ struct HeatmapExportView: View {
         let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : emptyKeyColor
         let fgColor: Color = count > 0 ? .white : .secondary
 
+        let accessibilityValue = tooltipOverride ?? tooltipText(for: count, style: tooltipStyle)
         let cell = ZStack {
             RoundedRectangle(cornerRadius: 5).fill(bgColor)
             Text(label)
@@ -734,6 +735,8 @@ struct HeatmapExportView: View {
                 .padding(.horizontal, 2)
         }
         .frame(width: width, height: height ?? keyHeight)
+        .accessibilityLabel(label.isEmpty ? "Unknown key" : "\(label) key")
+        .accessibilityValue(accessibilityValue)
 
         guard let selectedCellID else { return AnyView(cell) }
 
@@ -808,6 +811,8 @@ struct HeatmapExportView: View {
             .padding(2)
         }
         .frame(width: width, height: height ?? keyHeight)
+        .accessibilityLabel(label.isEmpty ? "Unknown key" : "\(label) key")
+        .accessibilityValue(tooltipOverride ?? tooltipText(for: count, style: tooltipStyle))
 
         guard let selectedCellID else { return AnyView(cell) }
 
