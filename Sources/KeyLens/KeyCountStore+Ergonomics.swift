@@ -15,7 +15,7 @@ extension KeyCountStore {
     /// Estimated typing speed in WPM. Based on the standard definition: 1 word = 5 keystrokes.
     var estimatedWPM: Double? {
         guard let ms = averageIntervalMs, ms > 0 else { return nil }
-        return 60_000.0 / (ms * 5.0)
+        return KeyMetricsComputation.wpm(avgIntervalMs: ms)
     }
 
     /// Rolling WPM from keystrokes in the last `windowSeconds` using the recentIKIs ring buffer.
@@ -34,7 +34,7 @@ extension KeyCountStore {
                 count += 1
             }
             guard count > 0, totalMs > 0 else { return 0.0 }
-            return Double(count) / 5.0 * (60_000.0 / totalMs)
+            return KeyMetricsComputation.wpm(avgIntervalMs: totalMs / Double(count))
         }
     }
 
@@ -95,7 +95,7 @@ extension KeyCountStore {
         queue.sync {
             store.activity.dailyAvgIntervalMs.compactMap { date, avgMs -> (date: String, wpm: Double)? in
                 guard let count = store.activity.dailyAvgIntervalCount[date], count > 0, avgMs > 0 else { return nil }
-                return (date, 60_000.0 / (avgMs * 5.0))
+                return (date, KeyMetricsComputation.wpm(avgIntervalMs: avgMs))
             }
             .sorted { $0.date < $1.date }
         }
@@ -293,7 +293,7 @@ extension KeyCountStore {
             return slices.compactMap { hour, s -> HourlyFatigueEntry? in
                 guard s.ikiCount > 0 || s.ergTotal > 0 else { return nil }
                 let wpm: Double? = s.ikiCount > 0
-                    ? 60_000.0 / ((s.ikiSum / Double(s.ikiCount)) * 5.0)
+                    ? KeyMetricsComputation.wpm(avgIntervalMs: s.ikiSum / Double(s.ikiCount))
                     : nil
                 let sfRate: Double? = s.ergTotal > 0 ? Double(s.ergSF) / Double(s.ergTotal) : nil
                 let hsRate: Double? = s.ergTotal > 0 ? Double(s.ergHS) / Double(s.ergTotal) : nil
@@ -402,21 +402,12 @@ extension KeyCountStore {
         bigramCount: Int,
         keyCounts:   [String: Int]? = nil
     ) -> Double {
-        guard bigramCount > 0 else { return 100.0 }
-        let engine = LayoutRegistry.shared.ergonomicScoreEngine
-        let layout = LayoutRegistry.shared
-        let tiRatio = keyCounts.flatMap {
-            layout.thumbImbalanceDetector.imbalanceRatio(counts: $0, layout: layout)
-        } ?? 0.0
-        let teCoeff = keyCounts.flatMap {
-            layout.thumbEfficiencyCalculator.coefficient(counts: $0, layout: layout)
-        } ?? 0.0
-        return engine.score(
-            sameFingerRate:             Double(sfCount)  / Double(bigramCount),
-            highStrainRate:             Double(hsCount)  / Double(bigramCount),
-            thumbImbalanceRatio:        tiRatio,
-            handAlternationRate:        Double(altCount) / Double(bigramCount),
-            thumbEfficiencyCoefficient: teCoeff
+        KeyMetricsComputation.ergonomicScore(
+            sfCount:     sfCount,
+            hsCount:     hsCount,
+            altCount:    altCount,
+            bigramCount: bigramCount,
+            keyCounts:   keyCounts
         )
     }
 }
