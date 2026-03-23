@@ -170,6 +170,13 @@ extension KeyCountStore {
                     t.primaryKey(["date", "hour"])
                 }
             }
+            // Issue #215: scalar counters (replaces counts.json)
+            migrator.registerMigration("v6") { db in
+                try db.create(table: "scalars", ifNotExists: true) { t in
+                    t.primaryKey("key", .text)
+                    t.column("value", .text).notNull()
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db
