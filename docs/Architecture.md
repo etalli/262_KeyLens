@@ -268,6 +268,16 @@ Key code to name translation is handled by a static lookup table in `keyName(for
 
 After translating a key name, the callback posts a `Notification(.keystrokeInput)` so `KeystrokeOverlayController` can display it without polling.
 
+**Dependency injection:** `KeyboardMonitor` receives its three external dependencies via `init` rather than accessing globals directly:
+
+| Protocol | Default implementation | Purpose |
+|---|---|---|
+| `KeyEventHandling` | `KeyCountStore.shared` | `increment`, `recordSlowEvent`, `incrementModified` |
+| `BreakReminderManaging` | `BreakReminderManager.shared` | `didType()` |
+| `NotificationManaging` | `NotificationManager.shared` | `notify(key:count:)` |
+
+Production code passes `.shared` instances (default arguments); tests can inject mocks.
+
 ---
 
 ### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift) / [+SQLite](Sources/KeyLens/KeyCountStore+SQLite.swift) / [+Migration](Sources/KeyLens/KeyCountStore+Migration.swift)
