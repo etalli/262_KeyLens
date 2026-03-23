@@ -10,6 +10,8 @@ import SwiftUI
 struct ActivityCalendarView: View {
     let dailyTotals: [DailyTotalEntry]
 
+    @Environment(\.colorScheme) private var colorScheme
+
     // Calendar cell size and spacing
     // カレンダーセルのサイズとスペーシング
     private let cellSize: CGFloat = 12
@@ -167,12 +169,13 @@ struct ActivityCalendarView: View {
     /// 正規化された割合 [0,1] を緑系の強度色にマッピングする。
     private func intensityColor(fraction: Double) -> Color {
         if fraction == 0 { return Color(NSColor.controlBackgroundColor).opacity(0.6) }
-        // 4-level green scale: light → dark
-        // 4段階の緑スケール：薄い → 濃い
+        // Dark mode uses higher opacity levels so faint cells remain visible on dark backgrounds.
+        // ダークモードでは暗い背景でも薄いセルが見えるよう、不透明度を高めに設定する。
+        let (l1, l2, l3): (Double, Double, Double) = colorScheme == .dark ? (0.40, 0.60, 0.80) : (0.25, 0.50, 0.75)
         switch fraction {
-        case 0..<0.25: return Color.green.opacity(0.25)
-        case 0.25..<0.50: return Color.green.opacity(0.50)
-        case 0.50..<0.75: return Color.green.opacity(0.75)
+        case 0..<0.25: return Color.green.opacity(l1)
+        case 0.25..<0.50: return Color.green.opacity(l2)
+        case 0.50..<0.75: return Color.green.opacity(l3)
         default:          return Color.green.opacity(1.00)
         }
     }
