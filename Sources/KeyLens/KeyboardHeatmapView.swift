@@ -66,6 +66,14 @@ struct KeyboardHeatmapView: View {
     // Adapts to dark / light mode — dark: near-black, light: near-white
     private var emptyKeyColor: Color { colorScheme == .dark ? Color(white: 0.25) : Color(white: 0.85) }
 
+    // Returns a hue-based key fill color adjusted for the current color scheme.
+    // Dark mode raises brightness and lowers saturation so vivid keys don't overpower the dark UI.
+    private func heatColor(hue: Double) -> Color {
+        colorScheme == .dark
+            ? Color(hue: hue, saturation: 0.65, brightness: 0.92)
+            : Color(hue: hue, saturation: 0.75, brightness: 0.82)
+    }
+
     private let keyHeight: CGFloat = 40
     private let keySpacing: CGFloat = 4
 
@@ -523,6 +531,12 @@ struct HeatmapExportView: View {
 
     private var emptyKeyColor: Color { colorScheme == .dark ? Color(white: 0.25) : Color(white: 0.85) }
 
+    private func heatColor(hue: Double) -> Color {
+        colorScheme == .dark
+            ? Color(hue: hue, saturation: 0.65, brightness: 0.92)
+            : Color(hue: hue, saturation: 0.75, brightness: 0.82)
+    }
+
     private let keyHeight: CGFloat = 40
     private let keySpacing: CGFloat = 4
 
@@ -720,7 +734,7 @@ struct HeatmapExportView: View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
         let baseHue = ThemeStore.shared.current.heatmapBaseHue
         let hue = (1.0 - t) * baseHue
-        let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : emptyKeyColor
+        let bgColor = count > 0 ? heatColor(hue: hue) : emptyKeyColor
         let fgColor: Color = count > 0 ? .white : .secondary
 
         let accessibilityValue = tooltipOverride ?? tooltipText(for: count, style: tooltipStyle)
@@ -783,7 +797,7 @@ struct HeatmapExportView: View {
         let t = max > 0 && count > 0 ? Double(count) / Double(max) : 0
         let baseHue = ThemeStore.shared.current.heatmapBaseHue
         let hue = (1.0 - t) * baseHue
-        let bgColor = count > 0 ? Color(hue: hue, saturation: 0.75, brightness: 0.82) : emptyKeyColor
+        let bgColor = count > 0 ? heatColor(hue: hue) : emptyKeyColor
         let fgColor: Color = count > 0 ? .white : .secondary
 
         func s(_ i: Int) -> String { i < slots.count ? slots[i] : "" }
@@ -859,11 +873,11 @@ struct HeatmapExportView: View {
                 stops: {
                     let h = ThemeStore.shared.current.heatmapBaseHue
                     return [
-                        .init(color: emptyKeyColor, location: 0.00),
-                        .init(color: Color(hue: h,            saturation: 0.75, brightness: 0.82), location: 0.15),
-                        .init(color: Color(hue: h * 0.60,     saturation: 0.75, brightness: 0.82), location: 0.45),
-                        .init(color: Color(hue: h * 0.22,     saturation: 0.75, brightness: 0.82), location: 0.75),
-                        .init(color: Color(hue: 0.00,          saturation: 0.75, brightness: 0.82), location: 1.00),
+                        .init(color: emptyKeyColor,             location: 0.00),
+                        .init(color: heatColor(hue: h),         location: 0.15),
+                        .init(color: heatColor(hue: h * 0.60),  location: 0.45),
+                        .init(color: heatColor(hue: h * 0.22),  location: 0.75),
+                        .init(color: heatColor(hue: 0.00),      location: 1.00),
                     ]
                 }(),
                 startPoint: .leading,
