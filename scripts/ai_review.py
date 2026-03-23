@@ -11,9 +11,10 @@ REPO_URL = "https://github.com/etalli/262_KeyLens"
 MODEL = "gpt-4.1-mini"
 
 # Max chars per file and total source budget to stay within token limits.
-# gpt-4.1-mini has a 1M token context; ~100k chars ≈ 25k tokens — well within budget.
-MAX_CHARS_PER_FILE = 8_000
-MAX_TOTAL_CHARS    = 100_000
+# gpt-4.1-mini has a 1M token context; ~400k chars ≈ 100k tokens — well within budget.
+# Per-file limit set to 40k to avoid mid-function truncation on large files.
+MAX_CHARS_PER_FILE = 40_000
+MAX_TOTAL_CHARS    = 400_000
 
 
 # ------------------------------
