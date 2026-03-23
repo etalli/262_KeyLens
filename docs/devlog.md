@@ -10,6 +10,7 @@ Daily summaries of development activity, generated from git history.
 - **feat:** add VoiceOver accessibility labels to heatmap key cells (#221)
 - **fix:** remove redundant Save/Copy buttons from Heatmap view (#220)
 - **refactor:** inject KeyCountStore, BreakReminderManager, NotificationManager into KeyboardMonitor via DI (#216)
+- **refactor:** extract pure computation helpers into `KeyMetricsComputation`; eliminate `counts.json` — all scalars now persisted in `keylens.db` via new `scalars` table (#215)
 - **chore:** bump version to v0.71
 - **docs:** merge DataLogic.md into Architecture.md; remove stale Walkthrough.md, SYSTEM_MAP.md, Development.md; link design_pattern_analysis.md from Architecture.md
 
