@@ -7,6 +7,29 @@ struct KeystrokeEvent {
     let keyCode: UInt16
 }
 
+// MARK: - Dependency protocols
+
+protocol KeyEventHandling {
+    @discardableResult
+    func increment(key: String, at timestamp: Date, appName: String?) -> (count: Int, milestone: Bool)
+    func recordSlowEvent()
+    func incrementModified(key: String)
+}
+
+protocol BreakReminderManaging {
+    func didType()
+}
+
+protocol NotificationManaging {
+    func notify(key: String, count: Int)
+}
+
+// MARK: - Protocol conformances
+
+extension KeyCountStore: KeyEventHandling {}
+extension BreakReminderManager: BreakReminderManaging {}
+extension NotificationManager: NotificationManaging {}
+
 /// Threshold in milliseconds above which handleEvent is considered slow.
 /// この値を超えた場合、app.log に警告を記録し slowEventCount をインクリメントする。
 private let kHandleEventSlowThresholdMs: Double = 5.0
@@ -15,6 +38,20 @@ private let kHandleEventSlowThresholdMs: Double = 5.0
 final class KeyboardMonitor {
     private(set) var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+
+    private let store: KeyEventHandling
+    private let breakManager: BreakReminderManaging
+    private let notificationManager: NotificationManaging
+
+    init(
+        store: KeyEventHandling = KeyCountStore.shared,
+        breakManager: BreakReminderManaging = BreakReminderManager.shared,
+        notificationManager: NotificationManaging = NotificationManager.shared
+    ) {
+        self.store = store
+        self.breakManager = breakManager
+        self.notificationManager = notificationManager
+    }
 
     /// 現在監視中かどうか
     var isRunning: Bool {
@@ -227,18 +264,18 @@ extension KeyboardMonitor {
         let now = Date()
         let appName = NSWorkspace.shared.frontmostApplication?.localizedName
         let incrementStart = Date()
-        let result = KeyCountStore.shared.increment(key: name, at: now, appName: appName)
+        let result = store.increment(key: name, at: now, appName: appName)
         let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
         if elapsedMs > kHandleEventSlowThresholdMs {
             KeyLens.log("[perf] handleEvent slow: \(String(format: "%.1f", elapsedMs))ms (key: \(name))")
-            KeyCountStore.shared.recordSlowEvent()
+            store.recordSlowEvent()
         }
-        BreakReminderManager.shared.didType()
+        breakManager.didType()
 
         if result.milestone {
             // 通知はメインスレッドで発行
             DispatchQueue.main.async {
-                NotificationManager.shared.notify(key: name, count: result.count)
+                self.notificationManager.notify(key: name, count: result.count)
             }
         }
 
@@ -251,7 +288,7 @@ extension KeyboardMonitor {
                 let flags = event.flags.intersection([.maskControl, .maskAlternate, .maskShift, .maskCommand])
                 if !flags.isEmpty {
                     let prefix = KeyboardMonitor.modifierPrefix(for: flags)
-                    KeyCountStore.shared.incrementModified(key: "\(prefix)\(name)")
+                    store.incrementModified(key: "\(prefix)\(name)")
                 }
 
                 let displayName = KeyboardMonitor.overlayDisplayName(for: event, keyName: name)
