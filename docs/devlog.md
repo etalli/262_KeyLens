@@ -4,6 +4,15 @@ Daily summaries of development activity, generated from git history.
 
 ---
 
+## 2026-03-23
+
+- **feat:** parse all 12 KLE legend slots and render them in correct 3×3 grid positions in the heatmap (#219)
+- **feat:** add VoiceOver accessibility labels to heatmap key cells (#221)
+- **fix:** remove redundant Save/Copy buttons from Heatmap view (#220)
+- **refactor:** inject KeyCountStore, BreakReminderManager, NotificationManager into KeyboardMonitor via DI (#216)
+- **chore:** bump version to v0.71
+- **docs:** merge DataLogic.md into Architecture.md; remove stale Walkthrough.md, SYSTEM_MAP.md, Development.md; link design_pattern_analysis.md from Architecture.md
+
 ## 2026-03-21
 
 - **perf:** offloaded JSON save to a separate background queue to fix input lag caused by `queue.sync` blocking on 207KB `counts.json` encoding
