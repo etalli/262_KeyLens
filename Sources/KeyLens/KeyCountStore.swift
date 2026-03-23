@@ -397,6 +397,22 @@ final class KeyCountStore {
 
     var todayKey: String { Self.dayFormatter.string(from: Date()) }
 
+    // MARK: - Query factory
+
+    /// Creates a read-only snapshot of the current store state for use with KeyMetricsQuery.
+    /// Must be called from inside queue.sync.
+    func makeQuery() -> KeyMetricsQuery {
+        KeyMetricsQuery(
+            store:               store,
+            pending:             pending,
+            dbQueue:             dbQueue,
+            recentIKIs:          recentIKIs,
+            rhythmIKIs:          rhythmIKIs,
+            todayKey:            todayKey,
+            wpmSessionStart:     wpmSessionStart
+        )
+    }
+
     // MARK: - Mutation
 
     /// Increment count by 1. Returns (newCount, isMilestone).
