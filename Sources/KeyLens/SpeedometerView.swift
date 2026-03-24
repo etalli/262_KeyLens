@@ -4,20 +4,38 @@ import SwiftUI
 // Owns the timer and state as a class so it survives parent view rebuilds.
 // @StateObject ensures one instance per view lifetime, not one per render pass.
 private final class SpeedometerViewModel: ObservableObject {
-    @Published var currentWPM: Double = 0
+    /// Spring-smoothed display value — drives the needle and the WPM number.
+    @Published var displayWPM: Double = 0
     @Published var peakWPM: Double = 0
+
+    /// Raw rolling WPM — updated instantly on each keystroke, then decays.
+    private var targetWPM: Double = 0
+    /// Spring velocity in WPM/s. Carries inertia between ticks.
+    private var velocity: Double = 0
 
     private var lastKeystrokeDate: Date = .distantPast
     private var decayTimer: Timer?
+    private var springTimer: Timer?
     private var observer: NSObjectProtocol?
 
     // 0.65× per 0.5 s tick → half-life ≈ 1.5 s, reaches ~0 in ~4 s.
     private static let decayFactor: Double = 0.65
 
+    // Spring-damper constants (Issue #243).
+    // springK controls responsiveness; damping controls overshoot.
+    // ζ = damping / (2 × √springK) ≈ 0.87 → slight underdamping for a real-gauge feel.
+    private static let springK: Double = 12.0
+    private static let damping: Double = 6.0
+    private static let springDt: Double = 1.0 / 30.0  // 30 Hz update rate
+
     init() {
-        // Stable timer: not tied to view struct lifecycle.
+        // Decay timer: same cadence as before, drives targetWPM down when idle.
         decayTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.liveRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.tick()
+        }
+        // Spring timer: runs at 30 Hz to smoothly chase targetWPM.
+        springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
+            self?.springTick()
         }
         observer = NotificationCenter.default.addObserver(
             forName: .keystrokeInput, object: nil, queue: .main
@@ -28,23 +46,32 @@ private final class SpeedometerViewModel: ObservableObject {
 
     deinit {
         decayTimer?.invalidate()
+        springTimer?.invalidate()
         if let obs = observer { NotificationCenter.default.removeObserver(obs) }
     }
 
     private func onKeystroke() {
         lastKeystrokeDate = Date()
-        let wpm = KeyCountStore.shared.rollingWPM()
-        currentWPM = wpm
-        if wpm > peakWPM { peakWPM = wpm }
+        targetWPM = KeyCountStore.shared.rollingWPM()
     }
 
+    /// Slow decay applied to targetWPM when the user stops typing.
     private func tick() {
         guard Date().timeIntervalSince(lastKeystrokeDate) > AppConfiguration.speedometerKeystrokeCooldownSecs else { return }
-        currentWPM = max(0, currentWPM * Self.decayFactor)
+        targetWPM = max(0, targetWPM * Self.decayFactor)
+    }
+
+    /// Spring-damper step: displayWPM chases targetWPM with inertia and slight overshoot.
+    private func springTick() {
+        let dt = Self.springDt
+        // Symplectic Euler: update velocity first, then position (more stable than explicit Euler).
+        velocity += (targetWPM - displayWPM) * Self.springK * dt - velocity * Self.damping * dt
+        displayWPM = max(0, displayWPM + velocity * dt)
+        if displayWPM > peakWPM { peakWPM = displayWPM }
     }
 }
 
-// MARK: - Speedometer View (Issue #115)
+// MARK: - Speedometer View (Issue #115, spring physics Issue #243)
 // Arc gauge showing rolling WPM from the last 5-second keystroke window.
 // Arc sweeps from 8 o'clock (0 WPM) clockwise through 12 o'clock (50 WPM) to 4 o'clock (100 WPM).
 
@@ -68,13 +95,13 @@ struct SpeedometerView: View {
                 if vm.peakWPM > 0 {
                     drawPeakNeedle(ctx: ctx, center: center, radius: radius, wpm: vm.peakWPM)
                 }
-                drawNeedle(ctx: ctx, center: center, radius: radius, wpm: vm.currentWPM)
+                drawNeedle(ctx: ctx, center: center, radius: radius, wpm: vm.displayWPM)
                 drawHub(ctx: ctx, center: center)
             }
             .frame(width: 260, height: 200)
 
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(verbatim: "\(Int(vm.currentWPM))")
+                Text(verbatim: "\(Int(vm.displayWPM))")
                     .font(.system(size: 44, weight: .bold, design: .monospaced))
                 Text(L10n.shared.speedometerWPMLabel)
                     .font(.title2)
