@@ -29,7 +29,7 @@ The stored data is key names and counts only — your actual typed content canno
   </tr>
 </table>
 
-<video src="docs/images/KeyLens-Speedometer.mp4" controls width="600"></video>
+<video src="https://github.com/etalli/262_KeyLens/raw/main/docs/images/KeyLens-Speedometer.mp4" controls width="600"></video>
 
 </div>
 
