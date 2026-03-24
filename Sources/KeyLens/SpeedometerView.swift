@@ -23,17 +23,17 @@ private final class SpeedometerViewModel: ObservableObject {
 
     // Spring-damper constants (Issue #243).
     // springK controls responsiveness; damping controls overshoot.
-    // ζ = damping / (2 × √springK) ≈ 0.87 → slight underdamping for a real-gauge feel.
+    // ζ = damping / (2 × √springK) ≈ 0.65 → moderate underdamping, slight overshoot.
     private static let springK: Double = 12.0
-    private static let damping: Double = 6.0
-    private static let springDt: Double = 1.0 / 30.0  // 30 Hz update rate
+    private static let damping: Double = 4.5
+    private static let springDt: Double = 1.0 / 60.0  // 60 Hz update rate
 
     init() {
         // Decay timer: same cadence as before, drives targetWPM down when idle.
         decayTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.liveRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        // Spring timer: runs at 30 Hz to smoothly chase targetWPM.
+        // Spring timer: runs at 60 Hz to smoothly chase targetWPM.
         springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
             self?.springTick()
         }
@@ -76,7 +76,7 @@ private final class SpeedometerViewModel: ObservableObject {
 // Arc sweeps from 8 o'clock (0 WPM) clockwise through 12 o'clock (50 WPM) to 4 o'clock (100 WPM).
 
 struct SpeedometerView: View {
-    private static let maxWPM: Double = 100
+    private static let maxWPM: Double = 150
     // Angles measured from 3 o'clock (right), increasing clockwise in screen coords.
     private static let startDeg: Double = 150  // ~8 o'clock position (0 WPM)
     private static let sweepDeg: Double = 240  // total arc span in degrees
@@ -170,7 +170,7 @@ struct SpeedometerView: View {
 
     private func drawTicks(ctx: GraphicsContext, center: CGPoint, radius: CGFloat) {
         let milestones: [(wpm: Double, major: Bool)] = [
-            (0, true), (20, false), (40, false), (60, false), (80, false), (100, true),
+            (0, true), (30, false), (60, false), (90, false), (120, false), (150, true),
         ]
         for (wpm, major) in milestones {
             let f = fraction(for: wpm)
