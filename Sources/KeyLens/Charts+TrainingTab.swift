@@ -12,8 +12,12 @@ extension ChartsView {
     /// Trigram drills are appended at the end: one repeated drill per top trigram.
     /// Trigram targets are not stored in training history (bigram targets only).
     private var currentTrainingSession: TrainingSession? {
-        guard !model.trainingScores.isEmpty else { return nil }
-        let base = SessionBuilder.build(from: model.trainingScores, config: sessionLength.config)
+        let scores: [BigramScore] = {
+            guard drillIKIThreshold > 0 else { return model.trainingScores }
+            return model.trainingScores.filter { $0.meanIKI >= drillIKIThreshold }
+        }()
+        guard !scores.isEmpty else { return nil }
+        let base = SessionBuilder.build(from: scores, config: sessionLength.config)
         let trigramDrills = trigramDrillsForSession()
         guard !trigramDrills.isEmpty else { return base }
         return TrainingSession(targets: base.targets,
@@ -246,6 +250,31 @@ extension ChartsView {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 220)
+
+            // Speed threshold filter
+            HStack(spacing: 10) {
+                Text(L10n.shared.drillSpeedThresholdLabel)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Stepper(value: $drillIKIThreshold, in: 0...2000, step: 10) {
+                    if drillIKIThreshold <= 0 {
+                        Text(L10n.shared.drillSpeedThresholdOff)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(L10n.shared.drillSpeedThresholdValue(Int(drillIKIThreshold)))
+                    }
+                }
+                .onChange(of: drillIKIThreshold) { _ in trainingResetToken = UUID() }
+                if drillIKIThreshold > 0 {
+                    Button(L10n.shared.drillSpeedThresholdReset) {
+                        drillIKIThreshold = 0
+                        trainingResetToken = UUID()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                    .font(.subheadline)
+                }
+            }
 
             if let session = currentTrainingSession, !session.drills.isEmpty {
                 InteractivePracticeView(

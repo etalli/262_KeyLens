@@ -35,6 +35,9 @@ struct ChartsView: View {
     @State var keyTransitionTarget: String = ""
     /// Selected training session length — persisted across launches.
     @AppStorage("trainingSessionLength") var sessionLength: SessionLength = .normal
+    /// IKI speed threshold for drill selection (ms). Bigrams slower than this are included.
+    /// 0 = no filter (all ranked bigrams are used).
+    @AppStorage("bigramDrillIKIThreshold") var drillIKIThreshold: Double = 0
     /// Changed each time the user taps "New Session" to force InteractivePracticeView to reset.
     @State var trainingResetToken = UUID()
     /// Controls the confirmation alert for clearing training history.
