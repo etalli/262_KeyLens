@@ -397,67 +397,85 @@ extension ChartsView {
     }
 }
 
-// MARK: - Issue #78: WeeklyHeatmapView
+// MARK: - Issue #239: WeeklyHeatmapView (GitHub-contribution style, 7 rows × 24 cols)
 
-/// A 7-column × 24-row grid showing average keystrokes per (day-of-week, hour) cell.
-/// Color intensity scales linearly from the cell's avgCount to the maximum across all cells.
-/// Hovering over a cell shows a tooltip below the grid.
+/// Interactive 7-row (Mon–Sun) × 24-column (0–23h) heatmap.
+/// Supports a metric toggle: Keystrokes / WPM.
+/// Hovering over a cell shows a tooltip with count + WPM.
 struct WeeklyHeatmapView: View {
     let cells: [HeatmapCell]
 
     @State private var hoveredCell: HeatmapCell? = nil
+    @State private var metric: HeatmapMetric = .keystrokes
 
-    private let cellW:   CGFloat = 26
-    private let cellH:   CGFloat = 10
-    private let labelW:  CGFloat = 28
-    private let headerH: CGFloat = 22
+    enum HeatmapMetric { case keystrokes, wpm }
 
-    // Pre-build lookup [weekday * 24 + hour → cell] for O(1) access.
+    private let cellW:   CGFloat = 22
+    private let cellH:   CGFloat = 18
+    private let labelW:  CGFloat = 30
+    private let headerH: CGFloat = 20
+
     private var lookup: [Int: HeatmapCell] {
         Dictionary(uniqueKeysWithValues: cells.map { ($0.weekday * 24 + $0.hour, $0) })
     }
 
-    private var maxAvg: Double {
-        cells.map(\.avgCount).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+    private var maxValue: Double {
+        switch metric {
+        case .keystrokes:
+            return cells.map(\.avgCount).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+        case .wpm:
+            return cells.compactMap(\.avgWPM).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+        }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Metric toggle
+            Picker("", selection: $metric) {
+                Text(L10n.shared.heatmapMetricKeys).tag(HeatmapMetric.keystrokes)
+                Text(L10n.shared.heatmapMetricWPM).tag(HeatmapMetric.wpm)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 200)
+
             grid
             tooltipLine
+            legend
         }
     }
 
+    // 7 rows (weekday) × 24 columns (hour)
     private var grid: some View {
-        HStack(alignment: .top, spacing: 0) {
-            hourLabels
-            ForEach(0..<7, id: \.self) { wd in
-                dayColumn(wd: wd)
+        VStack(alignment: .leading, spacing: 0) {
+            // Hour header row
+            HStack(spacing: 0) {
+                Spacer().frame(width: labelW)
+                ForEach(0..<24, id: \.self) { h in
+                    Text(h % 4 == 0 ? String(format: "%02d", h) : "")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.secondary)
+                        .frame(width: cellW, height: headerH, alignment: .leading)
+                }
+            }
+            // One row per weekday (Sun=0 … Sat=6), reordered to Mon-first display
+            ForEach(weekdayDisplayOrder, id: \.self) { wd in
+                weekdayRow(wd: wd)
             }
         }
     }
 
-    private var hourLabels: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: headerH)
-            ForEach(0..<24, id: \.self) { h in
-                Text(h % 3 == 0 ? String(format: "%02d", h) : "")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.secondary)
-                    .frame(width: labelW, height: cellH, alignment: .trailing)
-                    .padding(.trailing, 3)
-            }
-        }
-    }
+    // Display Mon(1)…Sat(6), Sun(0) — Monday first
+    private var weekdayDisplayOrder: [Int] { [1, 2, 3, 4, 5, 6, 0] }
 
-    private func dayColumn(wd: Int) -> some View {
+    private func weekdayRow(wd: Int) -> some View {
         let abbrs = L10n.shared.weekdayAbbrs
         let label = wd < abbrs.count ? abbrs[wd] : ""
-        return VStack(spacing: 0) {
+        return HStack(spacing: 0) {
             Text(label)
                 .font(.system(size: 9, weight: .medium))
                 .foregroundStyle(.secondary)
-                .frame(width: cellW, height: headerH)
+                .frame(width: labelW, height: cellH, alignment: .trailing)
+                .padding(.trailing, 4)
             ForEach(0..<24, id: \.self) { h in
                 cellView(wd: wd, hour: h)
             }
@@ -465,18 +483,20 @@ struct WeeklyHeatmapView: View {
     }
 
     private func cellView(wd: Int, hour: Int) -> some View {
-        let cell = lookup[wd * 24 + hour]
-        let avg  = cell?.avgCount ?? 0
-        let intensity = maxAvg > 0 ? avg / maxAvg : 0
-        // Minimum opacity 0.06 so empty cells remain visible as outlines.
+        let cell  = lookup[wd * 24 + hour]
+        let value: Double = {
+            switch metric {
+            case .keystrokes: return cell?.avgCount ?? 0
+            case .wpm:        return cell?.avgWPM   ?? 0
+            }
+        }()
+        let intensity = maxValue > 0 ? min(value / maxValue, 1.0) : 0
         let fill = Color.blue.opacity(0.06 + intensity * 0.88)
         return Rectangle()
             .fill(fill)
             .frame(width: cellW - 1, height: cellH - 1)
-            .cornerRadius(1)
-            .onHover { hovering in
-                hoveredCell = hovering ? cell : nil
-            }
+            .cornerRadius(2)
+            .onHover { hovering in hoveredCell = hovering ? cell : nil }
     }
 
     @ViewBuilder
@@ -485,12 +505,35 @@ struct WeeklyHeatmapView: View {
             let fullNames = L10n.shared.weekdayFullNames
             let dayName   = cell.weekday < fullNames.count ? fullNames[cell.weekday] : ""
             let hourStr   = String(format: "%02d:00", cell.hour)
-            let avgLabel  = L10n.shared.heatmapAvgLabel(Int(cell.avgCount.rounded()))
-            Text("\(dayName) \(hourStr)  ·  \(avgLabel)")
+            let keysLabel = L10n.shared.heatmapAvgLabel(Int(cell.avgCount.rounded()))
+            let wpmPart: String = {
+                if let wpm = cell.avgWPM {
+                    return "  ·  \(String(format: "%.0f", wpm)) WPM"
+                }
+                return ""
+            }()
+            Text("\(dayName) \(hourStr)  ·  \(keysLabel)\(wpmPart)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
-            Text(" ").font(.caption)  // fixed-height placeholder keeps layout stable
+            Text(" ").font(.caption)
+        }
+    }
+
+    private var legend: some View {
+        HStack(spacing: 4) {
+            Text(L10n.shared.calendarLegendLow)
+                .font(.system(size: 8))
+                .foregroundStyle(.secondary)
+            ForEach([0.1, 0.3, 0.5, 0.7, 1.0], id: \.self) { i in
+                Rectangle()
+                    .fill(Color.blue.opacity(0.06 + i * 0.88))
+                    .frame(width: 10, height: 10)
+                    .cornerRadius(2)
+            }
+            Text(L10n.shared.calendarLegendHigh)
+                .font(.system(size: 8))
+                .foregroundStyle(.secondary)
         }
     }
 }

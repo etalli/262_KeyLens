@@ -275,18 +275,20 @@ struct MouseKeyboardBalanceEntry: Identifiable {
 
 // MARK: - Issue #78: Weekly Activity Heatmap
 
-/// One cell in the 7×24 weekly heatmap: average keystrokes for a given (weekday, hour) pair.
-/// 週間ヒートマップの1セル：曜日×時刻ごとの平均打鍵数。
+/// One cell in the 7×24 weekly heatmap: average keystrokes and optional WPM for a (weekday, hour) pair.
+/// 週間ヒートマップの1セル：曜日×時刻ごとの平均打鍵数・平均WPM。
 struct HeatmapCell: Identifiable {
     let id: Int           // weekday * 24 + hour
     let weekday: Int      // 0 = Sunday … 6 = Saturday
     let hour: Int         // 0–23
     let avgCount: Double  // average keystrokes across all matching dates
-    init(_ t: (weekday: Int, hour: Int, avgCount: Double)) {
-        id = t.weekday * 24 + t.hour
+    let avgWPM: Double?   // average WPM for this cell, nil if no IKI data
+    init(_ t: (weekday: Int, hour: Int, avgCount: Double, avgWPM: Double?)) {
+        id       = t.weekday * 24 + t.hour
         weekday  = t.weekday
         hour     = t.hour
         avgCount = t.avgCount
+        avgWPM   = t.avgWPM
     }
 }
 
