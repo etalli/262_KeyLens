@@ -593,6 +593,15 @@ final class KeyCountStore {
             }
             lastKeyName = key
 
+            // Layer key tracking (Issue #209): record layer key activation for layer-mapped keys.
+            if let combo = LayerMappingStore.shared.physicalCombo(for: key) {
+                LayerMappingStore.shared.recordPress(
+                    layerKeyName: combo.layerKeyName,
+                    outputKey: key,
+                    date: today
+                )
+            }
+
             checkGoalNotificationLocked(todayStr: today)
 
             return store.counts[key, default: 0]

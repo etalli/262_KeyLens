@@ -26,6 +26,11 @@ extension AppDelegate {
         MenuCustomizeWindowController.shared.showWindow()
     }
 
+    // Layer Mapping Settings (Issue #209)
+    func showLayerMappingSettings() {
+        LayerMappingWindowController.shared.show()
+    }
+
     func toggleLaunchAtLogin() {
         let service = SMAppService.mainApp
         do {

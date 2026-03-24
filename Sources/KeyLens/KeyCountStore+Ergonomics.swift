@@ -126,3 +126,13 @@ extension KeyCountStore {
         return q.layoutEfficiencyScores()
     }
 }
+
+// MARK: - Issue #209: Layer Key Efficiency
+
+extension KeyCountStore {
+
+    func layerEfficiency() -> [LayerEfficiencyEntry] {
+        let q = queue.sync { makeQuery() }
+        return q.layerEfficiency()
+    }
+}
