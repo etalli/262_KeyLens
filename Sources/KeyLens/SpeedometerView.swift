@@ -185,7 +185,7 @@ struct SpeedometerView: View {
             let labelPt = arcPoint(fraction: f, radius: radius - 26, center: center)
             ctx.draw(
                 Text(verbatim: "\(Int(wpm))")
-                    .font(.system(size: 10, weight: major ? .semibold : .regular, design: .monospaced)),
+                    .font(.system(size: 13, weight: major ? .semibold : .regular, design: .monospaced)),
                 at: labelPt
             )
         }
