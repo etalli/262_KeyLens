@@ -28,6 +28,9 @@ The stored data is key names and counts only — your actual typed content canno
     <td align="center"><i>Heatmap</i></td>
   </tr>
 </table>
+
+<video src="docs/images/KeyLens-Speedometer.mp4" controls width="600"></video>
+
 </div>
 
 ---
