@@ -200,6 +200,9 @@ struct SpeedometerView: View {
         var p = Path()
         p.move(to: tail)
         p.addLine(to: tip)
+        // Dark outline drawn first so the needle is readable against all zone colors.
+        ctx.stroke(p, with: .color(.black.opacity(0.45)),
+                   style: StrokeStyle(lineWidth: 5, lineCap: .round))
         ctx.stroke(p, with: .color(.white),
                    style: StrokeStyle(lineWidth: 3, lineCap: .round))
     }
@@ -219,6 +222,6 @@ struct SpeedometerView: View {
         let r: CGFloat = 8
         let rect = CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2)
         ctx.fill(Path(ellipseIn: rect), with: .color(.white))
-        ctx.stroke(Path(ellipseIn: rect), with: .color(.gray.opacity(0.5)), lineWidth: 1)
+        ctx.stroke(Path(ellipseIn: rect), with: .color(.black.opacity(0.45)), lineWidth: 2)
     }
 }
