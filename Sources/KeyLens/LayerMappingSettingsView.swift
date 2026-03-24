@@ -4,7 +4,9 @@ import SwiftUI
 
 /// Top-level window controller for layer key mapping settings.
 final class LayerMappingWindowController: NSWindowController {
-    convenience init() {
+    static let shared = LayerMappingWindowController()
+
+    private init() {
         let view = LayerMappingSettingsView()
         let hosting = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hosting)
@@ -12,8 +14,10 @@ final class LayerMappingWindowController: NSWindowController {
         window.styleMask = [.titled, .closable, .resizable]
         window.setContentSize(NSSize(width: 560, height: 520))
         window.minSize = NSSize(width: 480, height: 400)
-        self.init(window: window)
+        super.init(window: window)
     }
+
+    required init?(coder: NSCoder) { fatalError("not supported") }
 
     func show() {
         window?.center()

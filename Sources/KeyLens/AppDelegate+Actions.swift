@@ -27,10 +27,8 @@ extension AppDelegate {
     }
 
     // Layer Mapping Settings (Issue #209)
-    private lazy var layerMappingWindowController = LayerMappingWindowController()
-
     func showLayerMappingSettings() {
-        layerMappingWindowController.show()
+        LayerMappingWindowController.shared.show()
     }
 
     func toggleLaunchAtLogin() {
