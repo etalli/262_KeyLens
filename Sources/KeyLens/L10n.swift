@@ -1534,6 +1534,26 @@ final class L10n {
         ja("平均 \(count) キー", en: "avg \(count) keys")
     }
 
+    var heatmapMetricKeys: String {
+        ja("打鍵数", en: "Keystrokes")
+    }
+
+    var heatmapMetricWPM: String {
+        ja("WPM", en: "WPM")
+    }
+
+    var heatmapNoWPMData: String {
+        ja("—", en: "—")
+    }
+
+    var calendarLegendLow: String {
+        ja("少", en: "Low")
+    }
+
+    var calendarLegendHigh: String {
+        ja("多", en: "High")
+    }
+
     // MARK: - Issue #60: Session detection
 
     var chartTitleSessions: String {

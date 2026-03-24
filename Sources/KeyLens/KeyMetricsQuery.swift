@@ -377,28 +377,53 @@ extension KeyMetricsQuery {
         }
     }
 
-    func hourlyCountsByDayOfWeek() -> [(weekday: Int, hour: Int, avgCount: Double)] {
+    func hourlyCountsByDayOfWeek() -> [(weekday: Int, hour: Int, avgCount: Double, avgWPM: Double?)] {
         var sums = [Int: [Int: Int]]()
         var days = [Int: Set<String>]()
+        // iki_sum / iki_count per (weekday, hour) for WPM computation
+        var ikiSums   = [Int: [Int: Double]]()
+        var ikiCounts = [Int: [Int: Int]]()
 
-        if let db = dbQueue,
-           let rows = try? db.read({ db in
-               try Row.fetchAll(db, sql: """
-                   SELECT date,
-                          CAST(strftime('%w', date) AS INTEGER) AS weekday,
-                          hour,
-                          count
-                   FROM hourly_counts
-                   """)
-           }) {
-            for row in rows {
-                let date: String = row["date"]
-                let wd: Int      = row["weekday"]
-                let h: Int       = row["hour"]
-                let c: Int       = row["count"]
-                guard h < 24 else { continue }
-                sums[wd, default: [:]][h, default: 0] += c
-                days[wd, default: []].insert(date)
+        if let db = dbQueue {
+            // Keystroke counts
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date,
+                           CAST(strftime('%w', date) AS INTEGER) AS weekday,
+                           hour,
+                           count
+                    FROM hourly_counts
+                    """)
+            }) {
+                for row in rows {
+                    let date: String = row["date"]
+                    let wd: Int      = row["weekday"]
+                    let h: Int       = row["hour"]
+                    let c: Int       = row["count"]
+                    guard h < 24 else { continue }
+                    sums[wd, default: [:]][h, default: 0] += c
+                    days[wd, default: []].insert(date)
+                }
+            }
+            // WPM data from hourly_ergonomics
+            if let rows = try? db.read({ db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date,
+                           CAST(strftime('%w', date) AS INTEGER) AS weekday,
+                           hour, iki_sum, iki_count
+                    FROM hourly_ergonomics
+                    WHERE iki_count > 0
+                    """)
+            }) {
+                for row in rows {
+                    let wd: Int      = row["weekday"]
+                    let h: Int       = row["hour"]
+                    let s: Double    = row["iki_sum"]
+                    let n: Int       = row["iki_count"]
+                    guard h < 24 else { continue }
+                    ikiSums[wd, default: [:]][h, default: 0.0] += s
+                    ikiCounts[wd, default: [:]][h, default: 0] += n
+                }
             }
         }
 
@@ -411,14 +436,28 @@ extension KeyMetricsQuery {
                 sums[wd, default: [:]][h, default: 0] += v
             }
         }
+        // Merge pending hourly IKI slices
+        for (date, slices) in pending.hourlySlices {
+            guard let d = KeyCountStore.dayFormatter.date(from: date) else { continue }
+            let wd = cal.component(.weekday, from: d) - 1
+            for (h, sl) in slices where h < 24 && sl.ikiCount > 0 {
+                ikiSums[wd, default: [:]][h, default: 0.0]  += sl.ikiSum
+                ikiCounts[wd, default: [:]][h, default: 0]  += sl.ikiCount
+            }
+        }
 
-        var result: [(weekday: Int, hour: Int, avgCount: Double)] = []
+        var result: [(weekday: Int, hour: Int, avgCount: Double, avgWPM: Double?)] = []
         for wd in 0..<7 {
             let dayCount = days[wd]?.count ?? 0
             for h in 0..<24 {
-                let sum = sums[wd]?[h] ?? 0
-                let avg = dayCount > 0 ? Double(sum) / Double(dayCount) : 0.0
-                result.append((weekday: wd, hour: h, avgCount: avg))
+                let sum    = sums[wd]?[h] ?? 0
+                let avg    = dayCount > 0 ? Double(sum) / Double(dayCount) : 0.0
+                let ikiSum = ikiSums[wd]?[h] ?? 0
+                let ikiN   = ikiCounts[wd]?[h] ?? 0
+                let wpm: Double? = ikiN > 0
+                    ? KeyMetricsComputation.wpm(avgIntervalMs: ikiSum / Double(ikiN))
+                    : nil
+                result.append((weekday: wd, hour: h, avgCount: avg, avgWPM: wpm))
             }
         }
         return result

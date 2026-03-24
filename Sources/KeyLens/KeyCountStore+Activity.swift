@@ -120,7 +120,7 @@ extension KeyCountStore {
         queue.sync { makeQuery().dailyTotals(last: days) }
     }
 
-    func hourlyCountsByDayOfWeek() -> [(weekday: Int, hour: Int, avgCount: Double)] {
+    func hourlyCountsByDayOfWeek() -> [(weekday: Int, hour: Int, avgCount: Double, avgWPM: Double?)] {
         queue.sync { makeQuery().hourlyCountsByDayOfWeek() }
     }
 
