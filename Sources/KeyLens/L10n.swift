@@ -1674,6 +1674,14 @@ final class L10n {
     var trainingResultTime: String       { ja("時間", en: "Time") }
     var trainingAccuracyHelp: String     { ja("正確さ %", en: "Accuracy %") }
 
+    // Drill speed threshold filter (Issue #231)
+    var drillSpeedThresholdLabel: String { ja("スピード閾値:", en: "Speed threshold:") }
+    var drillSpeedThresholdOff: String   { ja("オフ (全バイグラム)", en: "Off (all bigrams)") }
+    func drillSpeedThresholdValue(_ ms: Int) -> String {
+        ja("≥ \(ms) ms のみ", en: "≥ \(ms) ms only")
+    }
+    var drillSpeedThresholdReset: String { ja("リセット", en: "Reset") }
+
     // MARK: - Chart Axis Labels
 
     var axisLabelKeys: String     { ja("キー数", en: "Keys") }
