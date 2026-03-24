@@ -58,12 +58,16 @@ graph TD
 │   │   ├── MenuWidgetStore.swift
 │   │   ├── MenuCustomizeWindowController.swift
 │   │   ├── KeyboardMonitor.swift
+│   │   ├── Configuration.swift
 │   │   ├── KeyCountStore.swift
 │   │   ├── KeyCountStore+Activity.swift
 │   │   ├── KeyCountStore+Ergonomics.swift
 │   │   ├── KeyCountStore+Export.swift
 │   │   ├── KeyCountStore+SQLite.swift
 │   │   ├── KeyCountStore+Migration.swift
+│   │   ├── KeyCountStore+Training.swift
+│   │   ├── KeyMetricsComputation.swift
+│   │   ├── KeyMetricsQuery.swift
 │   │   ├── MouseStore.swift
 │   │   ├── KeyType.swift
 │   │   ├── NotificationManager.swift
@@ -79,6 +83,7 @@ graph TD
 │   │   ├── Charts+ActivityTab.swift
 │   │   ├── Charts+AppsTab.swift
 │   │   ├── Charts+ShortcutsTab.swift
+│   │   ├── Charts+LayerEfficiency.swift
 │   │   ├── Charts+LiveTab.swift
 │   │   ├── Charts+MouseTab.swift
 │   │   ├── Charts+TrainingTab.swift
@@ -90,8 +95,11 @@ graph TD
 │   │   ├── KLEParser.swift
 │   │   ├── KeyboardDeviceInfo.swift
 │   │   ├── KeystrokeOverlayController.swift
+│   │   ├── LayerMappingSettingsView.swift
+│   │   ├── LayerMappingStore.swift
 │   │   ├── OverlaySettingsController.swift
 │   │   ├── OverlayHotkeyManager.swift
+│   │   ├── SpeedometerView.swift
 │   │   ├── WPMHotkeyManager.swift
 │   │   ├── ThemeStore.swift
 │   │   ├── AIPromptStore.swift
@@ -280,9 +288,9 @@ Production code passes `.shared` instances (default arguments); tests can inject
 
 ---
 
-### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift) / [+SQLite](Sources/KeyLens/KeyCountStore+SQLite.swift) / [+Migration](Sources/KeyLens/KeyCountStore+Migration.swift)
+### [KeyCountStore.swift](Sources/KeyLens/KeyCountStore.swift) / [+Activity](Sources/KeyLens/KeyCountStore+Activity.swift) / [+Ergonomics](Sources/KeyLens/KeyCountStore+Ergonomics.swift) / [+Export](Sources/KeyLens/KeyCountStore+Export.swift) / [+SQLite](Sources/KeyLens/KeyCountStore+SQLite.swift) / [+Migration](Sources/KeyLens/KeyCountStore+Migration.swift) / [+Training](Sources/KeyLens/KeyCountStore+Training.swift)
 
-Singleton that manages counts and persists them to disk. Split into focused extensions: `+Activity` handles WPM, IKI, and daily activity metrics; `+Ergonomics` handles same-finger, alternation, high-strain, and app/device ergonomic accessors; `+Export` handles CSV export and clipboard formatting.
+Singleton that manages counts and persists them to disk. Split into focused extensions: `+Activity` handles WPM, IKI, and daily activity metrics; `+Ergonomics` handles same-finger, alternation, high-strain, and app/device ergonomic accessors; `+Export` handles CSV export and clipboard formatting; `+Training` stores and retrieves training session records.
 
 **Thread safety:**
 
@@ -336,6 +344,24 @@ WPM = 60,000 / (avgIntervalMs × 5)
 
 ---
 
+### [Configuration.swift](Sources/KeyLens/Configuration.swift)
+
+Central store for app-wide tuning constants (`AppConfiguration`) and user-persisted overlay settings (`OverlayConfig`). `AppConfiguration` holds read-only values (refresh intervals, WPM thresholds, speedometer decay). `OverlayConfig` reads/writes from `UserDefaults` and is observed by `OverlayViewModel`.
+
+---
+
+### [KeyMetricsComputation.swift](Sources/KeyLens/KeyMetricsComputation.swift)
+
+Pure, side-effect-free computation helpers extracted from `KeyCountStore`. Contains `KeyMetricsComputation.wpm(avgIntervalMs:)` (standard 1 word = 5 keystrokes formula) and `KeyMetricsComputation.ergonomicScore(...)`. No access to shared state — all inputs are explicit parameters, making the functions directly testable.
+
+---
+
+### [KeyMetricsQuery.swift](Sources/KeyLens/KeyMetricsQuery.swift)
+
+Read-only query layer over `KeyCountStore` state. `KeyMetricsQuery` is a value type initialized with a `KeyCountStore` snapshot; `rollingWPM(windowSeconds:)` computes a trailing-window WPM from recent IKI entries. Consumed by `SpeedometerView`, the Live tab, and the WPM hotkey manager.
+
+---
+
 ### [KeyType.swift](Sources/KeyLens/KeyType.swift)
 
 Classifies key names into categories (`letter`, `number`, `arrow`, `control`, `function`, `mouse`, `other`). Each case carries a `color` and a `label` used by `ChartsView` to colour-code bar segments.
@@ -370,7 +396,8 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
 | `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
 | `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
-| `Charts+LiveTab.swift` | Recent IKI bar chart, manual WPM measurement |
+| `Charts+LayerEfficiency.swift` | Layer key usage analysis for QMK/ZMK keyboards |
+| `Charts+LiveTab.swift` | Recent IKI bar chart, manual WPM measurement, analog speedometer |
 | `Charts+MouseTab.swift` | Daily mouse distance, hourly mouse activity, mouse/keyboard balance |
 | `Charts+TrainingTab.swift` | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 | `Charts+ComparisonTab.swift` | Side-by-side period comparison: two custom date ranges, preset buttons, stats table with delta column |
@@ -406,6 +433,18 @@ Manages the global hotkey for toggling the Keystroke Overlay (Issue #179). Defau
 ### [WPMHotkeyManager.swift](Sources/KeyLens/WPMHotkeyManager.swift)
 
 Manages the global hotkey for toggling manual WPM measurement (Issue #151). Default hotkey: ⌃⌥M. Same architecture as `OverlayHotkeyManager` — detected in `CGEventTap`, persisted in `UserDefaults`.
+
+---
+
+### [SpeedometerView.swift](Sources/KeyLens/SpeedometerView.swift)
+
+SwiftUI analog WPM gauge used in the Live tab. `SpeedometerViewModel` owns two timers: a decay timer (same cadence as live refresh) that fades `targetWPM` when the user stops typing, and a spring timer at 60 Hz that smoothly drives `displayWPM` toward `targetWPM` using a symplectic Euler spring-damper (ζ ≈ 0.65). The gauge arc spans 0–150 WPM with color zones (gray / green / yellow / red) and a peak-hold needle.
+
+---
+
+### [LayerMappingStore.swift](Sources/KeyLens/LayerMappingStore.swift) / [LayerMappingSettingsView.swift](Sources/KeyLens/LayerMappingSettingsView.swift)
+
+`LayerMappingStore` persists user-defined layer maps for QMK/ZMK keyboards to `UserDefaults`. `LayerMappingSettingsView` provides the settings UI for defining and editing layer maps. Used by the layer key analyzer feature (Issue #209).
 
 ---
 
