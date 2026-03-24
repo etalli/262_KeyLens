@@ -26,6 +26,13 @@ extension AppDelegate {
         MenuCustomizeWindowController.shared.showWindow()
     }
 
+    // Layer Mapping Settings (Issue #209)
+    private lazy var layerMappingWindowController = LayerMappingWindowController()
+
+    func showLayerMappingSettings() {
+        layerMappingWindowController.show()
+    }
+
     func toggleLaunchAtLogin() {
         let service = SMAppService.mainApp
         do {

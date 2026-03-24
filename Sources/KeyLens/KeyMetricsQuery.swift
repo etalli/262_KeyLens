@@ -752,6 +752,32 @@ extension KeyMetricsQuery {
         return result
     }
 
+    // MARK: - Layer efficiency (Issue #209)
+
+    /// Returns per-layer-key efficiency summaries using data from LayerMappingStore.
+    func layerEfficiency() -> [LayerEfficiencyEntry] {
+        let lms = LayerMappingStore.shared
+        guard !lms.layerKeys.isEmpty else { return [] }
+
+        return lms.layerKeys.map { layerKey in
+            let allTime   = lms.allTimePressCount[layerKey.name] ?? 0
+            let todayCount = lms.dailyPressCount[todayKey]?[layerKey.name] ?? 0
+            let outputCounts = lms.allTimeOutputCounts[layerKey.name] ?? [:]
+            let topCombos = outputCounts
+                .sorted { $0.value > $1.value }
+                .prefix(5)
+                .map { (outputKey: $0.key, count: $0.value) }
+            return LayerEfficiencyEntry(
+                layerKeyName:       layerKey.name,
+                finger:             layerKey.finger,
+                pressCount:         todayCount,
+                allTimePressCount:  allTime,
+                topCombos:          topCombos
+            )
+        }
+        .sorted { $0.allTimePressCount > $1.allTimePressCount }
+    }
+
     func layoutEfficiencyScores() -> [LayoutEfficiencyEntry] {
         let bigrams   = store.ergonomics.bigramCounts
         let keyCounts = store.counts

@@ -1713,6 +1713,75 @@ final class L10n {
         ja("打鍵強度の凡例：少ない から 多い", en: "Keystroke intensity legend, from less to more")
     }
 
+    // MARK: - Layer Mapping (Issue #209)
+
+    var layerMappingMenuTitle: String {
+        ja("レイヤーキー設定…", en: "Layer Key Mapping…")
+    }
+
+    var layerMappingWindowTitle: String {
+        ja("レイヤーキーマッピング", en: "Layer Key Mapping")
+    }
+
+    var layerMappingLayerKeysSection: String {
+        ja("レイヤーキー", en: "Layer Keys")
+    }
+
+    var layerMappingOutputKeysSection: String {
+        ja("出力キー → 物理キー", en: "Output Key → Physical Key")
+    }
+
+    var layerMappingAddLayerKey: String {
+        ja("レイヤーキーを追加", en: "Add Layer Key")
+    }
+
+    var layerMappingAddMapping: String {
+        ja("マッピングを追加", en: "Add Mapping")
+    }
+
+    var layerMappingLayerKeyName: String {
+        ja("名前 (例: Lower)", en: "Name (e.g. Lower)")
+    }
+
+    var layerMappingFinger: String {
+        ja("担当指", en: "Finger")
+    }
+
+    var layerMappingOutputKey: String {
+        ja("出力キー (例: ←)", en: "Output key (e.g. ←)")
+    }
+
+    var layerMappingBaseKey: String {
+        ja("ベースキー (例: J)", en: "Base key (e.g. J)")
+    }
+
+    var layerMappingEmpty: String {
+        ja("まだ設定がありません", en: "No mappings configured")
+    }
+
+    var layerMappingNoLayerKeys: String {
+        ja("まずレイヤーキーを追加してください", en: "Add a layer key first")
+    }
+
+    var layerEfficiencyTitle: String {
+        ja("レイヤー効率", en: "Layer Efficiency")
+    }
+
+    var layerEfficiencyHelp: String {
+        ja(
+            "ファームウェアレイヤーキー (Lower, Raise など) の使用回数と担当指の負荷を表示します。レイヤーキーマッピングを設定すると有効になります。",
+            en: "Shows usage count and finger load for firmware layer keys (Lower, Raise, etc.). Requires Layer Key Mapping to be configured."
+        )
+    }
+
+    var layerEfficiencyNoData: String {
+        ja("レイヤーキーマッピングが未設定です", en: "No layer key mappings configured")
+    }
+
+    var layerEfficiencyPresses: String {
+        ja("回", en: "presses")
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {

@@ -15,6 +15,7 @@ extension ChartsView {
                 chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
                 chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
+                chartSection(L10n.shared.layerEfficiencyTitle, helpText: L10n.shared.layerEfficiencyHelp) { layerEfficiencySection }
             }
             .padding(24)
         }

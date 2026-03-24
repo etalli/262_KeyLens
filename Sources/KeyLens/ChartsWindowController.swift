@@ -79,6 +79,8 @@ final class ChartDataModel: ObservableObject {
     @Published var bigramIKIMap:               [String: Double]              = [:]
     // Issue #78: Weekly Activity Heatmap
     @Published var weeklyHeatmap:              [HeatmapCell]                 = []
+    // Issue #209: Layer key efficiency
+    @Published var layerEfficiency:            [LayerEfficiencyEntry]        = []
 
     func reload() {
         let store            = KeyCountStore.shared
@@ -184,6 +186,8 @@ final class ChartDataModel: ObservableObject {
         trainingHistory = store.trainingHistory(limit: 20)
         // Issue #84: Full IKI map for before/after comparison
         bigramIKIMap = store.allBigramIKI()
+        // Issue #209: Layer key efficiency
+        layerEfficiency = store.layerEfficiency()
     }
 
     /// Reloads key transition data for the given target key (Issue #98).

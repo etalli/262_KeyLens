@@ -389,6 +389,11 @@ private struct SettingsMenuRow: View {
             appDelegate.showMenuCustomize()
         }
 
+        // Layer Key Mapping (Issue #209)
+        add(l.layerMappingMenuTitle, to: menu) {
+            appDelegate.showLayerMappingSettings()
+        }
+
         menu.addItem(.separator())
 
         // Launch at Login
