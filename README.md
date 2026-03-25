@@ -18,7 +18,7 @@ KeyLens is a macOS menu bar app that tracks your keystrokes locally and recommen
 The stored data is key names and counts only — your actual typed content cannot be reconstructed from it.
 
 
-[**Official Page**](https://etalli.github.io/262_KeyLens/landing-page/) — screenshots and layout optimization walkthrough
+[**Document**](https://etalli.github.io/262_KeyLens/landing-page/) — screenshots and layout optimization walkthrough
 
 <table>
   <tr>
