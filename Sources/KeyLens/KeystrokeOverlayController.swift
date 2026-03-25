@@ -200,6 +200,7 @@ final class KeystrokeOverlayController: NSObject, NSWindowDelegate {
             queue: .main
         ) { [weak self] note in
             guard let self, let evt = note.object as? KeystrokeEvent else { return }
+            guard !evt.isModifierOnly else { return }
             // append を先に呼ぶことで、placePanel() のサイズ計算が最新状態に基づく
             self.viewModel.append(keyName: evt.displayName, keyCode: evt.keyCode)
             if !self.panel.isVisible {

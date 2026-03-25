@@ -7,6 +7,9 @@ struct KeystrokeEvent {
     let keyCode: UInt16
     let flags: CGEventFlags
     let isNumpad: Bool
+    /// True when the key is a standalone modifier (Shift, Cmd, etc.) with no other key.
+    /// The overlay skips these; the inspector shows them.
+    let isModifierOnly: Bool
 }
 
 // MARK: - Dependency protocols
@@ -293,23 +296,33 @@ extension KeyboardMonitor {
         }
 
         if type == .keyDown {
-            // 修飾キー単体（左右両方）はオーバーレイに表示しない
             let modifierKeyCodes: Set<CGKeyCode> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
             let code = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-            if !modifierKeyCodes.contains(code) {
+            let isModifierOnly = modifierKeyCodes.contains(code)
+
+            if !isModifierOnly {
+                // Record modifier+key combinations (⌃⌥⇧⌘ prefix order)
                 // 修飾キー+キーの組み合わせを記録（⌃⌥⇧⌘ 順プレフィックス）
-                let flags = event.flags.intersection([.maskControl, .maskAlternate, .maskShift, .maskCommand])
-                if !flags.isEmpty {
-                    let prefix = KeyboardMonitor.modifierPrefix(for: flags)
+                let activeFlags = event.flags.intersection([.maskControl, .maskAlternate, .maskShift, .maskCommand])
+                if !activeFlags.isEmpty {
+                    let prefix = KeyboardMonitor.modifierPrefix(for: activeFlags)
                     store.incrementModified(key: "\(prefix)\(name)")
                 }
+            }
 
-                let displayName = KeyboardMonitor.overlayDisplayName(for: event, keyName: name)
-                let isNumpad = event.flags.contains(.maskNumericPad)
-                let evt = KeystrokeEvent(displayName: displayName, keyCode: code, flags: event.flags, isNumpad: isNumpad)
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .keystrokeInput, object: evt)
-                }
+            // Always post keystrokeInput so the inspector receives modifier-only keys too.
+            // isModifierOnly lets the overlay skip them while the inspector shows them.
+            let displayName = KeyboardMonitor.overlayDisplayName(for: event, keyName: name)
+            let isNumpad = event.flags.contains(.maskNumericPad)
+            let evt = KeystrokeEvent(
+                displayName: displayName,
+                keyCode: code,
+                flags: event.flags,
+                isNumpad: isNumpad,
+                isModifierOnly: isModifierOnly
+            )
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .keystrokeInput, object: evt)
             }
         }
         return Unmanaged.passRetained(event)
