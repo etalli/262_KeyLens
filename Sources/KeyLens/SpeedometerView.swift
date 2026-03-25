@@ -37,8 +37,9 @@ private final class SpeedometerViewModel: ObservableObject {
         springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
             self?.springTick()
         }
+        // queue: nil — runs on the CGEvent posting thread, avoiding queue.sync on main.
         observer = NotificationCenter.default.addObserver(
-            forName: .keystrokeInput, object: nil, queue: .main
+            forName: .keystrokeInput, object: nil, queue: nil
         ) { [weak self] _ in
             self?.onKeystroke()
         }
@@ -51,8 +52,13 @@ private final class SpeedometerViewModel: ObservableObject {
     }
 
     private func onKeystroke() {
-        lastKeystrokeDate = Date()
-        targetWPM = KeyCountStore.shared.rollingWPM()
+        // Compute rolling WPM off-main, then dispatch only the property writes to main.
+        let wpm = KeyCountStore.shared.rollingWPM()
+        let now = Date()
+        DispatchQueue.main.async { [weak self] in
+            self?.lastKeystrokeDate = now
+            self?.targetWPM = wpm
+        }
     }
 
     /// Slow decay applied to targetWPM when the user stops typing.
