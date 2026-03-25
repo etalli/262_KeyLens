@@ -1810,6 +1810,33 @@ final class L10n {
         ja("回", en: "presses")
     }
 
+    // MARK: - Bigram IKI Heatmap (#238)
+
+    var bigramIKIHeatmapTitle: String {
+        ja("バイグラムIKIヒートマップ", en: "Bigram IKI Heatmap")
+    }
+
+    var helpBigramIKIHeatmap: String {
+        ja(
+            "キーペア（バイグラム）ごとの平均キー間隔 (IKI) を2次元マトリクスで表示します。行が「打鍵元」、列が「打鍵先」のキーです。\n\n色の意味: 緑=速い（低IKI）、赤=遅い（高IKI）。灰色=データなし。\n\nN個のピッカーで軸に表示するキー数（打鍵頻度上位N個）を変更できます。セルにカーソルを合わせると正確なms値が表示されます。\n\n遅いバイグラムはタイピング改善のトレーニング候補です。",
+            en: "A matrix of average inter-keystroke interval (IKI) for each key pair (bigram). Rows = 'from' key, columns = 'to' key.\n\nColor: green = fast (low IKI), red = slow (high IKI). Gray = no data recorded.\n\nUse the N picker to change how many keys (top-N by frequency) appear on each axis. Hover a cell to see the exact millisecond value.\n\nSlow bigrams are good candidates for typing practice."
+        )
+    }
+
+    var bigramHeatmapTop: String  { ja("上位", en: "Top") }
+    var bigramHeatmapKeys: String { ja("キー", en: "keys") }
+    var bigramHeatmapFast: String { ja("速い", en: "Fast") }
+    var bigramHeatmapSlow: String { ja("遅い", en: "Slow") }
+
+    var bigramHeatmapNoData: String {
+        ja("バイグラムIKIデータがまだありません。しばらくタイピングすると表示されます。",
+           en: "No bigram IKI data yet. Type for a while and the heatmap will appear.")
+    }
+
+    var bigramHeatmapHoverHint: String {
+        ja("セルにカーソルを合わせると詳細を表示", en: "Hover a cell to see details")
+    }
+
     // MARK: - Key Inspector (#246)
 
     var keyInspectorSection: String {
