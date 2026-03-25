@@ -21,18 +21,20 @@ final class KeyInspectorViewModel: ObservableObject {
     private var releaseObserver:  NSObjectProtocol?
 
     init() {
+        // queue: nil — runs on the CGEvent posting thread, bypassing main-thread congestion.
+        // @Published writes are dispatched to main explicitly inside each handler.
         inputObserver = NotificationCenter.default.addObserver(
-            forName: .keystrokeInput, object: nil, queue: .main
+            forName: .keystrokeInput, object: nil, queue: nil
         ) { [weak self] note in
             guard let evt = note.object as? KeystrokeEvent else { return }
             self?.onKeyDown(evt)
         }
 
         releaseObserver = NotificationCenter.default.addObserver(
-            forName: .keystrokeReleased, object: nil, queue: .main
+            forName: .keystrokeReleased, object: nil, queue: nil
         ) { [weak self] note in
             guard let code = note.object as? CGKeyCode else { return }
-            self?.heldKeys.removeValue(forKey: UInt16(code))
+            DispatchQueue.main.async { self?.heldKeys.removeValue(forKey: UInt16(code)) }
         }
     }
 
@@ -42,6 +44,7 @@ final class KeyInspectorViewModel: ObservableObject {
     }
 
     private func onKeyDown(_ evt: KeystrokeEvent) {
+        // Compute values off-main, then dispatch only the @Published writes to main.
         let f = evt.flags
         let location: String
         if evt.isNumpad {
@@ -57,7 +60,7 @@ final class KeyInspectorViewModel: ObservableObject {
             }
         }
 
-        lastKey = LastKey(
+        let key = LastKey(
             name:     evt.displayName,
             keyCode:  evt.keyCode,
             location: location,
@@ -67,7 +70,12 @@ final class KeyInspectorViewModel: ObservableObject {
             hasCmd:   f.contains(.maskCommand),
             hasCaps:  f.contains(.maskAlphaShift)
         )
-        heldKeys[evt.keyCode] = evt.displayName
+        let keyCode = evt.keyCode
+        let displayName = evt.displayName
+        DispatchQueue.main.async { [weak self] in
+            self?.lastKey = key
+            self?.heldKeys[keyCode] = displayName
+        }
     }
 }
 

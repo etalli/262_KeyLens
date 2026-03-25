@@ -233,11 +233,10 @@ extension KeyboardMonitor {
         }
 
         // keyUp: notify inspector so it can remove the key from the held-keys list.
+        // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
         if type == .keyUp {
             let code = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .keystrokeReleased, object: code)
-            }
+            NotificationCenter.default.post(name: .keystrokeReleased, object: code)
             return Unmanaged.passRetained(event)
         }
 
@@ -321,9 +320,8 @@ extension KeyboardMonitor {
                 isNumpad: isNumpad,
                 isModifierOnly: isModifierOnly
             )
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .keystrokeInput, object: evt)
-            }
+            // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
+            NotificationCenter.default.post(name: .keystrokeInput, object: evt)
         }
         return Unmanaged.passRetained(event)
     }
