@@ -7,6 +7,7 @@ import SwiftUI
 private struct WPMGaugeOverlayView: View {
     var body: some View {
         SpeedometerView()
+            .colorScheme(.dark)   // force white text so it's readable on the dark background
             .scaleEffect(0.62)
             // SpeedometerView is ~280 px tall total (canvas 200 + number ~50 + peak ~20 + spacing).
             // At 0.62 scale that is ~174 px; add 8 px padding margin.
