@@ -1872,6 +1872,7 @@ final class L10n {
     var inspectorFieldCode: String     { ja("コード", en: "Code") }
     var inspectorFieldLocation: String { ja("場所",  en: "Location") }
     var inspectorFieldFlags: String    { ja("修飾",  en: "Flags") }
+    var inspectorFieldHold: String     { ja("押下時間", en: "Hold") }
 
     var inspectorLocationStandard: String { ja("Standard", en: "Standard") }
     var inspectorLocationLeft: String     { ja("Left",     en: "Left") }

@@ -16,7 +16,9 @@ final class KeyInspectorViewModel: ObservableObject {
 
     @Published var lastKey: LastKey? = nil
     @Published var heldKeys: [UInt16: String] = [:]   // keyCode → display name
+    @Published var holdDurationMs: Double? = nil       // last key-down duration in ms
 
+    private var keyDownTimes: [UInt16: Date] = [:]    // keyCode → keydown timestamp
     private var inputObserver:    NSObjectProtocol?
     private var releaseObserver:  NSObjectProtocol?
 
@@ -33,8 +35,14 @@ final class KeyInspectorViewModel: ObservableObject {
         releaseObserver = NotificationCenter.default.addObserver(
             forName: .keystrokeReleased, object: nil, queue: nil
         ) { [weak self] note in
-            guard let code = note.object as? CGKeyCode else { return }
-            DispatchQueue.main.async { self?.heldKeys.removeValue(forKey: UInt16(code)) }
+            guard let self, let code = note.object as? CGKeyCode else { return }
+            let keyCode = UInt16(code)
+            let durationMs = keyDownTimes[keyCode].map { Date().timeIntervalSince($0) * 1000 }
+            keyDownTimes.removeValue(forKey: keyCode)
+            DispatchQueue.main.async {
+                self.heldKeys.removeValue(forKey: keyCode)
+                if let ms = durationMs { self.holdDurationMs = ms }
+            }
         }
     }
 
@@ -72,9 +80,11 @@ final class KeyInspectorViewModel: ObservableObject {
         )
         let keyCode = evt.keyCode
         let displayName = evt.displayName
+        keyDownTimes[keyCode] = Date()
         DispatchQueue.main.async { [weak self] in
             self?.lastKey = key
             self?.heldKeys[keyCode] = displayName
+            self?.holdDurationMs = nil   // reset until keyup
         }
     }
 }
@@ -111,6 +121,10 @@ struct KeyInspectorView: View {
                     mono(k.location)
                     label(L10n.shared.inspectorFieldFlags)
                     mono(flagsString(k))
+                }
+                GridRow {
+                    label(L10n.shared.inspectorFieldHold)
+                    mono(vm.holdDurationMs.map { String(format: "%.1f ms", $0) } ?? "—")
                 }
             }
         } else {
