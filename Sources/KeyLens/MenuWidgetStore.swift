@@ -10,6 +10,7 @@ enum MenuWidget: String, CaseIterable, Identifiable {
     case todayTotal     = "todayTotal"
     case avgInterval    = "avgInterval"
     case estimatedWPM   = "estimatedWPM"
+    case backspaceRate  = "backspaceRate"
     case miniChart            = "miniChart"
     case streak               = "streak"
     case shortcutEfficiency   = "shortcutEfficiency"
@@ -42,9 +43,7 @@ final class MenuWidgetStore: ObservableObject {
     /// Default order matching current hardcoded behaviour.
     /// 既存の表示順と一致するデフォルト順序。
     static let defaultOrder: [MenuWidget] = [
-        .todayTotal, .miniChart, .estimatedWPM, .mouseDistance,
-        .avgInterval, .shortcutEfficiency, .streak,
-        .recordingSince, .slowEvents
+        .recordingSince, .todayTotal, .avgInterval, .estimatedWPM, .backspaceRate, .miniChart
     ]
 
     private init() {}
@@ -71,16 +70,10 @@ final class MenuWidgetStore: ObservableObject {
 
     // MARK: - Enabled state
 
-    /// The out-of-box enabled state for a widget (used by isEnabled and Reset).
-    static func defaultEnabled(_ widget: MenuWidget) -> Bool {
-        widget != .slowEvents
-    }
-
     func isEnabled(_ widget: MenuWidget) -> Bool {
         let key = enabledKey + "." + widget.rawValue
-        if UserDefaults.standard.object(forKey: key) == nil {
-            return Self.defaultEnabled(widget)
-        }
+        // Default: all widgets enabled
+        if UserDefaults.standard.object(forKey: key) == nil { return true }
         return UserDefaults.standard.bool(forKey: key)
     }
 

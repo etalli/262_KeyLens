@@ -10,7 +10,29 @@ struct KeystrokeEvent {
     /// True when the key is a standalone modifier (Shift, Cmd, etc.) with no other key.
     /// The overlay skips these; the inspector shows them.
     let isModifierOnly: Bool
+    /// Raw CGEventFlags bitmask — useful for firmware-level debugging.
+    let rawFlags: UInt64
+    /// USB HID usage page and usage ID derived from macOS keycode.
+    /// page 0x07 = Keyboard/Keypad page (most keys). nil if the keycode is not in the table.
+    let hidUsage: (page: UInt8, usage: UInt8)?
 }
+
+// MARK: - HID Usage Table (USB HID spec page 0x07 — Keyboard/Keypad)
+// Maps macOS CGKeyCode → USB HID usage ID on page 0x07.
+// Source: USB HID Usage Tables 1.3, Section 10.
+private let hidUsageTable: [UInt16: UInt8] = [
+    0: 0x04, 11: 0x05, 8: 0x06, 2: 0x07, 14: 0x08, 3: 0x09, 5: 0x0A, 4: 0x0B,
+    34: 0x0C, 38: 0x0D, 40: 0x0E, 37: 0x0F, 46: 0x10, 45: 0x11, 31: 0x12, 35: 0x13,
+    12: 0x14, 15: 0x15, 1: 0x16, 17: 0x17, 32: 0x18, 9: 0x19, 13: 0x1A, 7: 0x1B,
+    16: 0x1C, 6: 0x1D, 10: 0x1E, 18: 0x1F, 19: 0x20, 20: 0x21, 21: 0x22, 23: 0x23,
+    22: 0x24, 26: 0x25, 28: 0x26, 25: 0x27, 29: 0x2D, 27: 0x2E, 24: 0x2F,
+    33: 0x2F, 30: 0x30, 42: 0x28, 53: 0x29, 51: 0x2A, 48: 0x2B, 49: 0x2C,
+    36: 0x28, 76: 0x58, 123: 0x50, 124: 0x4F, 125: 0x51, 126: 0x52,
+    56: 0xE1, 60: 0xE5, 55: 0xE3, 54: 0xE7, 58: 0xE2, 61: 0xE6, 59: 0xE0, 62: 0xE4,
+    57: 0x39, 122: 0x3A, 120: 0x3B, 99: 0x3C, 118: 0x3D, 96: 0x3E, 97: 0x3F,
+    98: 0x40, 100: 0x41, 101: 0x42, 109: 0x43, 103: 0x44, 111: 0x45,
+    114: 0x49, 117: 0x4C, 115: 0x4A, 119: 0x4D, 116: 0x4B, 121: 0x4E,
+]
 
 // MARK: - Dependency protocols
 
@@ -318,7 +340,9 @@ extension KeyboardMonitor {
                 keyCode: code,
                 flags: event.flags,
                 isNumpad: isNumpad,
-                isModifierOnly: isModifierOnly
+                isModifierOnly: isModifierOnly,
+                rawFlags: event.flags.rawValue,
+                hidUsage: hidUsageTable[code].map { (page: 0x07, usage: $0) }
             )
             // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
             NotificationCenter.default.post(name: .keystrokeInput, object: evt)

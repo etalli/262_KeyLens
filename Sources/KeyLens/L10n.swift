@@ -227,10 +227,6 @@ final class L10n {
         ja("キーオーバーレイ設定", en: "Keystroke Overlay Settings")
     }
 
-    var wpmGaugeMenuItem: String {
-        ja("WPMゲージ (フローティング)", en: "WPM Gauge (floating)")
-    }
-
     var overlaySettingsPosition: String {
         ja("表示位置", en: "Position")
     }
@@ -304,18 +300,6 @@ final class L10n {
         ja("キーコードを表示", en: "Show Key Code")
     }
 
-    var overlaySettingsShortcut: String {
-        ja("ショートカット", en: "Shortcut")
-    }
-
-    var overlaySettingsChangeShortcut: String {
-        ja("ショートカットを変更", en: "Change Shortcut")
-    }
-
-    var overlaySettingsRecording: String {
-        ja("キーを押してください…", en: "Press a key…")
-    }
-
     var avgIntervalFormat: String {
         ja("平均間隔: %.0f ms", en: "Avg interval: %.0f ms")
     }
@@ -358,175 +342,6 @@ final class L10n {
         ja("CSV 書き出し…", en: "Export CSV…")
     }
 
-    var exportSummaryCardMenuItem: String {
-        ja("週次サマリーカードを書き出し…", en: "Export Weekly Summary Card…")
-    }
-
-    var weeklySummaryCardTitle: String {
-        ja("週次サマリー", en: "Weekly Summary")
-    }
-
-    var weeklySummaryCardTotalKeys: String {
-        ja("総打鍵数", en: "Total Keystrokes")
-    }
-
-    var weeklySummaryCardTopKeys: String {
-        ja("よく使うキー TOP 5", en: "Top 5 Keys")
-    }
-
-    var weeklySummaryCardErgonomicScore: String {
-        ja("エルゴノミクススコア", en: "Ergonomic Score")
-    }
-
-    var weeklySummaryCardStreak: String {
-        ja("継続日数", en: "Streak")
-    }
-
-    var weeklySummaryCardWPM: String {
-        ja("推定 WPM", en: "Est. WPM")
-    }
-
-    var weeklySummaryCardAutoSaved: String {
-        ja("週次サマリーカードを保存しました", en: "Weekly summary card saved")
-    }
-
-    var weeklySummaryCardSaveFailed: String {
-        ja("週次サマリーカードの保存に失敗しました", en: "Failed to save weekly summary card")
-    }
-
-    var exportYearInReviewMenuItem: String {
-        ja("年間サマリーを書き出し…", en: "Export Year in Review…")
-    }
-
-    var yearInReviewTitle: String {
-        ja("年間サマリー", en: "Year in Review")
-    }
-
-    var yearInReviewDailyAvg: String {
-        ja("1日平均", en: "Daily Avg")
-    }
-
-    var yearInReviewActiveDays: String {
-        ja("入力日数", en: "Active Days")
-    }
-
-    var yearInReviewBestMonth: String {
-        ja("最多月", en: "Best Month")
-    }
-
-    var yearInReviewMonthlyChart: String {
-        ja("月別打鍵数", en: "Monthly Keystrokes")
-    }
-
-    var yearInReviewSaveFailed: String {
-        ja("年間サマリーの保存に失敗しました", en: "Failed to save year in review")
-    }
-
-    // MARK: - Period Comparison Tab (Issue #62)
-
-    var comparisonTabTitle: String {
-        ja("比較", en: "Compare")
-    }
-
-    var comparisonBefore: String {
-        ja("前", en: "Before")
-    }
-
-    var comparisonAfter: String {
-        ja("後", en: "After")
-    }
-
-    var comparisonPresetLast7: String {
-        ja("直近7日 vs 前7日", en: "Last 7 days vs Prior 7 days")
-    }
-
-    var comparisonPresetThisMonth: String {
-        ja("今月 vs 先月", en: "This Month vs Last Month")
-    }
-
-    var comparisonCompareButton: String {
-        ja("比較する", en: "Compare")
-    }
-
-    var comparisonMetricLabel: String {
-        ja("指標", en: "Metric")
-    }
-
-    var comparisonMetricKeystrokes: String {
-        ja("打鍵数 (合計)", en: "Total Keystrokes")
-    }
-
-    var comparisonMetricDailyAvg: String {
-        ja("1日平均打鍵数", en: "Daily Average")
-    }
-
-    var comparisonMetricActiveDays: String {
-        ja("入力日数", en: "Active Days")
-    }
-
-    var comparisonMetricSameFinger: String {
-        ja("同指連打率", en: "Same-Finger Rate")
-    }
-
-    var comparisonMetricAlteration: String {
-        ja("手交互率", en: "Alternation Rate")
-    }
-
-    var comparisonMetricAvgWPM: String {
-        ja("平均WPM", en: "Avg WPM")
-    }
-
-    var helpComparison: String {
-        ja(
-            """
-            2つの期間を並べてタイピング統計を比較します。
-
-            • 範囲A — ベースライン（古い期間）
-            • 範囲B — 比較対象（新しい期間）
-
-            各指標の説明:
-            • 打鍵数 (合計) — 期間中の総キーストローク数
-            • 1日平均打鍵数 — 入力があった日の1日あたり平均
-            • 入力日数 — 1回以上入力した日数
-            • 平均WPM — キーストローク間隔から推定した平均タイピング速度
-            • 同指連打率 — 同じ指で連続して打鍵した割合（低いほど良い）
-            • 手交互率 — 左右交互に打鍵した割合（高いほど良い）
-
-            Δ列の色: 緑 = 改善、赤 = 低下
-            pp (パーセンテージポイント) — 2つのパーセント値の絶対差。例: 10% → 12% = +2 pp
-            """,
-            en: """
-            Compare keystroke statistics across two date ranges side by side.
-
-            • Range A — baseline (the earlier period)
-            • Range B — comparison (the more recent period)
-
-            Metrics:
-            • Total Keystrokes — total key presses in the period
-            • Daily Average — average keystrokes per active day
-            • Active Days — days with at least one keystroke
-            • Avg WPM — estimated typing speed from inter-keystroke intervals
-            • Same-Finger Rate — consecutive presses on the same finger (lower is better)
-            • Alternation Rate — left/right hand alternation (higher is better)
-
-            Δ column: green = improvement, red = regression
-            pp (percentage points) — absolute difference between two percentages. e.g. 10% → 12% = +2 pp
-            """
-        )
-    }
-
-    var comparisonNoData: String {
-        ja("この期間のデータはありません", en: "No data for this period")
-    }
-
-    var comparisonStart: String {
-        ja("開始日", en: "Start")
-    }
-
-    var comparisonEnd: String {
-        ja("終了日", en: "End")
-    }
-
     var exportSQLiteMenuItem: String {
         ja("SQLite 書き出し…", en: "Export SQLite…")
     }
@@ -539,6 +354,10 @@ final class L10n {
         ja("SQLite の書き出しに失敗しました", en: "Failed to export SQLite database")
     }
 
+    var exportHeatmap: String {
+        ja("ヒートマップを保存", en: "Save Heatmap")
+    }
+
     var exportSuccess: String {
         ja("保存しました", en: "Saved successfully")
     }
@@ -549,30 +368,6 @@ final class L10n {
 
     var exportCSVSaveButton: String {
         ja("ここに保存", en: "Save Here")
-    }
-
-    var exportDailyNoteMenuItem: String {
-        ja("Markdown デイリーノートに書き出し", en: "Export to Markdown Daily Note")
-    }
-
-    var changeDailyNoteFolderMenuItem: String {
-        ja("デイリーノートフォルダを変更…", en: "Change Daily Note Folder…")
-    }
-
-    var dailyNoteFolderPickerTitle: String {
-        ja("デイリーノートフォルダを選択", en: "Select Daily Note Folder")
-    }
-
-    var dailyNoteFolderPickerButton: String {
-        ja("このフォルダを使用", en: "Use This Folder")
-    }
-
-    var dailyNoteExportSuccess: String {
-        ja("Markdown デイリーノートに書き出しました", en: "Exported to Markdown daily note")
-    }
-
-    var dailyNoteExportFailed: String {
-        ja("Markdown デイリーノートへの書き出しに失敗しました", en: "Failed to export to Markdown daily note")
     }
 
     var backupMenuItem: String {
@@ -602,78 +397,12 @@ final class L10n {
         ja("データをコピー", en: "Copy Data to Clipboard")
     }
 
+    var copyHeatmap: String {
+        ja("画像をコピー", en: "Copy Image")
+    }
+
     var copiedConfirmation: String {
         ja("コピーしました！", en: "Copied!")
-    }
-
-    var saveChartAsImage: String {
-        ja("画像として保存", en: "Save as Image")
-    }
-
-    var savedConfirmation: String {
-        ja("保存しました！", en: "Saved!")
-    }
-
-    var heatmapLayoutLabel: String {
-        ja("レイアウト", en: "Layout")
-    }
-
-    var importKLEButton: String {
-        ja("レイアウトをインポート…", en: "Import Layout…")
-    }
-
-    var kleParseErrorTitle: String {
-        ja("インポート失敗", en: "Import Failed")
-    }
-
-    var kleParseErrorInvalid: String {
-        ja("ファイルを KLE JSON として解析できませんでした。keyboard-layout-editor.com からエクスポートした有効な JSON ファイルを選択してください。",
-           en: "The file could not be parsed as KLE JSON. Select a valid JSON file exported from keyboard-layout-editor.com.")
-    }
-
-    var kleParseErrorEmpty: String {
-        ja("レイアウトにキーが見つかりませんでした。",
-           en: "No keys were found in the layout.")
-    }
-
-    var kleCustomNoData: String {
-        ja("カスタムレイアウトが未インポートです。\n「レイアウトをインポート…」をクリックして KLE JSON ファイルを読み込んでください。",
-           en: "No custom layout imported yet.\nClick \"Import Layout…\" to load a KLE JSON file.")
-    }
-
-    var helpKLECustom: String {
-        ja(
-            """
-            カスタムレイアウトを使うには:
-            1. keyboard-layout-editor.com にアクセスする
-            2. キーボードレイアウトを作成または読み込む
-            3. 「Raw data」タブをクリックして JSON をコピーする
-            4. テキストエディタに貼り付けて .json 形式で保存する
-            5. 「レイアウトをインポート…」ボタンで保存したファイルを選択する
-            """,
-            en: """
-            To use a custom layout:
-            1. Go to keyboard-layout-editor.com
-            2. Design or load your keyboard layout
-            3. Click the "Raw data" tab and copy the JSON
-            4. Paste it into a text editor and save with a .json extension
-            5. Click "Import Layout…" and select the saved file
-            """
-        )
-    }
-
-    // MARK: - Issue #176: Custom layout keyword matching
-
-    var kleKeywordsLabel: String {
-        ja("デバイスキーワード:", en: "Device keywords:")
-    }
-
-    var kleKeywordsPlaceholder: String {
-        ja("例: corne, my keyboard", en: "e.g. corne, my keyboard")
-    }
-
-    func autoMatchedCustom(_ name: String) -> String {
-        ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
     }
 
     var editPromptMenuItem: String {
@@ -751,57 +480,6 @@ final class L10n {
         ja("負荷スコア: \(score.formatted())", en: "Strain: \(score.formatted())")
     }
 
-    var heatmapSpeedLow: String {
-        ja("速い", en: "Fast")
-    }
-
-    var heatmapSpeedHigh: String {
-        ja("遅い", en: "Slow")
-    }
-
-    var helpHeatmapSpeed: String {
-        ja("速度モード：ビグラムIKI（キー間隔）の平均値に基づいて各キーを色付けします。赤いキーが最も遅いキーです（3ビグラム以上のデータが必要）。",
-           en: "Speed mode: each key is colored by its average inter-keystroke interval (IKI) across related bigrams. Red = slowest key. Requires at least 3 bigrams of data per key.")
-    }
-
-    func heatmapSpeedTooltip(_ ms: Double) -> String {
-        ja(String(format: "平均IKI: %.0f ms", ms), en: String(format: "Avg IKI: %.0f ms", ms))
-    }
-
-    var slowBigramKeyFilterPlaceholder: String {
-        ja("キーで絞り込む (例: e)", en: "Filter by key (e.g. e)")
-    }
-
-    // MARK: - Fatigue Detection (Issue #63)
-
-    var fatigueCurveTitle: String {
-        ja("本日の疲労カーブ", en: "Today's Fatigue Curve")
-    }
-
-    var helpFatigueCurve: String {
-        ja(
-            "本日の時間別タイピング速度 (WPM) と人間工学的指標の推移を表示します。\n\n" +
-            "WPM (青)：その時間帯の推定打鍵速度。下降傾向は疲労を示します。\n" +
-            "同指率 (オレンジ)：同じ指で連続するキーペアの割合。疲労すると増加します。\n" +
-            "高負荷率 (赤)：高負荷バイグラムの割合。疲労すると増加します。\n\n" +
-            "【表示までの目安】このビルド以降のデータのみ蓄積されます。" +
-            "数秒間タイピングすると最初のデータ点が表示されます。" +
-            "チャートは10秒ごとに自動更新されます。",
-            en: "Shows hourly typing speed (WPM) and ergonomic metrics for today.\n\n" +
-            "WPM (blue): estimated typing speed per hour. A downward trend indicates fatigue.\n" +
-            "Same-finger (orange): fraction of same-finger keypairs. Increases with fatigue.\n" +
-            "High-strain (red): fraction of high-strain bigrams. Increases with fatigue.\n\n" +
-            "Note: only keystrokes typed after this build are recorded. " +
-            "A few seconds of typing is enough to show the first data point. " +
-            "The chart auto-refreshes every 10 seconds."
-        )
-    }
-
-    var fatigueNoData: String {
-        ja("本日のデータがまだありません。タイピング開始後に表示されます。",
-           en: "No data for today yet. Appears after you start typing.")
-    }
-
     var helpLearningCurve: String {
         ja(
             "3つの人間工学的指標の日次推移を示します。\n\n同指率（オレンジ）：同じ指で連続して打鍵されるペアの割合。低いほど優れています。\n\n交互打鍵率（緑）：左右の手が交互に打鍵する割合。高いほど優れています。\n\n高負荷率（赤）：1行以上をまたぐ同指ビグラムの割合。低いほど優れています。\n\n傾向が改善方向に推移している場合、打鍵習慣が人間工学的に最適化されています。",
@@ -825,72 +503,6 @@ final class L10n {
             "直近20打鍵のキー間隔 (IKI: Inter-Keystroke Interval) をリアルタイムで表示します。緑＝高速 (<150ms)、黄＝中速、赤＝低速 (>400ms)。チャートウィンドウを開いた状態でタイピングすると更新されます。",
             en: "Real-time inter-keystroke intervals (IKI) for the last 20 keystrokes. Green = fast (<150ms), yellow = medium, red = slow (>400ms). Type with this window open to see it update."
         )
-    }
-
-    // MARK: - Speedometer (Issue #115)
-
-    var chartTitleSpeedometer: String {
-        ja("タイピングスピードメーター", en: "Typing Speedometer")
-    }
-
-    var helpSpeedometer: String {
-        ja(
-            "キーを押すたびにメーターが即時更新されます。直近5秒間のキー入力からWPM(1分あたりの単語数)を計算します。2秒間入力がないと速度はゼロに戻ります。赤いマーカーはセッション中の最高速度を記録します。",
-            en: "The needle responds to every keystroke in real time. WPM is computed from keystrokes in the last 5 seconds. Speed drops to zero after 2 seconds of inactivity. The red marker holds the session peak speed."
-        )
-    }
-
-    var speedometerWPMLabel: String {
-        ja("WPM", en: "WPM")
-    }
-
-    func speedometerPeakLabel(_ wpm: Int) -> String {
-        ja("最高: \(wpm) WPM", en: "Peak: \(wpm) WPM")
-    }
-
-    var hideSpeedometer: String {
-        ja("速度計を非表示", en: "Hide Speedometer")
-    }
-
-    // MARK: - Manual WPM Measurement (Issue #150)
-
-    var wpmMeasureTitle: String {
-        ja("WPM 計測", en: "WPM Measurement")
-    }
-
-    var wpmMeasureStart: String {
-        ja("計測開始", en: "Start")
-    }
-
-    var wpmMeasureStop: String {
-        ja("計測停止", en: "Stop")
-    }
-
-    var wpmMeasureHint: String {
-        ja("「計測開始」を押してからタイピングし、「計測停止」を押すとWPMが表示されます。",
-           en: "Press Start, type freely, then press Stop to see your WPM.")
-    }
-
-    func wpmMeasureResult(wpm: Double, duration: TimeInterval, keystrokes: Int) -> String {
-        let mins = Int(duration) / 60
-        let secs = Int(duration) % 60
-        let timeStr = mins > 0 ? "\(mins)m \(secs)s" : "\(secs)s"
-        return ja(
-            String(format: "%.0f WPM  (%d打鍵 / %@)", wpm, keystrokes, timeStr),
-            en: String(format: "%.0f WPM  (%d keystrokes / %@)", wpm, keystrokes, timeStr)
-        )
-    }
-
-    var wpmHotkeyLabel: String {
-        ja("ショートカット:", en: "Hotkey:")
-    }
-
-    var wpmHotkeyRecord: String {
-        ja("変更…", en: "Change…")
-    }
-
-    var wpmHotkeyRecording: String {
-        ja("キーを押してください…", en: "Press a key combo…")
     }
 
     var chartTitleIKIHistogram: String {
@@ -955,64 +567,6 @@ final class L10n {
     var slowBigramsNoData: String {
         ja("データなし — しばらく入力するとビグラムIKIデータが蓄積されます。",
            en: "No data yet — type for a while to accumulate bigram IKI data.")
-    }
-
-    // MARK: - Issue #98: Key Transition Analysis
-
-    // MARK: - Issue #61: Layout Efficiency Score
-
-    var layoutEfficiencyTitle: String {
-        ja("レイアウト効率比較", en: "Layout Efficiency Comparison")
-    }
-
-    var helpLayoutEfficiency: String {
-        ja(
-            "あなたの実際の打鍵ビグラムデータを使い、QWERTY / Colemak / Dvorak それぞれで「同指率」と「交互打鍵率」を計算します。\n\n同指率が低いほど、交互打鍵率が高いほど効率的なレイアウトです。\n\n※ あなたが実際に使っているレイアウトで記録されたビグラムを各レイアウトの指割り当てに当てはめた推定値です。",
-            en: "Applies your actual bigram frequencies to the finger assignments of QWERTY, Colemak, and Dvorak to estimate same-finger bigram rate (SFB) and hand-alternation rate for each layout.\n\nLower SFB and higher alternation = more efficient layout for your typing patterns.\n\nNote: these are estimates based on remapping your recorded bigrams to each layout's finger assignments."
-        )
-    }
-
-    var layoutEfficiencyNoData: String {
-        ja("データなし — しばらく入力するとビグラムデータが蓄積されます。",
-           en: "No data yet — type for a while to accumulate bigram data.")
-    }
-
-    var layoutEfficiencySFBHeader: String {
-        ja("同指率 (低いほど良い)", en: "Same-Finger Rate (lower = better)")
-    }
-
-    var layoutEfficiencyAltHeader: String {
-        ja("交互打鍵率 (高いほど良い)", en: "Hand Alternation (higher = better)")
-    }
-
-    // MARK: - Issue #98: Key Transition Analysis
-
-    var keyTransitionTitle: String {
-        ja("キー遷移分析", en: "Key Transition Analysis")
-    }
-
-    var helpKeyTransition: String {
-        ja(
-            "調べたいキーを入力すると、そのキーへの遷移 (*→K) とそのキーからの遷移 (K→*) を平均IKI順で表示します。\n\n値が大きいほど遅い組み合わせです。タイピング練習のターゲット発見に活用できます。サンプル数が少ない遷移は除外されます。",
-            en: "Enter a key to inspect its incoming (*→K) and outgoing (K→*) transitions, ranked by average IKI.\n\nHigher values mean slower transitions. Use this to find specific key pairs to target in practice. Transitions with fewer than 3 samples are excluded."
-        )
-    }
-
-    var keyTransitionPlaceholder: String {
-        ja("キーを入力 (例: f)", en: "Type a key (e.g. f)")
-    }
-
-    func keyTransitionIncomingTitle(_ key: String) -> String {
-        ja("→ \(key) への遷移 (遅い順)", en: "Incoming → \(key) (slowest first)")
-    }
-
-    func keyTransitionOutgoingTitle(_ key: String) -> String {
-        ja("\(key) → からの遷移 (遅い順)", en: "Outgoing \(key) → (slowest first)")
-    }
-
-    var keyTransitionNoData: String {
-        ja("該当する遷移データがありません。サンプル数が少ない場合は除外されます。",
-           en: "No transition data found. Transitions with fewer than 3 samples are excluded.")
     }
 
     func topAppTodayFormat(_ app: String, _ count: String) -> String {
@@ -1173,13 +727,13 @@ final class L10n {
     }
 
     var intelligenceSection: String {
-        ja("タイピング診断", en: "Typing Profile")
+        ja("インテリジェンス", en: "Intelligence")
     }
 
     var helpIntelligence: String {
         ja(
-            "打鍵パターンから推定した3つの指標とアドバイスを表示します。\n\n推定スタイル: よく使うキーの分布からタイピング用途を推定します。文字・スペース中心 → 執筆、記号・修飾キー多用 → 開発、短いパターン多用 → チャット。\n\n疲労リスク: 同一指で1行以上離れたキーを連続入力する「高負荷バイグラム」の割合で判定します。\n低（緑）: 2%以下 / 中（橙）: 2〜5% / 高（赤）: 5%超\n\nタイピングリズム: 直近50打鍵のキー間隔(IKI)の変動係数(σ/μ)で判定します。\nバースト（紫）: 集中打鍵と休止が交互 / バランス（青）: 中間 / 定常（緑青）: 一定ペース\n\nアドバイス: スタイル・リズム・疲労の組み合わせから最適な改善提案を表示します。",
-            en: "Three metrics inferred from your keystroke patterns, plus a personalized tip.\n\nInferred Style: estimated from key frequency distribution. High letters/Space → Prose; high symbols/modifiers → Code; frequent short patterns → Chat.\n\nFatigue Risk: based on the high-strain bigram rate — same-finger keypairs spanning ≥1 keyboard row (e.g. F→R, J→U).\nLow (green): ≤2% / Moderate (orange): 2–5% / High (red): >5%\n\nTyping Rhythm: classified from the coefficient of variation (σ/μ) of the last 50 IKIs.\nBurst (purple): intense spurts with long pauses / Balanced (blue): mixed / Steady Flow (teal): even cadence\n\nInsight: a personalized suggestion based on the combination of your style, rhythm, and fatigue level."
+            "キー頻度パターンから推定した2つの指標を表示します。\n\n推定スタイル: よく使うキーの分布からタイピング用途を推定します。文字・スペース中心 → 執筆、記号・修飾キー多用 → 開発、短いパターン多用 → チャット。\n\n疲労リスク: 同一指で1行以上離れたキーを連続入力する「高負荷バイグラム」の割合で判定します。\n低（緑）: 2%以下 / 中（橙）: 2〜5% / 高（赤）: 5%超",
+            en: "Two metrics inferred from your keystroke patterns.\n\nInferred Style: estimated from key frequency distribution. High letters/Space → Prose; high symbols/modifiers → Code; frequent short patterns → Chat.\n\nFatigue Risk: based on the high-strain bigram rate — same-finger keypairs spanning ≥1 keyboard row (e.g. F→R, J→U).\nLow (green): ≤2% / Moderate (orange): 2–5% / High (red): >5%"
         )
     }
 
@@ -1208,79 +762,6 @@ final class L10n {
         }
     }
 
-    var typingRhythm: String {
-        ja("タイピングリズム", en: "Typing Rhythm")
-    }
-
-    func typingRhythmLabel(_ rhythm: TypingRhythm) -> String {
-        switch rhythm {
-        case .burst:      return ja("バースト", en: "Burst")
-        case .steadyFlow: return ja("定常", en: "Steady Flow")
-        case .balanced:   return ja("バランス", en: "Balanced")
-        case .unknown:    return ja("計測中…", en: "Measuring…")
-        }
-    }
-
-    var typingInsightLabel: String {
-        ja("アドバイス", en: "Insight")
-    }
-
-    /// Returns a personalized tip based on the combination of style, rhythm, and fatigue.
-    func typingInsight(style: TypingStyle, rhythm: TypingRhythm, fatigue: FatigueLevel) -> String {
-        // Fatigue is the highest priority signal.
-        if fatigue == .high {
-            switch rhythm {
-            case .burst:
-                return ja("バースト打鍵と高負荷バイグラムが重なっています。休憩を取るか、打鍵ペースを落としましょう。",
-                          en: "Burst rhythm combined with high strain — consider a break or slow your pace.")
-            default:
-                return ja("高負荷バイグラムが多く検出されています。キーボードの配置やストレッチで負荷を分散させましょう。",
-                          en: "High-strain bigrams detected. Try redistributing load via layout adjustments or stretching.")
-            }
-        }
-
-        // Moderate fatigue + burst = actionable advice.
-        if fatigue == .moderate && rhythm == .burst {
-            return ja("断続的な集中打鍵が疲労を蓄積させる可能性があります。意識的にペースを一定に保ちましょう。",
-                      en: "Intermittent bursts may be building fatigue. Try maintaining a more even pace.")
-        }
-
-        // Style-specific tips for normal fatigue.
-        switch (style, rhythm) {
-        case (.code, .burst):
-            return ja("コーディング中のバースト打鍵は記号入力のミスを増やす傾向があります。ゆっくり確実に入力しましょう。",
-                      en: "Burst typing during coding increases symbol errors. Slow down for accuracy.")
-        case (.code, .steadyFlow):
-            return ja("安定したリズムでコードを入力しています。このペースを維持しましょう。",
-                      en: "Steady rhythm while coding — great for accuracy. Keep it up.")
-        case (.prose, .burst):
-            return ja("執筆中のバースト打鍵はバックスペースを増やす傾向があります。文章を頭の中で組み立ててから入力しましょう。",
-                      en: "Burst typing during writing leads to more corrections. Think ahead before typing.")
-        case (.prose, .steadyFlow):
-            return ja("執筆に適した安定したリズムです。",
-                      en: "Steady flow suits your writing style well.")
-        case (.chat, .burst):
-            return ja("チャットのバースト打鍵は自然なパターンです。ただし長時間続く場合は手首を休めましょう。",
-                      en: "Burst rhythm is natural for chat. If sustained, rest your wrists periodically.")
-        case (.chat, _):
-            return ja("短いメッセージを頻繁に送信しています。まとめて入力するとキーストローク数を減らせます。",
-                      en: "Frequent short messages detected. Batching thoughts reduces total keystrokes.")
-        // Rhythm is known but style hasn't resolved yet — give rhythm-based tip.
-        case (_, .burst):
-            return ja("バースト打鍵が検出されました。集中的な打鍵の後は短い休憩を入れると疲労を防げます。",
-                      en: "Burst rhythm detected. Short pauses between bursts help prevent fatigue.")
-        case (_, .steadyFlow):
-            return ja("安定したリズムで入力しています。このペースを維持しましょう。",
-                      en: "Steady rhythm detected — great consistency. Keep it up.")
-        case (_, .balanced):
-            return ja("バランスの良いリズムです。スタイルに合わせてさらに最適化できます。",
-                      en: "Balanced rhythm detected. More data will refine your personalized tip.")
-        default:
-            return ja("まだ分析データが蓄積中です。しばらく入力を続けてください。",
-                      en: "Still gathering data. Keep typing to unlock personalized insights.")
-        }
-    }
-
     // MARK: - Menu Customization
 
     var customizeMenuMenuItem: String {
@@ -1305,6 +786,7 @@ final class L10n {
         case .todayTotal:     return ja("本日 / 合計", en: "Today / Total")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
+        case .backspaceRate:  return ja("Delete使用率", en: "Delete Usage")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
         case .streak:               return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:   return ja("ショートカット効率", en: "Shortcut Efficiency")
@@ -1337,11 +819,6 @@ final class L10n {
     }
 
     // MARK: - Streak & Daily Goal
-
-    /// Shown when no daily goal is configured — streak cannot be tracked.
-    var streakNoGoalHint: String {
-        ja("🔥 目標打鍵数を設定するとStreakが始まります", en: "🔥 Set a daily goal to start your streak")
-    }
 
     /// Streak display string. n=0 shows a "no streak" placeholder.
     func streakDisplay(_ n: Int) -> String {
@@ -1425,292 +902,16 @@ final class L10n {
     // MARK: - Slow Events
 
     func slowEventsDisplay(_ count: Int) -> String {
-        ja("低速イベント: \(count)件", en: "Slow events: \(count)")
+        ja("⚠︎ 低速イベント: \(count)件", en: "⚠︎ Slow events: \(count)")
     }
 
     var slowEventsNone: String {
-        ja("低速イベント: なし", en: "Slow events: none")
+        ja("⚠︎ 低速イベント: なし", en: "⚠︎ Slow events: none")
     }
-
-    // MARK: - Mouse Tab (Charts window)
-
-    var chartTitleMouseDailyDistance: String {
-        ja("日別マウス移動距離（直近30日）", en: "Daily Mouse Travel (Last 30 Days)")
-    }
-
-    var helpMouseDailyDistance: String {
-        ja(
-            "直近30日間の日別マウス移動距離を棒グラフで表示します。単位はスクリーンポイント（px）です。",
-            en: "Daily mouse travel distance over the last 30 days. Values are in screen points (px)."
-        )
-    }
-
-    var chartTitleMouseHourly: String {
-        ja("時間帯別マウス活動量", en: "Hourly Mouse Activity")
-    }
-
-    var helpMouseHourly: String {
-        ja(
-            "全期間のデータを時間帯ごとに集計したマウス移動量です。マウスを最もよく使う時間帯が分かります。",
-            en: "Total mouse movement aggregated by hour of day across all recorded days. Shows your most active hours for mouse usage."
-        )
-    }
-
-    var chartTitleMouseDirection: String {
-        ja("移動方向の内訳", en: "Direction Breakdown")
-    }
-
-    var helpMouseDirection: String {
-        ja(
-            "上下左右それぞれのマウス移動量の累計です。右利き・左利き傾向やモニター配置の影響が読み取れます。",
-            en: "Cumulative mouse movement split by direction: right, left, down, up. Reflects handedness and monitor layout tendencies."
-        )
-    }
-
-    var chartTitleMouseDailyDirection: String {
-        ja("日別方向内訳", en: "Daily Direction Breakdown")
-    }
-
-    var helpMouseDailyDirection: String {
-        ja(
-            "日別の上下左右マウス移動量です。右 (→) と左 (←) はほぼ同量になりますが、わずかな差が利き手傾向を示します。",
-            en: "Per-day mouse movement by direction. Right and left are naturally close, but small differences reveal handedness or monitor bias."
-        )
-    }
-
-    var mouseColRight: String { ja("右 →",  en: "Right →") }
-    var mouseColLeft:  String { ja("左 ←",  en: "Left ←") }
-    var mouseColDown:  String { ja("下 ↓",  en: "Down ↓") }
-    var mouseColUp:    String { ja("上 ↑",  en: "Up ↑") }
-    var dateLabel:     String { ja("日付",   en: "Date") }
-
-    var chartTitleMouseKeyboardBalance: String {
-        ja("マウス vs キーボード バランス", en: "Mouse vs Keyboard Balance")
-    }
-
-    var helpMouseKeyboardBalance: String {
-        ja(
-            "1日あたりのマウス移動量 (px) とキー入力数を重ねて表示します。マウス寄りの日とキーボード寄りの日のパターンを把握できます。",
-            en: "Daily mouse distance (px) and keystroke count overlaid. Reveals whether you lean toward mouse or keyboard on a given day."
-        )
-    }
-
-    var mouseKeyboardBalanceMouseLabel: String { ja("マウス", en: "Mouse") }
-    var mouseKeyboardBalanceKeysLabel:  String { ja("キーボード", en: "Keyboard") }
-    var mouseKeyboardBalanceBalanced:   String { ja("均等", en: "Balanced") }
-
-    var chartTitleMouseClickCount: String {
-        ja("マウスクリック数", en: "Mouse Click Count")
-    }
-
-    var helpMouseClickCount: String {
-        ja("左・中・右ボタンのクリック総数を表示します。",
-           en: "Total click counts for left, middle, and right mouse buttons.")
-    }
-
-    // MARK: - Issue #78: Weekly Activity Heatmap
-
-    var chartTitleWeeklyHeatmap: String {
-        ja("週間活動ヒートマップ", en: "Weekly Activity Heatmap")
-    }
-
-    var helpWeeklyHeatmap: String {
-        ja(
-            "曜日 (列) と時刻 (行) ごとの平均打鍵数を色の濃さで表します。濃いほど入力量が多い時間帯です。全記録期間の平均値を表示します。",
-            en: "Average keystrokes per hour for each day of the week, across all recorded dates. Darker cells indicate more typing activity."
-        )
-    }
-
-    /// Weekday abbreviations ordered Sunday–Saturday (index 0–6).
-    /// 曜日略称、日〜土 (添字 0–6)。
-    var weekdayAbbrs: [String] {
-        resolved == .japanese
-            ? ["日", "月", "火", "水", "木", "金", "土"]
-            : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    }
-
-    /// Full weekday names ordered Sunday–Saturday (index 0–6).
-    /// 曜日フル名称、日〜土 (添字 0–6)。
-    var weekdayFullNames: [String] {
-        resolved == .japanese
-            ? ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"]
-            : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    }
-
-    /// Tooltip label for heatmap cell: "avg N keys" / "平均 N キー".
-    func heatmapAvgLabel(_ count: Int) -> String {
-        ja("平均 \(count) キー", en: "avg \(count) keys")
-    }
-
-    var heatmapMetricKeys: String {
-        ja("打鍵数", en: "Keystrokes")
-    }
-
-    var heatmapMetricWPM: String {
-        ja("WPM", en: "WPM")
-    }
-
-    var heatmapNoWPMData: String {
-        ja("—", en: "—")
-    }
-
-    var calendarLegendLow: String {
-        ja("少", en: "Low")
-    }
-
-    var calendarLegendHigh: String {
-        ja("多", en: "High")
-    }
-
-    // MARK: - Issue #60: Session detection
-
-    var chartTitleSessions: String {
-        ja("セッション", en: "Sessions")
-    }
-
-    var helpSessions: String {
-        ja(
-            "5分以上キー入力がなかった場合にセッションの区切りとして検出します。セッション数・最長セッション時間・平均セッション時間を日別に表示します。",
-            en: "A session boundary is detected when there is no keystroke for 5 or more minutes. Shows daily session count, longest session duration, and average session duration."
-        )
-    }
-
-    var sessionsPerDay: String {
-        ja("日別セッション数", en: "Sessions per Day")
-    }
-
-    var longestSessionLabel: String {
-        ja("最長セッション (分)", en: "Longest Session (min)")
-    }
-
-    var avgSessionLabel: String {
-        ja("平均セッション (分)", en: "Avg Session (min)")
-    }
-
-    // MARK: - Training Tab
-
-    var trainingTargetsTitle: String {
-        ja("練習対象バイグラム", en: "Training Targets")
-    }
-
-    var practiceDrillsTitle: String {
-        ja("ドリル", en: "Practice Drills")
-    }
-
-    var helpTrainingTargets: String {
-        ja("打鍵速度が遅く頻出するバイグラムを優先度スコア順に表示します。スコア = 平均IKI × log2(出現回数 + 1)。",
-           en: "Bigrams ranked by training priority: score = mean IKI × log2(count + 1). Slower and more frequent combinations rank higher.")
-    }
-
-    var helpPracticeDrills: String {
-        ja("生成されたドリルを上から順に打鍵してください。高優先度のバイグラムほど多くの繰り返しが割り当てられます。",
-           en: "Type each drill line from top to bottom. High-priority bigrams get more repetitions.")
-    }
-
-    var trainingNoData: String {
-        ja("データ不足 — 各バイグラムに5回以上の入力が必要です。",
-           en: "Not enough data — bigrams need at least 5 observations each.")
-    }
-
-    var trainingColumnBigram: String   { ja("バイグラム", en: "Bigram") }
-    var trainingColumnIKI: String      { ja("平均 IKI (ms)", en: "Avg IKI (ms)") }
-    var trainingColumnCount: String    { ja("出現回数", en: "Count") }
-
-    // Trigram training (Issue #89)
-    var trainingTrigramTargetsTitle: String {
-        ja("練習対象トライグラム", en: "Trigram Training Targets")
-    }
-    var helpTrainingTrigrams: String {
-        ja("3キー列の推定レイテンシ (構成バイグラム IKI の合計) を基にランク付けします。スコア = 推定 IKI × log2(出現回数 + 1)。",
-           en: "3-key sequences ranked by estimated latency: sum of the two constituent bigram IKIs. Score = estimated IKI × log2(count + 1).")
-    }
-    var trainingColumnTrigram: String  { ja("トライグラム", en: "Trigram") }
-    var trainingColumnEstIKI: String   { ja("推定 IKI (ms)", en: "Est. IKI (ms)") }
-    var trainingNoTrigramData: String {
-        ja("トライグラムデータがまだありません。バイグラム IKI が蓄積されると表示されます。",
-           en: "No trigram data yet. Appears once bigram IKI data has accumulated.")
-    }
-    var trainingColumnTier: String     { ja("優先度", en: "Priority") }
-    /// Column header for the training history annotation in the targets table.
-    var trainingColumnHistory: String  { ja("練習前→Δ", en: "Prior→Δ") }
-    /// Tooltip for the history annotation cell. Arguments: beforeIKI, currentIKI, date string.
-    var trainingHistoryAnnotationHelp: String {
-        ja("練習前: %.0f ms → 現在: %.0f ms (最終練習: %@)",
-           en: "Before: %.0f ms → Now: %.0f ms (last trained: %@)")
-    }
-
-    var trainingTierHigh: String  { ja("高", en: "High") }
-    var trainingTierMid: String   { ja("中", en: "Mid") }
-    var trainingTierLow: String   { ja("低", en: "Low") }
-
-    var trainingDrillRepeated: String    { ja("繰り返し", en: "Repeated") }
-    var trainingDrillAlternating: String { ja("交互", en: "Alternating") }
-
-    var trainingRegenerateButton: String { ja("セッションを更新", en: "New Session") }
-
-    var trainingHistoryTitle: String { ja("トレーニング履歴", en: "Training History") }
-    var helpTrainingHistory: String {
-        ja("過去のトレーニングセッションの結果を新しい順に表示します。",
-           en: "Past training session results, newest first.")
-    }
-    var trainingHistoryEmpty: String {
-        ja("まだ完了したセッションがありません。", en: "No completed sessions yet.")
-    }
-    var trainingHistoryDate: String    { ja("日時", en: "Date") }
-    var trainingHistoryTargets: String { ja("対象", en: "Targets") }
-    var trainingHistoryLength: String  { ja("長さ", en: "Length") }
-    var trainingHistoryBefore: String  { ja("練習前 IKI", en: "Before IKI") }
-    var trainingHistoryDelta: String   { ja("改善", en: "Δ IKI") }
-    var trainingHistoryClear: String   { ja("履歴をリセット", en: "Reset History") }
-    var trainingHistoryClearConfirm: String {
-        ja("すべてのトレーニング履歴を削除しますか?この操作は取り消せません。",
-           en: "Delete all training history? This cannot be undone.")
-    }
-
-    // Interactive practice UI strings
-    var trainingColumnDrill: String    { ja("ドリル", en: "Drill") }
-    var trainingDrillProgress: String  { ja("ドリル %d / %d", en: "Drill %d of %d") }
-    var trainingDrillAccuracy: String  { ja("正確さ: %d%%", en: "Accuracy: %d%%") }
-    var trainingDrillSkip: String      { ja("スキップ", en: "Skip") }
-    var trainingDrillHint: String {
-        ja("上のテキストをクリックしてフォーカスし、入力を開始してください",
-           en: "Click the text above to focus, then start typing")
-    }
-    var trainingSessionComplete: String  { ja("セッション完了!", en: "Session Complete!") }
-    var trainingResultAccuracy: String   { ja("正確さ", en: "Accuracy") }
-    var trainingResultWPM: String        { ja("WPM", en: "WPM") }
-    var trainingResultTime: String       { ja("時間", en: "Time") }
-    var trainingAccuracyHelp: String     { ja("正確さ %", en: "Accuracy %") }
-
-    // Drill speed threshold filter (Issue #231)
-    var drillSpeedThresholdLabel: String { ja("スピード閾値:", en: "Speed threshold:") }
-    var drillSpeedThresholdOff: String   { ja("オフ (全バイグラム)", en: "Off (all bigrams)") }
-    func drillSpeedThresholdValue(_ ms: Int) -> String {
-        ja("≥ \(ms) ms のみ", en: "≥ \(ms) ms only")
-    }
-    var drillSpeedThresholdReset: String { ja("リセット", en: "Reset") }
-
-    // MARK: - Chart Axis Labels
-
-    var axisLabelKeys: String     { ja("キー数", en: "Keys") }
-    var axisLabelWPM: String      { ja("WPM", en: "WPM") }
-    var axisLabelPercent: String  { ja("%", en: "%") }
-    var axisLabelSessions: String { ja("セッション数", en: "Sessions") }
-    var axisLabelMinutes: String  { ja("分", en: "min") }
 
     // MARK: - Chart Theme
 
     var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }
-
-    var appearanceMenuTitle: String { ja("外観", en: "Appearance") }
-
-    func appearanceDisplayName(_ appearance: AppAppearance) -> String {
-        switch appearance {
-        case .system: return ja("システム", en: "System")
-        case .light:  return ja("ライト",   en: "Light")
-        case .dark:   return ja("ダーク",   en: "Dark")
-        }
-    }
 
     func chartThemeDisplayName(_ theme: ChartTheme) -> String {
         switch theme {
@@ -1721,174 +922,6 @@ final class L10n {
         case .green:  return ja("グリーン", en: "Green")
         case .pink:   return ja("ピンク", en: "Pink")
         }
-    }
-
-    // MARK: - Thumb Optimization (Issue #208)
-
-    var handLeft:  String { ja("左", en: "Left") }
-    var handRight: String { ja("右", en: "Right") }
-
-    var thumbOptimizationToggle: String {
-        ja("親指キー最適化を有効にする（スプリットキーボード向け）",
-           en: "Enable Thumb Key Optimization (for split keyboards)")
-    }
-
-    var thumbSuggestionsHeader: String {
-        ja("親指キー提案", en: "Thumb Key Suggestions")
-    }
-
-    var thumbSuggestionsEmpty: String {
-        ja("現在のデータでは親指キーへの移動提案はありません",
-           en: "No thumb key relocation suggestions with current data")
-    }
-
-    func thumbSuggestionRow(key: String, slot: String, reduction: Double) -> String {
-        ja("「\(key)」→ \(slot)親指クラスター（負荷軽減 \(String(format: "%.0f", reduction))）",
-           en: "\"\(key)\" → \(slot) thumb cluster (burden reduction \(String(format: "%.0f", reduction)))")
-    }
-
-    // MARK: - Activity Calendar Accessibility
-
-    func calendarDayAccessibilityLabel(dateLabel: String, count: Int) -> String {
-        count == 0
-            ? ja("\(dateLabel)、打鍵なし", en: "\(dateLabel), no keystrokes")
-            : ja("\(dateLabel)、\(count)打鍵", en: "\(dateLabel), \(count) keystrokes")
-    }
-
-    var calendarLegendAccessibility: String {
-        ja("打鍵強度の凡例：少ない から 多い", en: "Keystroke intensity legend, from less to more")
-    }
-
-    // MARK: - Layer Mapping (Issue #209)
-
-    var layerMappingMenuTitle: String {
-        ja("レイヤーキー設定…", en: "Layer Key Mapping…")
-    }
-
-    var layerMappingWindowTitle: String {
-        ja("レイヤーキーマッピング", en: "Layer Key Mapping")
-    }
-
-    var layerMappingLayerKeysSection: String {
-        ja("レイヤーキー", en: "Layer Keys")
-    }
-
-    var layerMappingOutputKeysSection: String {
-        ja("出力キー → 物理キー", en: "Output Key → Physical Key")
-    }
-
-    var layerMappingAddLayerKey: String {
-        ja("レイヤーキーを追加", en: "Add Layer Key")
-    }
-
-    var layerMappingAddMapping: String {
-        ja("マッピングを追加", en: "Add Mapping")
-    }
-
-    var layerMappingLayerKeyName: String {
-        ja("名前 (例: Lower)", en: "Name (e.g. Lower)")
-    }
-
-    var layerMappingFinger: String {
-        ja("担当指", en: "Finger")
-    }
-
-    var layerMappingOutputKey: String {
-        ja("出力キー (例: ←)", en: "Output key (e.g. ←)")
-    }
-
-    var layerMappingBaseKey: String {
-        ja("ベースキー (例: J)", en: "Base key (e.g. J)")
-    }
-
-    var layerMappingEmpty: String {
-        ja("まだ設定がありません", en: "No mappings configured")
-    }
-
-    var layerMappingNoLayerKeys: String {
-        ja("まずレイヤーキーを追加してください", en: "Add a layer key first")
-    }
-
-    var layerEfficiencyTitle: String {
-        ja("レイヤー効率", en: "Layer Efficiency")
-    }
-
-    var layerEfficiencyHelp: String {
-        ja(
-            "ファームウェアレイヤーキー (Lower, Raise など) の使用回数と担当指の負荷を表示します。レイヤーキーマッピングを設定すると有効になります。",
-            en: "Shows usage count and finger load for firmware layer keys (Lower, Raise, etc.). Requires Layer Key Mapping to be configured."
-        )
-    }
-
-    var layerEfficiencyNoData: String {
-        ja("レイヤーキーマッピングが未設定です", en: "No layer key mappings configured")
-    }
-
-    var layerEfficiencyPresses: String {
-        ja("回", en: "presses")
-    }
-
-    // MARK: - Bigram IKI Heatmap (#238)
-
-    var bigramIKIHeatmapTitle: String {
-        ja("バイグラムIKIヒートマップ", en: "Bigram IKI Heatmap")
-    }
-
-    var helpBigramIKIHeatmap: String {
-        ja(
-            "キーペア（バイグラム）ごとの平均キー間隔 (IKI) を2次元マトリクスで表示します。行が「打鍵元」、列が「打鍵先」のキーです。\n\n色の意味: 緑=速い（低IKI）、赤=遅い（高IKI）。灰色=データなし。\n\nN個のピッカーで軸に表示するキー数（打鍵頻度上位N個）を変更できます。セルにカーソルを合わせると正確なms値が表示されます。\n\n遅いバイグラムはタイピング改善のトレーニング候補です。",
-            en: "A matrix of average inter-keystroke interval (IKI) for each key pair (bigram). Rows = 'from' key, columns = 'to' key.\n\nColor: green = fast (low IKI), red = slow (high IKI). Gray = no data recorded.\n\nUse the N picker to change how many keys (top-N by frequency) appear on each axis. Hover a cell to see the exact millisecond value.\n\nSlow bigrams are good candidates for typing practice."
-        )
-    }
-
-    var bigramHeatmapTop: String  { ja("上位", en: "Top") }
-    var bigramHeatmapKeys: String { ja("キー", en: "keys") }
-    var bigramHeatmapFast: String { ja("速い", en: "Fast") }
-    var bigramHeatmapSlow: String { ja("遅い", en: "Slow") }
-
-    var bigramHeatmapNoData: String {
-        ja("バイグラムIKIデータがまだありません。しばらくタイピングすると表示されます。",
-           en: "No bigram IKI data yet. Type for a while and the heatmap will appear.")
-    }
-
-    var bigramHeatmapHoverHint: String {
-        ja("セルにカーソルを合わせると詳細を表示", en: "Hover a cell to see details")
-    }
-
-    // MARK: - Key Inspector (#246)
-
-    var keyInspectorSection: String {
-        ja("キーイベント検査", en: "Key Event Inspector")
-    }
-
-    var helpKeyInspector: String {
-        ja(
-            "打鍵ごとのイベント詳細をリアルタイムで表示します。\n\nキー: 論理キー名（表示文字）。コード: 物理キーコード (CGKeyCode)。場所: Standard (通常) / Left / Right / Numpad。フラグ: 同時に押されている修飾キーの記号。\n\n「現在押中のキー」は実際に押し続けているキーをリアルタイムで表示します。キーボードファームウェアやレイアウト開発に役立ちます。",
-            en: "Shows detailed event information for each keystroke in real time.\n\nKey: logical key name. Code: physical key code (CGKeyCode). Location: Standard / Left / Right / Numpad. Flags: modifier symbols active at the time of the keypress.\n\n\"Held Keys\" shows all keys physically held down right now. Useful for keyboard firmware and layout development."
-        )
-    }
-
-    var inspectorFieldKey: String      { ja("キー",  en: "Key") }
-    var inspectorFieldCode: String     { ja("コード", en: "Code") }
-    var inspectorFieldLocation: String { ja("場所",  en: "Location") }
-    var inspectorFieldFlags: String    { ja("修飾",  en: "Flags") }
-    var inspectorFieldHold: String     { ja("押下時間", en: "Hold") }
-
-    var inspectorLocationStandard: String { ja("Standard", en: "Standard") }
-    var inspectorLocationLeft: String     { ja("Left",     en: "Left") }
-    var inspectorLocationRight: String    { ja("Right",    en: "Right") }
-    var inspectorLocationNumpad: String   { ja("Numpad",   en: "Numpad") }
-
-    var inspectorWaiting: String {
-        ja("キーを押すとここに詳細が表示されます", en: "Press any key to see event details here.")
-    }
-
-    var inspectorNoHeldKeys: String {
-        ja("現在押中のキーなし", en: "No keys currently held")
-    }
-
-    var inspectorHeldKeys: String {
-        ja("現在押中のキー", en: "Held Keys")
     }
 
     // MARK: - Helper

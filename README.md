@@ -22,7 +22,7 @@ The stored data is key names and counts only — your actual typed content canno
 
 <table>
   <tr>
-    <td><img src="images/menu.png" width="300"/></td>
+    <td><img src="docs/images/menu.png" width="300"/></td>
     <td align="center"><i>Menu Bar</i></td>
     <td><img src="images/Heatmap.png" width="500"/></td>
     <td align="center"><i>Heatmap</i></td>
