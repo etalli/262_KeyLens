@@ -5,6 +5,8 @@ import AppKit
 struct KeystrokeEvent {
     let displayName: String
     let keyCode: UInt16
+    let flags: CGEventFlags
+    let isNumpad: Bool
 }
 
 // MARK: - Dependency protocols
@@ -79,6 +81,7 @@ final class KeyboardMonitor {
         }
 
         var mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
+        mask |= CGEventMask(1 << CGEventType.keyUp.rawValue)
         mask |= CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.rightMouseDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.otherMouseDown.rawValue)
@@ -189,7 +192,8 @@ final class KeyboardMonitor {
 // MARK: - Notification Names
 
 extension Notification.Name {
-    static let keystrokeInput = Notification.Name("com.keylens.keystrokeInput")
+    static let keystrokeInput    = Notification.Name("com.keylens.keystrokeInput")
+    static let keystrokeReleased = Notification.Name("com.keylens.keystrokeReleased")
 }
 
 // MARK: - CGEventTap コールバック
@@ -223,6 +227,15 @@ extension KeyboardMonitor {
             KeyLens.log("CGEventTap disabled by timeout — re-enabling")
             if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
             return nil
+        }
+
+        // keyUp: notify inspector so it can remove the key from the held-keys list.
+        if type == .keyUp {
+            let code = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .keystrokeReleased, object: code)
+            }
+            return Unmanaged.passRetained(event)
         }
 
         // Mouse movement: accumulate distance only, no keystroke recording
@@ -292,7 +305,8 @@ extension KeyboardMonitor {
                 }
 
                 let displayName = KeyboardMonitor.overlayDisplayName(for: event, keyName: name)
-                let evt = KeystrokeEvent(displayName: displayName, keyCode: code)
+                let isNumpad = event.flags.contains(.maskNumericPad)
+                let evt = KeystrokeEvent(displayName: displayName, keyCode: code, flags: event.flags, isNumpad: isNumpad)
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: .keystrokeInput, object: evt)
                 }

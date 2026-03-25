@@ -1810,6 +1810,41 @@ final class L10n {
         ja("回", en: "presses")
     }
 
+    // MARK: - Key Inspector (#246)
+
+    var keyInspectorSection: String {
+        ja("キーイベント検査", en: "Key Event Inspector")
+    }
+
+    var helpKeyInspector: String {
+        ja(
+            "打鍵ごとのイベント詳細をリアルタイムで表示します。\n\nキー: 論理キー名（表示文字）。コード: 物理キーコード (CGKeyCode)。場所: Standard (通常) / Left / Right / Numpad。フラグ: 同時に押されている修飾キーの記号。\n\n「現在押中のキー」は実際に押し続けているキーをリアルタイムで表示します。キーボードファームウェアやレイアウト開発に役立ちます。",
+            en: "Shows detailed event information for each keystroke in real time.\n\nKey: logical key name. Code: physical key code (CGKeyCode). Location: Standard / Left / Right / Numpad. Flags: modifier symbols active at the time of the keypress.\n\n\"Held Keys\" shows all keys physically held down right now. Useful for keyboard firmware and layout development."
+        )
+    }
+
+    var inspectorFieldKey: String      { ja("キー",  en: "Key") }
+    var inspectorFieldCode: String     { ja("コード", en: "Code") }
+    var inspectorFieldLocation: String { ja("場所",  en: "Location") }
+    var inspectorFieldFlags: String    { ja("修飾",  en: "Flags") }
+
+    var inspectorLocationStandard: String { ja("Standard", en: "Standard") }
+    var inspectorLocationLeft: String     { ja("Left",     en: "Left") }
+    var inspectorLocationRight: String    { ja("Right",    en: "Right") }
+    var inspectorLocationNumpad: String   { ja("Numpad",   en: "Numpad") }
+
+    var inspectorWaiting: String {
+        ja("キーを押すとここに詳細が表示されます", en: "Press any key to see event details here.")
+    }
+
+    var inspectorNoHeldKeys: String {
+        ja("現在押中のキーなし", en: "No keys currently held")
+    }
+
+    var inspectorHeldKeys: String {
+        ja("現在押中のキー", en: "Held Keys")
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {

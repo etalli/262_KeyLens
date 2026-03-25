@@ -35,6 +35,15 @@ extension ChartsView {
                 wpmMeasurementSection
                     .padding(.horizontal, 24)
                     .padding(.vertical, 20)
+
+                Divider().padding(.horizontal, 24)
+
+                chartSection(L10n.shared.keyInspectorSection, helpText: L10n.shared.helpKeyInspector) {
+                    KeyInspectorView()
+                }
+                .padding(.top, 24)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
