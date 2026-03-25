@@ -12,10 +12,13 @@ enum KeyMetricsComputation {
 
     /// Estimated typing speed in words per minute.
     /// Uses the standard definition: 1 word = 5 keystrokes.
+    /// Capped at 300 WPM to suppress spikes from key-repeat or system-generated events.
     /// - Parameter avgIntervalMs: Average inter-keystroke interval in milliseconds.
     /// 標準定義（1ワード = 5キーストローク）に基づく推定タイピング速度（WPM）。
+    /// キーリピートやシステム生成イベントによるスパイクを抑制するため 300 WPM に上限を設定。
+    static let maxWPM: Double = 300
     static func wpm(avgIntervalMs: Double) -> Double {
-        60_000.0 / (avgIntervalMs * 5.0)
+        min(60_000.0 / (avgIntervalMs * 5.0), maxWPM)
     }
 
     // MARK: - Ergonomic score

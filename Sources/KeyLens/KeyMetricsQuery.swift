@@ -572,7 +572,8 @@ extension KeyMetricsQuery {
         var totalMs = 0.0
         var count = 0
         for entry in recentIKIs.reversed() {
-            guard entry.iki > 0 else { continue }
+            // Skip IKIs below 30 ms (~2000 KPM) — these are key-repeat or system artifacts.
+            guard entry.iki >= 30 else { continue }
             guard totalMs + entry.iki <= windowMs else { break }
             totalMs += entry.iki
             count += 1
