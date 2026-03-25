@@ -20,13 +20,30 @@ private struct WPMGaugeOverlayView: View {
     }
 }
 
+// MARK: - WPMGaugePanel
+
+/// Custom NSPanel subclass that shows a context menu on right-click.
+private final class WPMGaugePanel: NSPanel {
+    override func rightMouseDown(with event: NSEvent) {
+        let menu = NSMenu()
+        let item = NSMenuItem(
+            title: L10n.shared.hideSpeedometer,
+            action: #selector(WPMGaugeOverlayController.hideFromMenu),
+            keyEquivalent: ""
+        )
+        item.target = WPMGaugeOverlayController.shared
+        menu.addItem(item)
+        NSMenu.popUpContextMenu(menu, with: event, for: contentView ?? self.contentView!)
+    }
+}
+
 // MARK: - WPMGaugeOverlayController
 
 final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
     static let shared = WPMGaugeOverlayController()
     static let enabledKey = "wpmGaugeOverlayEnabled"
 
-    private let panel: NSPanel
+    private let panel: WPMGaugePanel
     private let hostVC: NSHostingController<WPMGaugeOverlayView>
 
     var isEnabled: Bool {
@@ -43,7 +60,7 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
     }
 
     private override init() {
-        panel = NSPanel(
+        panel = WPMGaugePanel(
             contentRect: .zero,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -74,6 +91,12 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
             placePanel()
             panel.orderFront(nil)
         }
+    }
+
+    // MARK: - Context Menu Actions
+
+    @objc func hideFromMenu() {
+        isEnabled = false
     }
 
     // MARK: - Positioning

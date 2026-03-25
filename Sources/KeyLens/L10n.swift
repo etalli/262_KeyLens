@@ -848,6 +848,10 @@ final class L10n {
         ja("最高: \(wpm) WPM", en: "Peak: \(wpm) WPM")
     }
 
+    var hideSpeedometer: String {
+        ja("速度計を非表示", en: "Hide Speedometer")
+    }
+
     // MARK: - Manual WPM Measurement (Issue #150)
 
     var wpmMeasureTitle: String {
