@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = NotificationManager.shared
         _ = KeystrokeOverlayController.shared
+        _ = WPMGaugeOverlayController.shared
 
         startMonitor()
         detectHardware()

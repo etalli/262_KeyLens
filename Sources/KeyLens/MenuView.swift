@@ -138,6 +138,7 @@ struct MenuView: View {
         return VStack(alignment: .leading, spacing: 0) {
             // オーバーレイ（トグル + 設定ギア 1行）
             OverlayRow()
+            WPMGaugeRow()
             Divider().padding(.horizontal, 14).padding(.vertical, 2)
             // データ操作サブメニュー
             DataMenuRow()
@@ -258,6 +259,51 @@ private struct OverlayRow: View {
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
                 .onTapGesture { appDelegate.toggleOverlay() }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                .padding(.horizontal, 6)
+        )
+        .onHover { isHovered = $0 }
+        .animation(.easeInOut(duration: 0.12), value: isHovered)
+    }
+}
+
+// MARK: - WPMGaugeRow
+
+private struct WPMGaugeRow: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+    @State private var isHovered = false
+
+    var body: some View {
+        let isEnabled = WPMGaugeOverlayController.shared.isEnabled
+        HStack(spacing: 0) {
+            Button(action: { appDelegate.toggleWPMGauge() }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "speedometer")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .frame(width: 16)
+                    Text(L10n.shared.wpmGaugeMenuItem)
+                        .font(.system(size: 13))
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+                .padding(.leading, 14)
+                .padding(.trailing, 4)
+                .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(isEnabled ? .accentColor : .clear)
+                .padding(.trailing, 14)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
+                .onTapGesture { appDelegate.toggleWPMGauge() }
         }
         .background(
             RoundedRectangle(cornerRadius: 5)

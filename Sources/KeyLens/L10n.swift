@@ -227,6 +227,10 @@ final class L10n {
         ja("キーオーバーレイ設定", en: "Keystroke Overlay Settings")
     }
 
+    var wpmGaugeMenuItem: String {
+        ja("WPMゲージ (フローティング)", en: "WPM Gauge (floating)")
+    }
+
     var overlaySettingsPosition: String {
         ja("表示位置", en: "Position")
     }

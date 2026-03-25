@@ -18,6 +18,11 @@ extension AppDelegate {
         objectWillChange.send()
     }
 
+    func toggleWPMGauge() {
+        WPMGaugeOverlayController.shared.isEnabled.toggle()
+        objectWillChange.send()
+    }
+
     func showOverlaySettings() {
         OverlaySettingsController.shared.showWindow()
     }
