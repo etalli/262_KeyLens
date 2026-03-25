@@ -1863,8 +1863,8 @@ final class L10n {
 
     var helpKeyInspector: String {
         ja(
-            "打鍵ごとのイベント詳細をリアルタイムで表示します。\n\nキー: 論理キー名（表示文字）。コード: 物理キーコード (CGKeyCode)。場所: Standard (通常) / Left / Right / Numpad。フラグ: 同時に押されている修飾キーの記号。\n\n「現在押中のキー」は実際に押し続けているキーをリアルタイムで表示します。キーボードファームウェアやレイアウト開発に役立ちます。",
-            en: "Shows detailed event information for each keystroke in real time.\n\nKey: logical key name. Code: physical key code (CGKeyCode). Location: Standard / Left / Right / Numpad. Flags: modifier symbols active at the time of the keypress.\n\n\"Held Keys\" shows all keys physically held down right now. Useful for keyboard firmware and layout development."
+            "打鍵ごとのイベント詳細をリアルタイムで表示します。\n\nキー: 論理キー名（表示文字）。コード: 物理キーコード (CGKeyCode)。場所: Standard (通常) / Left / Right / Numpad。フラグ: 同時に押されている修飾キーの記号。押下時間: キーダウンからキーアップまでの時間 (ms)。デバウンス閾値の調整に役立ちます。フラグ(生): macOS の CGEventFlags の生ビットマスク (16進数)。HID: USB HID 使用ページ / 使用ID (16進数)。ファームウェアレベルのキーマッピング確認に使用します。\n\n「現在押中のキー」は実際に押し続けているキーをリアルタイムで表示します。キーボードファームウェアやレイアウト開発に役立ちます。",
+            en: "Shows detailed event information for each keystroke in real time.\n\nKey: logical key name. Code: physical key code (CGKeyCode). Location: Standard / Left / Right / Numpad. Flags: modifier symbols active at the time of the keypress. Hold: duration from keydown to keyup in ms — useful for tuning debounce thresholds. Raw Flags: the raw CGEventFlags bitmask in hex — for firmware-level modifier verification. HID: USB HID usage page / usage ID in hex — maps directly to the hardware key code used in QMK, ZMK, and other firmware.\n\n\"Held Keys\" shows all keys physically held down right now."
         )
     }
 
