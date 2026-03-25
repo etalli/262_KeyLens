@@ -5,16 +5,31 @@ import SwiftUI
 
 /// Compact floating speedometer — arc gauge + WPM number, scaled to fit a small panel.
 private struct WPMGaugeOverlayView: View {
+    @ObservedObject private var themeStore = ThemeStore.shared
+
+    /// Resolve the effective color scheme, honoring the user's app appearance setting.
+    private var resolvedScheme: ColorScheme {
+        switch themeStore.appearance {
+        case .dark:  return .dark
+        case .light: return .light
+        case .system:
+            let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return isDark ? .dark : .light
+        }
+    }
+
     var body: some View {
         SpeedometerView()
-            .colorScheme(.dark)   // force white text so it's readable on the dark background
+            .colorScheme(resolvedScheme)
             .scaleEffect(0.62)
             // SpeedometerView is ~280 px tall total (canvas 200 + number ~50 + peak ~20 + spacing).
             // At 0.62 scale that is ~174 px; add 8 px padding margin.
             .frame(width: 162, height: 178)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.black.opacity(0.60))
+                    .fill(resolvedScheme == .dark
+                          ? Color.black.opacity(0.60)
+                          : Color.white.opacity(0.80))
             )
             .padding(4)
     }
