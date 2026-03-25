@@ -9,7 +9,8 @@ private struct WPMGaugeOverlayView: View {
         SpeedometerView()
             .scaleEffect(0.62)
             // Fix the frame to the scaled content so the panel sizes correctly.
-            .frame(width: 162, height: 145)
+            // SpeedometerView is ~280px tall; at 0.62 scale that is ~174px.
+            .frame(width: 162, height: 178)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(Color.black.opacity(0.60))
@@ -85,8 +86,8 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let f = screen.visibleFrame
         panel.contentView?.layoutSubtreeIfNeeded()
-        let s = panel.contentView?.fittingSize ?? NSSize(width: 170, height: 153)
-        let size = NSSize(width: max(s.width, 170), height: max(s.height, 153))
+        let s = panel.contentView?.fittingSize ?? NSSize(width: 170, height: 186)
+        let size = NSSize(width: max(s.width, 170), height: max(s.height, 186))
 
         // Restore saved drag position, or default to bottom-right corner.
         let defaults = UserDefaults.standard
