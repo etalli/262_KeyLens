@@ -89,7 +89,9 @@ graph TD
 │   │   ├── Charts+TrainingTab.swift
 │   │   ├── Charts+ComparisonTab.swift
 │   │   ├── ActivityCalendarView.swift
+│   │   ├── BigramHeatmapView.swift
 │   │   ├── KeyboardHeatmapView.swift
+│   │   ├── KeyInspectorView.swift
 │   │   ├── WeeklySummaryCard.swift
 │   │   ├── YearInReviewCard.swift
 │   │   ├── KLEParser.swift
@@ -100,6 +102,7 @@ graph TD
 │   │   ├── OverlaySettingsController.swift
 │   │   ├── OverlayHotkeyManager.swift
 │   │   ├── SpeedometerView.swift
+│   │   ├── WPMGaugeOverlayController.swift
 │   │   ├── WPMHotkeyManager.swift
 │   │   ├── ThemeStore.swift
 │   │   ├── AIPromptStore.swift
@@ -392,12 +395,12 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 |----------|----------|
 | `Charts+SummaryTab.swift` | Activity Calendar heatmap, Weekly Delta Report |
 | `Charts+KeyboardTab.swift` | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
-| `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Ergonomic Learning Curve, ergonomic score tables |
+| `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Finger IKI, Bigram IKI Heatmap, Ergonomic Learning Curve, ergonomic score tables |
 | `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
 | `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
 | `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
 | `Charts+LayerEfficiency.swift` | Layer key usage analysis for QMK/ZMK keyboards |
-| `Charts+LiveTab.swift` | Recent IKI bar chart, manual WPM measurement, analog speedometer |
+| `Charts+LiveTab.swift` | Analog speedometer, recent IKI bar chart, manual WPM measurement, Key Event Inspector |
 | `Charts+MouseTab.swift` | Daily mouse distance, hourly mouse activity, mouse/keyboard balance |
 | `Charts+TrainingTab.swift` | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 | `Charts+ComparisonTab.swift` | Side-by-side period comparison: two custom date ranges, preset buttons, stats table with delta column |
@@ -411,6 +414,12 @@ Shared UI primitives (section headers, sort controls, help popovers) live in `Ch
 ### [KeystrokeOverlayController.swift](Sources/KeyLens/KeystrokeOverlayController.swift)
 
 Floating `NSPanel` that shows the last N keystrokes in real time using a SwiftUI `OverlayView`. Listens for `Notification(.keystrokeInput)` posted by `KeyboardMonitor`. The panel fades out after 3 s of inactivity using a debounced `DispatchWorkItem`. Toggle state is persisted in `UserDefaults`.
+
+---
+
+### [WPMGaugeOverlayController.swift](Sources/KeyLens/WPMGaugeOverlayController.swift)
+
+Floating `NSPanel` showing a spring-smoothed WPM speedometer (arc + number) in real time. Independently togglable from the keystroke overlay. Hosts a scaled `SpeedometerView` with `.colorScheme(.dark)` for contrast. Drag position is persisted in `UserDefaults`. Initialized at app launch alongside `KeystrokeOverlayController`.
 
 ---
 

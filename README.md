@@ -79,6 +79,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
+| **WPM Gauge (floating)** | Toggles a floating analog WPM speedometer panel, independently of the keystroke overlay |
 | **Settings…** | Customize menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), export Year in Review card (PNG), backup/restore data, open log folder |
 
 ### Charts window
@@ -91,6 +92,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Keyboard Heatmap** | Key layout colored by frequency or strain; supports ANSI / Ortho / JIS / Custom (KLE import) |
 | **Top 20 Keys** | Most-pressed keys by type |
 | **Top 20 Bigrams** | Most frequent key pairs with hand alternation stats |
+| **Bigram IKI Heatmap** | N×N matrix of average inter-key interval per key pair; green = fast, red = slow |
 | **Ergonomic Learning Curve** | Same-finger and high-strain rates over time |
 | **Today's Fatigue Curve** | Hourly WPM and ergonomic rates for today |
 | **Weekly Delta Report** | Last 7 days vs prior 7 days with trend arrows |
@@ -103,6 +105,7 @@ Open via **Charts** in the menu. Sections (scroll down):
 | Section | What it shows |
 |---------|---------------|
 | **Live IKI** | Recent inter-keystroke intervals, updated live |
+| **Key Event Inspector** | Real-time key event details (keycode, location, modifiers, held keys) |
 | **IKI Distribution** | Histogram of your typing rhythm |
 | **Daily Totals** | Per-day keystroke counts |
 | **Typing Speed** | Daily average WPM over time |
