@@ -12,6 +12,8 @@ final class KeyInspectorViewModel: ObservableObject {
         let hasAlt:     Bool
         let hasCmd:     Bool
         let hasCaps:    Bool
+        let rawFlags:   UInt64
+        let hidUsage:   (page: UInt8, usage: UInt8)?
     }
 
     @Published var lastKey: LastKey? = nil
@@ -76,7 +78,9 @@ final class KeyInspectorViewModel: ObservableObject {
             hasCtrl:  f.contains(.maskControl),
             hasAlt:   f.contains(.maskAlternate),
             hasCmd:   f.contains(.maskCommand),
-            hasCaps:  f.contains(.maskAlphaShift)
+            hasCaps:  f.contains(.maskAlphaShift),
+            rawFlags: evt.rawFlags,
+            hidUsage: evt.hidUsage
         )
         let keyCode = evt.keyCode
         let displayName = evt.displayName
@@ -127,6 +131,14 @@ struct KeyInspectorView: View {
                 GridRow {
                     label(L10n.shared.inspectorFieldHold)
                     mono(vm.holdDurationMs.map { String(format: "%.1f ms", $0) } ?? "—")
+                }
+                GridRow {
+                    label(L10n.shared.inspectorFieldRawFlags)
+                    mono(k.rawFlags == 0 ? "0x00000000" : String(format: "0x%08X", k.rawFlags))
+                }
+                GridRow {
+                    label(L10n.shared.inspectorFieldHID)
+                    mono(k.hidUsage.map { String(format: "%02X / %02X", $0.page, $0.usage) } ?? "—")
                 }
             }
         } else {
