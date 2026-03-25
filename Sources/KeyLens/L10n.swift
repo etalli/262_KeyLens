@@ -1698,6 +1698,16 @@ final class L10n {
 
     var chartThemeMenuTitle: String { ja("チャートテーマ", en: "Chart Theme") }
 
+    var appearanceMenuTitle: String { ja("外観", en: "Appearance") }
+
+    func appearanceDisplayName(_ appearance: AppAppearance) -> String {
+        switch appearance {
+        case .system: return ja("システム", en: "System")
+        case .light:  return ja("ライト",   en: "Light")
+        case .dark:   return ja("ダーク",   en: "Dark")
+        }
+    }
+
     func chartThemeDisplayName(_ theme: ChartTheme) -> String {
         switch theme {
         case .blue:   return ja("ブルー", en: "Blue")

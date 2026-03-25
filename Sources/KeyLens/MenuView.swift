@@ -449,6 +449,16 @@ private struct SettingsMenuRow: View {
 
         menu.addItem(.separator())
 
+        // Appearance submenu
+        let currentAppearance = ThemeStore.shared.appearance
+        submenu(l.appearanceMenuTitle) { sub in
+            for option in AppAppearance.allCases {
+                add(option.displayName, to: sub, checked: currentAppearance == option) {
+                    ThemeStore.shared.appearance = option
+                }
+            }
+        }
+
         // Language submenu
         let currentLang = l.language
         submenu(l.languageMenuTitle) { sub in

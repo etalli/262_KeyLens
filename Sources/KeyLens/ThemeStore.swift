@@ -41,6 +41,24 @@ enum ChartTheme: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - AppAppearance
+
+enum AppAppearance: String, CaseIterable {
+    case system = "system"
+    case light  = "light"
+    case dark   = "dark"
+
+    var displayName: String { L10n.shared.appearanceDisplayName(self) }
+
+    func apply() {
+        switch self {
+        case .system: NSApplication.shared.appearance = nil
+        case .light:  NSApplication.shared.appearance = NSAppearance(named: .aqua)
+        case .dark:   NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+        }
+    }
+}
+
 // MARK: - ThemeStore
 
 final class ThemeStore: ObservableObject {
@@ -50,9 +68,19 @@ final class ThemeStore: ObservableObject {
         didSet { UserDefaults.standard.set(current.rawValue, forKey: "chartTheme") }
     }
 
+    @Published var appearance: AppAppearance {
+        didSet {
+            UserDefaults.standard.set(appearance.rawValue, forKey: "appAppearance")
+            appearance.apply()
+        }
+    }
+
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "chartTheme") ?? ""
-        current = ChartTheme(rawValue: saved) ?? .blue
+        let savedTheme = UserDefaults.standard.string(forKey: "chartTheme") ?? ""
+        current = ChartTheme(rawValue: savedTheme) ?? .blue
+
+        let savedAppearance = UserDefaults.standard.string(forKey: "appAppearance") ?? ""
+        appearance = AppAppearance(rawValue: savedAppearance) ?? .system
     }
 
     var accentColor: Color { current.color }
