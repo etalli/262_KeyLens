@@ -80,7 +80,9 @@ final class KeyInspectorViewModel: ObservableObject {
         )
         let keyCode = evt.keyCode
         let displayName = evt.displayName
-        keyDownTimes[keyCode] = Date()
+        // Only record on the first keydown — key repeat fires repeated keyDown events
+        // and would otherwise overwrite the original timestamp.
+        if keyDownTimes[keyCode] == nil { keyDownTimes[keyCode] = Date() }
         DispatchQueue.main.async { [weak self] in
             self?.lastKey = key
             self?.heldKeys[keyCode] = displayName
