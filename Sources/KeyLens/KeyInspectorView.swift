@@ -118,7 +118,7 @@ struct KeyInspectorView: View {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 16, verticalSpacing: 6) {
                 GridRow {
                     label(L10n.shared.inspectorFieldKey)
-                    mono(lrKeyName(k))
+                    sym(lrKeyName(k))
                     label(L10n.shared.inspectorFieldCode)
                     mono("\(k.keyCode)")
                 }
@@ -126,7 +126,7 @@ struct KeyInspectorView: View {
                     label(L10n.shared.inspectorFieldLocation)
                     mono(k.location)
                     label(L10n.shared.inspectorFieldFlags)
-                    mono(flagsString(k))
+                    sym(flagsString(k))
                 }
                 GridRow {
                     label(L10n.shared.inspectorFieldHold)
@@ -140,7 +140,7 @@ struct KeyInspectorView: View {
                     label(L10n.shared.inspectorFieldHID)
                     mono(k.hidUsage.map { String(format: "%02X / %02X", $0.page, $0.usage) } ?? "—")
                     label(L10n.shared.inspectorFieldHIDName)
-                    mono(hidDisplayName(k))
+                    sym(hidDisplayName(k))
                 }
             }
         } else {
@@ -197,6 +197,14 @@ struct KeyInspectorView: View {
     private func mono(_ text: String) -> some View {
         Text(text)
             .font(.system(.callout, design: .monospaced))
+            .fontWeight(.medium)
+            .foregroundStyle(.primary)
+    }
+
+    // For fields containing Unicode symbols (⇧ ⌘ ⌥ ⌃) — monospaced font lacks these glyphs.
+    private func sym(_ text: String) -> some View {
+        Text(text)
+            .font(.system(.callout, design: .default))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
     }
