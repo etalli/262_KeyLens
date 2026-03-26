@@ -198,7 +198,7 @@ struct KeyInspectorView: View {
         Text(text)
             .font(.system(.callout, design: .monospaced))
             .fontWeight(.medium)
-            .foregroundColor(.black)
+            .foregroundStyle(.primary)
     }
 
     private func pill(_ symbol: String, active: Bool) -> some View {
