@@ -127,7 +127,9 @@ struct ChartsView: View {
         // ChartSnapper wraps the entire section (title + content) so the clipboard
         // image includes the section title. (Fix for Issue #156)
         return ZStack(alignment: .topLeading) {
-            ChartSnapper(store: snapperStore, key: title).allowsHitTesting(false)
+            ChartSnapper(store: snapperStore, key: title)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(false)
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     if let helpText {
@@ -188,18 +190,24 @@ struct ChartsView: View {
               let contentView = window.contentView else { return nil }
 
         let scale = window.backingScaleFactor
-        // Convert snapper frame from superview coords into contentView coords.
-        let rectInContent = contentView.convert(snapper.frame, from: superview)
+        // Convert snapper bounds from snapper's own coordinate space into contentView coords.
+        // Using snapper itself (not superview) avoids ScrollView document-view offset issues.
+        let rectInContent = contentView.convert(snapper.bounds, from: snapper)
 
         // Render the full contentView into a bitmap (captures CALayer / SwiftUI content).
         guard let bitmapRep = contentView.bitmapImageRepForCachingDisplay(in: contentView.bounds)
         else { return nil }
         contentView.cacheDisplay(in: contentView.bounds, to: bitmapRep)
 
-        // NSView origin is bottom-left; CGImage origin is top-left → flip Y.
+        // CGImage origin is top-left.
+        // If contentView is flipped (SwiftUI hosting views always are), y is already top-down — no flip needed.
+        // If not flipped, y is bottom-up → flip manually.
+        let yPixel: CGFloat = contentView.isFlipped
+            ? rectInContent.minY * scale
+            : (contentView.bounds.height - rectInContent.maxY) * scale
         let pixelRect = CGRect(
             x:      rectInContent.minX * scale,
-            y:      (contentView.bounds.height - rectInContent.maxY) * scale,
+            y:      yPixel,
             width:  rectInContent.width  * scale,
             height: rectInContent.height * scale
         )
