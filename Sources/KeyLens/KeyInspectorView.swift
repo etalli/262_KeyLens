@@ -246,15 +246,26 @@ struct KeyInspectorView: View {
         return parts.isEmpty ? "—" : parts.joined(separator: " ")
     }
 
-    // Rewrites modifier symbols in the display name with L/R prefixes.
-    // e.g. "⇧A" → "L⇧A" or "R⇧A" depending on which Shift was pressed.
+    // Builds a left/right-aware display name from scratch.
+    // Strips any existing modifier symbols from k.name, then prepends L/R-prefixed modifiers.
+    // e.g. Left Shift + A → "L⇧A", Right Cmd + C → "R⌘C"
     private func lrKeyName(_ k: KeyInspectorViewModel.LastKey) -> String {
+        guard k.hasShift || k.hasCmd || k.hasAlt || k.hasCtrl else { return k.name }
         let raw = k.rawFlags
-        var name = k.name
-        if k.hasShift { name = name.replacingOccurrences(of: "⇧", with: raw & 0x04 != 0 ? "R⇧" : "L⇧") }
-        if k.hasCmd   { name = name.replacingOccurrences(of: "⌘", with: raw & 0x10 != 0 ? "R⌘" : "L⌘") }
-        if k.hasAlt   { name = name.replacingOccurrences(of: "⌥", with: raw & 0x40 != 0 ? "R⌥" : "L⌥") }
-        if k.hasCtrl  { name = name.replacingOccurrences(of: "⌃", with: raw & 0x2000 != 0 ? "R⌃" : "L⌃") }
-        return name
+
+        // Strip leading modifier symbols from the display name to get the base key
+        var base = k.name
+        for sym in ["⌃", "⌥", "⇧", "⌘"] {
+            base = base.replacingOccurrences(of: sym, with: "")
+        }
+
+        // Build L/R prefix in ⌃⌥⇧⌘ order
+        var prefix = ""
+        if k.hasCtrl  { prefix += raw & 0x2000 != 0 ? "R⌃" : "L⌃" }
+        if k.hasAlt   { prefix += raw & 0x40   != 0 ? "R⌥" : "L⌥" }
+        if k.hasShift { prefix += raw & 0x04   != 0 ? "R⇧" : "L⇧" }
+        if k.hasCmd   { prefix += raw & 0x10   != 0 ? "R⌘" : "L⌘" }
+
+        return prefix + base
     }
 }
