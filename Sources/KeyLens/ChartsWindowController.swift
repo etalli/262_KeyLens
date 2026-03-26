@@ -81,113 +81,162 @@ final class ChartDataModel: ObservableObject {
     @Published var weeklyHeatmap:              [HeatmapCell]                 = []
     // Issue #209: Layer key efficiency
     @Published var layerEfficiency:            [LayerEfficiencyEntry]        = []
+    // Issue #258: background loading state
+    @Published var isLoading: Bool = false
 
+    /// Loads all chart data on a background queue and publishes results to the main thread.
+    /// Previously all queries ran synchronously on the main thread, causing stutter on window open.
     func reload() {
-        let store            = KeyCountStore.shared
-        topKeys              = store.topKeys(limit: 20).map(TopKeyEntry.init)
-        let rawDailyTotals   = store.dailyTotals()
-        dailyTotals          = rawDailyTotals.map(DailyTotalEntry.init)
-        categories           = store.countsByType().map(CategoryEntry.init)
-        perDayKeys           = store.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
-        shortcuts            = store.topModifiedKeys(prefix: "⌘", limit: 20).map(ShortcutEntry.init)
-        allCombos            = store.topModifiedKeys(prefix: "", limit: 30).map(ShortcutEntry.init)
-        keyCounts            = Dictionary(uniqueKeysWithValues: store.allEntries().map { ($0.key, $0.total) })
-        topBigrams           = store.topBigrams(limit: 20).map(BigramEntry.init)
-        sameFingerRate       = store.sameFingerRate
-        todaySameFingerRate  = store.todaySameFingerRate
-        handAlternationRate  = store.handAlternationRate
-        todayHandAltRate     = store.todayHandAlternationRate
+        isLoading = true
+        let store = KeyCountStore.shared
+        let ms    = MouseStore.shared
 
-        // Phase 3: Learning Curve
-        let ergRates = store.dailyErgonomicRates()
-        dailyErgonomics = ergRates.flatMap { row -> [DailyErgonomicEntry] in
-            [
-                DailyErgonomicEntry(date: row.date, series: "Same-finger", rate: row.sameFingerRate),
-                DailyErgonomicEntry(date: row.date, series: "Alternation",  rate: row.handAltRate),
-                DailyErgonomicEntry(date: row.date, series: "High-strain",  rate: row.highStrainRate),
-            ]
-        }
-
-        // Phase 3: Weekly Delta (this 7 days vs. previous 7 days)
-        weeklyDeltas = Self.computeWeeklyDeltas(ergRates: ergRates, rawDailyTotals: rawDailyTotals)
-
-            // Phase 2: Before/After layout comparison — run FullErgonomicOptimizer on a background
-        // thread so the main thread (and Charts window) is never blocked.
-        // FullErgonomicOptimizer はバックグラウンドスレッドで実行し、メインスレッドをブロックしない。
-        layoutComparison = nil
-        isLayoutComparisonLoading = true
-        let bigramSnapshot = store.allBigramCounts
-        let keySnapshot    = store.allKeyCounts
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = LayoutComparison.make(bigramCounts: bigramSnapshot, keyCounts: keySnapshot)
-            DispatchQueue.main.async {
-                self?.layoutComparison = result
-                self?.isLayoutComparisonLoading = false
+            // --- Keyboard data ---
+            let topKeys             = store.topKeys(limit: 20).map(TopKeyEntry.init)
+            let rawDailyTotals      = store.dailyTotals()
+            let dailyTotals         = rawDailyTotals.map(DailyTotalEntry.init)
+            let categories          = store.countsByType().map(CategoryEntry.init)
+            let perDayKeys          = store.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
+            let shortcuts           = store.topModifiedKeys(prefix: "⌘", limit: 20).map(ShortcutEntry.init)
+            let allCombos           = store.topModifiedKeys(prefix: "", limit: 30).map(ShortcutEntry.init)
+            let keyCounts           = Dictionary(uniqueKeysWithValues: store.allEntries().map { ($0.key, $0.total) })
+            let topBigrams          = store.topBigrams(limit: 20).map(BigramEntry.init)
+            let sameFingerRate      = store.sameFingerRate
+            let todaySameFingerRate = store.todaySameFingerRate
+            let handAlternationRate = store.handAlternationRate
+            let todayHandAltRate    = store.todayHandAlternationRate
+
+            // Phase 3: Learning Curve
+            let ergRates       = store.dailyErgonomicRates()
+            let dailyErgonomics = ergRates.flatMap { row -> [DailyErgonomicEntry] in
+                [
+                    DailyErgonomicEntry(date: row.date, series: "Same-finger", rate: row.sameFingerRate),
+                    DailyErgonomicEntry(date: row.date, series: "Alternation",  rate: row.handAltRate),
+                    DailyErgonomicEntry(date: row.date, series: "High-strain",  rate: row.highStrainRate),
+                ]
+            }
+            let weeklyDeltas = Self.computeWeeklyDeltas(ergRates: ergRates, rawDailyTotals: rawDailyTotals)
+
+            // Issue #5: Activity Trends
+            let hourlyDistribution = store.hourlyDistribution()
+            let monthlyTotals      = store.monthlyTotals().map(MonthlyTotalEntry.init)
+            // Issue #78: Weekly Activity Heatmap
+            let weeklyHeatmap      = store.hourlyCountsByDayOfWeek().map(HeatmapCell.init)
+            // Per-application counts
+            let topApps            = store.topApps(limit: 20).map(AppEntry.init)
+            let todayTopApps       = store.todayTopApps(limit: 10).map(AppEntry.init)
+            let appErgScores       = store.appErgonomicScores(minKeystrokes: 100).map(AppErgScoreEntry.init)
+            // Per-device counts
+            let topDevices         = store.topDevices(limit: 20).map(DeviceEntry.init)
+            let todayTopDevices    = store.todayTopDevices(limit: 10).map(DeviceEntry.init)
+            let deviceErgScores    = store.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
+            // Issue #59 Phase 2: daily WPM
+            let dailyWPM           = store.dailyWPM().map(DailyWPMEntry.init)
+            // Issue #65: daily backspace rate
+            let dailyAccuracy      = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
+            // Issue #102: IKI histogram
+            let ikiHistogram       = store.ikiHistogramEntries()
+            // Issue #103: slowest bigrams by average IKI
+            let slowBigrams        = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
+            // Issue #104: IKI per finger
+            let fingerIKI          = store.ikiPerFinger().map(FingerIKIEntry.init)
+            // Issue #61: layout efficiency comparison
+            let layoutEfficiency   = store.layoutEfficiencyScores()
+            // Issue #60: session detection
+            let sessionSummaries   = store.allSessionSummaries()
+            // Issue #90: Training
+            let trainingScores     = store.rankedBigramsForTraining(minCount: 5, topK: 10)
+            // Issue #89: Trigram training targets
+            let trainingTrigramScores = store.rankedTrigramsForTraining(minCount: 5, topK: 8)
+            // Issue #63: Today's hourly fatigue curve
+            let fatigueCurve       = store.todayHourlyFatigueCurve()
+            // Issue #88: Training history
+            let trainingHistory    = store.trainingHistory(limit: 20)
+            // Issue #84: Full IKI map for before/after comparison
+            let bigramIKIMap       = store.allBigramIKI()
+            // Issue #209: Layer key efficiency
+            let layerEfficiency    = store.layerEfficiency()
+
+            // --- Mouse data ---
+            let mouseDailyDistances    = ms.dailyDistances().map(MouseDailyEntry.init)
+            let mouseHourlyActivity    = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
+            let dir                    = ms.directionBreakdown()
+            let mouseDirectionEntries  = [
+                MouseDirectionEntry(id: "left",  direction: "Left ←",  distancePts: dir.left),
+                MouseDirectionEntry(id: "right", direction: "Right →", distancePts: dir.right),
+                MouseDirectionEntry(id: "up",    direction: "Up ↑",    distancePts: dir.up),
+                MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
+            ].filter { $0.distancePts > 0 }
+            let mouseDailyDirectionEntries = ms.dailyDirectionBreakdown().map {
+                MouseDailyDirectionEntry(id: $0.date, date: $0.date,
+                                         right: $0.dxPos, left: $0.dxNeg,
+                                         down: $0.dyPos,  up:   $0.dyNeg)
+            }
+            let keystrokesByDate = Dictionary(uniqueKeysWithValues: rawDailyTotals.map { ($0.date, $0.total) })
+            let mouseKeyboardBalance = ms.dailyDistances().compactMap { entry -> MouseKeyboardBalanceEntry? in
+                guard let keys = keystrokesByDate[entry.date], entry.distancePts > 0 || keys > 0 else { return nil }
+                return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
+                                                 distancePts: entry.distancePts, keystrokes: keys)
+            }.sorted { $0.date < $1.date }
+
+            // --- Layout comparison (CPU-heavy optimizer) ---
+            let bigramSnapshot = store.allBigramCounts
+            let keySnapshot    = store.allKeyCounts
+            let layoutResult   = LayoutComparison.make(bigramCounts: bigramSnapshot, keyCounts: keySnapshot)
+
+            // Publish all results on the main thread in one batch.
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.topKeys              = topKeys
+                self.dailyTotals          = dailyTotals
+                self.categories           = categories
+                self.perDayKeys           = perDayKeys
+                self.shortcuts            = shortcuts
+                self.allCombos            = allCombos
+                self.keyCounts            = keyCounts
+                self.topBigrams           = topBigrams
+                self.sameFingerRate       = sameFingerRate
+                self.todaySameFingerRate  = todaySameFingerRate
+                self.handAlternationRate  = handAlternationRate
+                self.todayHandAltRate     = todayHandAltRate
+                self.dailyErgonomics      = dailyErgonomics
+                self.weeklyDeltas         = weeklyDeltas
+                self.hourlyDistribution   = hourlyDistribution
+                self.monthlyTotals        = monthlyTotals
+                self.weeklyHeatmap        = weeklyHeatmap
+                self.topApps              = topApps
+                self.todayTopApps         = todayTopApps
+                self.appErgScores         = appErgScores
+                self.topDevices           = topDevices
+                self.todayTopDevices      = todayTopDevices
+                self.deviceErgScores      = deviceErgScores
+                self.dailyWPM             = dailyWPM
+                self.dailyAccuracy        = dailyAccuracy
+                self.ikiHistogram         = ikiHistogram
+                self.slowBigrams          = slowBigrams
+                self.fingerIKI            = fingerIKI
+                self.layoutEfficiency     = layoutEfficiency
+                self.sessionSummaries     = sessionSummaries
+                self.trainingScores       = trainingScores
+                self.trainingTrigramScores = trainingTrigramScores
+                self.fatigueCurve         = fatigueCurve
+                self.trainingHistory      = trainingHistory
+                self.bigramIKIMap         = bigramIKIMap
+                self.layerEfficiency      = layerEfficiency
+                self.mouseDailyDistances        = mouseDailyDistances
+                self.mouseHourlyActivity        = mouseHourlyActivity
+                self.mouseDirectionEntries      = mouseDirectionEntries
+                self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
+                self.mouseKeyboardBalance       = mouseKeyboardBalance
+                self.layoutComparison           = layoutResult
+                self.isLayoutComparisonLoading  = false
+                self.isLoading                  = false
             }
         }
 
-        // Issue #5: Activity Trends
-        hourlyDistribution = store.hourlyDistribution()
-        monthlyTotals      = store.monthlyTotals().map(MonthlyTotalEntry.init)
-        // Issue #78: Weekly Activity Heatmap
-        weeklyHeatmap = store.hourlyCountsByDayOfWeek().map(HeatmapCell.init)
-        // Per-application counts
-        topApps      = store.topApps(limit: 20).map(AppEntry.init)
-        todayTopApps = store.todayTopApps(limit: 10).map(AppEntry.init)
-        appErgScores = store.appErgonomicScores(minKeystrokes: 100).map(AppErgScoreEntry.init)
-        // Per-device counts
-        topDevices      = store.topDevices(limit: 20).map(DeviceEntry.init)
-        todayTopDevices = store.todayTopDevices(limit: 10).map(DeviceEntry.init)
-        deviceErgScores = store.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
-        // Issue #59 Phase 2: daily WPM
-        dailyWPM = store.dailyWPM().map(DailyWPMEntry.init)
-        // Issue #65: daily backspace rate
-        dailyAccuracy = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
-        // Issue #102: IKI histogram
-        ikiHistogram = store.ikiHistogramEntries()
-        // Issue #103: slowest bigrams by average IKI
-        slowBigrams = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
-        // Issue #104: IKI per finger
-        fingerIKI = store.ikiPerFinger().map(FingerIKIEntry.init)
-        // Issue #61: layout efficiency comparison
-        layoutEfficiency = store.layoutEfficiencyScores()
-        // Issue #60: session detection
-        sessionSummaries = store.allSessionSummaries()
-        // Issue #168: Mouse tab
-        let ms = MouseStore.shared
-        mouseDailyDistances = ms.dailyDistances().map(MouseDailyEntry.init)
-        mouseHourlyActivity = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
-        let dir = ms.directionBreakdown()
-        mouseDirectionEntries = [
-            MouseDirectionEntry(id: "left",  direction: "Left ←",  distancePts: dir.left),
-            MouseDirectionEntry(id: "right", direction: "Right →", distancePts: dir.right),
-            MouseDirectionEntry(id: "up",    direction: "Up ↑",    distancePts: dir.up),
-            MouseDirectionEntry(id: "down",  direction: "Down ↓",  distancePts: dir.down),
-        ].filter { $0.distancePts > 0 }
-        mouseDailyDirectionEntries = ms.dailyDirectionBreakdown().map {
-            MouseDailyDirectionEntry(id: $0.date, date: $0.date,
-                                     right: $0.dxPos, left: $0.dxNeg,
-                                     down: $0.dyPos,  up:   $0.dyNeg)
-        }
-        // Issue #182: join mouse distance + keystroke totals by date
-        let keystrokesByDate = Dictionary(uniqueKeysWithValues: rawDailyTotals.map { ($0.date, $0.total) })
-        mouseKeyboardBalance = ms.dailyDistances().compactMap { entry -> MouseKeyboardBalanceEntry? in
-            guard let keys = keystrokesByDate[entry.date], entry.distancePts > 0 || keys > 0 else { return nil }
-            return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
-                                             distancePts: entry.distancePts, keystrokes: keys)
-        }.sorted { $0.date < $1.date }
-        // Issue #90: Training — store raw scores; session is built in the view with the user's length config.
-        trainingScores = store.rankedBigramsForTraining(minCount: 5, topK: 10)
-        // Issue #89: Trigram training targets (Phase 2).
-        trainingTrigramScores = store.rankedTrigramsForTraining(minCount: 5, topK: 8)
-        // Issue #63: Today's hourly fatigue curve.
-        fatigueCurve = store.todayHourlyFatigueCurve()
-        // Issue #88: Training history
-        trainingHistory = store.trainingHistory(limit: 20)
-        // Issue #84: Full IKI map for before/after comparison
-        bigramIKIMap = store.allBigramIKI()
-        // Issue #209: Layer key efficiency
-        layerEfficiency = store.layerEfficiency()
+        // Signal that the layout comparison is being computed (shown immediately).
+        isLayoutComparisonLoading = true
     }
 
     /// Reloads key transition data for the given target key (Issue #98).
