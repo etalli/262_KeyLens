@@ -237,7 +237,11 @@ struct KeyInspectorView: View {
         case 0xE5: return "Right Shift"
         case 0xE6: return "Right Alt"
         case 0xE7: return "Right GUI (⌘)"
-        default:   return k.name
+        default:
+            // Strip modifier symbols — HID Name describes the physical key only, not the combo.
+            var base = k.name
+            for sym in ["⌃", "⌥", "⇧", "⌘"] { base = base.replacingOccurrences(of: sym, with: "") }
+            return base.isEmpty ? k.name : base
         }
     }
 
