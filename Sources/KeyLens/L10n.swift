@@ -1877,6 +1877,7 @@ final class L10n {
     var inspectorFieldHold: String     { ja("押下時間", en: "Hold") }
     var inspectorFieldRawFlags: String { ja("フラグ(生)", en: "Raw Flags") }
     var inspectorFieldHID: String      { ja("HID", en: "HID") }
+    var inspectorFieldHIDName: String  { ja("キー名", en: "Name") }
 
     var inspectorLocationStandard: String { ja("Standard", en: "Standard") }
     var inspectorLocationLeft: String     { ja("Left",     en: "Left") }

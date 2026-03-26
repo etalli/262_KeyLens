@@ -118,7 +118,7 @@ struct KeyInspectorView: View {
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 16, verticalSpacing: 6) {
                 GridRow {
                     label(L10n.shared.inspectorFieldKey)
-                    mono(k.name)
+                    mono(lrKeyName(k))
                     label(L10n.shared.inspectorFieldCode)
                     mono("\(k.keyCode)")
                 }
@@ -139,11 +139,13 @@ struct KeyInspectorView: View {
                 GridRow {
                     label(L10n.shared.inspectorFieldHID)
                     mono(k.hidUsage.map { String(format: "%02X / %02X", $0.page, $0.usage) } ?? "—")
+                    label(L10n.shared.inspectorFieldHIDName)
+                    mono(hidDisplayName(k))
                 }
             }
         } else {
             Text(L10n.shared.inspectorWaiting)
-                .font(.footnote)
+                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
@@ -166,14 +168,14 @@ struct KeyInspectorView: View {
     private var heldKeysSection: some View {
         if vm.heldKeys.isEmpty {
             Text(L10n.shared.inspectorNoHeldKeys)
-                .font(.footnote)
+                .font(.callout)
                 .foregroundStyle(.tertiary)
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(vm.heldKeys.sorted(by: { $0.key < $1.key }), id: \.key) { _, name in
                         Text(name)
-                            .font(.system(.footnote, design: .monospaced))
+                            .font(.system(.callout, design: .monospaced))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(Color.accentColor.opacity(0.15))
@@ -188,19 +190,20 @@ struct KeyInspectorView: View {
 
     private func label(_ text: String) -> some View {
         Text(text)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(.subheadline)
+            .foregroundStyle(.tertiary)
     }
 
     private func mono(_ text: String) -> some View {
         Text(text)
-            .font(.system(.footnote, design: .monospaced))
+            .font(.system(.callout, design: .monospaced))
+            .fontWeight(.medium)
             .foregroundStyle(.primary)
     }
 
     private func pill(_ symbol: String, active: Bool) -> some View {
         Text(symbol)
-            .font(.system(size: 15, weight: active ? .semibold : .regular))
+            .font(.system(size: 17, weight: active ? .semibold : .regular))
             .frame(width: 32, height: 28)
             .background(active ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.1))
             .foregroundStyle(active ? Color.primary : Color.secondary)
@@ -212,13 +215,46 @@ struct KeyInspectorView: View {
             .animation(.easeInOut(duration: 0.1), value: active)
     }
 
+    // Returns a human-readable name for the HID row.
+    // For modifier keys (0xE0–0xE7) the keyCode-based location already set in `location`
+    // is the clearest label. For all other keys, the display name suffices.
+    private func hidDisplayName(_ k: KeyInspectorViewModel.LastKey) -> String {
+        guard let hid = k.hidUsage, hid.page == 0x07 else { return "—" }
+        switch hid.usage {
+        case 0xE0: return "Left Control"
+        case 0xE1: return "Left Shift"
+        case 0xE2: return "Left Alt"
+        case 0xE3: return "Left GUI (⌘)"
+        case 0xE4: return "Right Control"
+        case 0xE5: return "Right Shift"
+        case 0xE6: return "Right Alt"
+        case 0xE7: return "Right GUI (⌘)"
+        default:   return k.name
+        }
+    }
+
+    // Returns modifier flags with left/right distinction using NXEventData raw bit masks.
+    // Bit masks: Shift L=0x02/R=0x04, Ctrl L=0x01/R=0x2000, Option L=0x20/R=0x40, Cmd L=0x08/R=0x10
     private func flagsString(_ k: KeyInspectorViewModel.LastKey) -> String {
+        let raw = k.rawFlags
         var parts: [String] = []
-        if k.hasCmd   { parts.append("⌘") }
-        if k.hasAlt   { parts.append("⌥") }
-        if k.hasCtrl  { parts.append("⌃") }
-        if k.hasShift { parts.append("⇧") }
+        if k.hasCmd   { parts.append(raw & 0x10   != 0 ? "R⌘" : "L⌘") }
+        if k.hasAlt   { parts.append(raw & 0x40   != 0 ? "R⌥" : "L⌥") }
+        if k.hasCtrl  { parts.append(raw & 0x2000 != 0 ? "R⌃" : "L⌃") }
+        if k.hasShift { parts.append(raw & 0x04   != 0 ? "R⇧" : "L⇧") }
         if k.hasCaps  { parts.append("⇪") }
-        return parts.isEmpty ? "—" : parts.joined()
+        return parts.isEmpty ? "—" : parts.joined(separator: " ")
+    }
+
+    // Rewrites modifier symbols in the display name with L/R prefixes.
+    // e.g. "⇧A" → "L⇧A" or "R⇧A" depending on which Shift was pressed.
+    private func lrKeyName(_ k: KeyInspectorViewModel.LastKey) -> String {
+        let raw = k.rawFlags
+        var name = k.name
+        if k.hasShift { name = name.replacingOccurrences(of: "⇧", with: raw & 0x04 != 0 ? "R⇧" : "L⇧") }
+        if k.hasCmd   { name = name.replacingOccurrences(of: "⌘", with: raw & 0x10 != 0 ? "R⌘" : "L⌘") }
+        if k.hasAlt   { name = name.replacingOccurrences(of: "⌥", with: raw & 0x40 != 0 ? "R⌥" : "L⌥") }
+        if k.hasCtrl  { name = name.replacingOccurrences(of: "⌃", with: raw & 0x2000 != 0 ? "R⌃" : "L⌃") }
+        return name
     }
 }
