@@ -104,6 +104,10 @@ struct ChartsView: View {
             comparisonTab
                 .tabItem { Label(ChartTab.comparison.rawValue, systemImage: ChartTab.comparison.icon) }
                 .tag(ChartTab.comparison)
+
+            inspectorTab
+                .tabItem { Label(L10n.shared.tabInspector, systemImage: ChartTab.inspector.icon) }
+                .tag(ChartTab.inspector)
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

@@ -40,6 +40,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
     case mouse       = "Mouse"
     case training    = "Training"
     case comparison  = "Compare"
+    case inspector   = "Inspector"
 
     var id: String { rawValue }
 
@@ -55,6 +56,7 @@ enum ChartTab: String, CaseIterable, Identifiable {
         case .mouse:      return "cursorarrow.motionlines"
         case .training:   return "figure.run"
         case .comparison: return "arrow.left.arrow.right"
+        case .inspector:  return "keyboard"
         }
     }
 }

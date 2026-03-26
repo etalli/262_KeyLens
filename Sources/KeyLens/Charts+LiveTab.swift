@@ -38,12 +38,6 @@ extension ChartsView {
 
                 Divider().padding(.horizontal, 24)
 
-                chartSection(L10n.shared.keyInspectorSection, helpText: L10n.shared.helpKeyInspector) {
-                    KeyInspectorView()
-                }
-                .padding(.top, 24)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }

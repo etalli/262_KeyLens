@@ -1857,6 +1857,8 @@ final class L10n {
 
     // MARK: - Key Inspector (#246)
 
+    var tabInspector: String { ja("インスペクタ", en: "Inspector") }
+
     var keyInspectorSection: String {
         ja("キーイベント検査", en: "Key Event Inspector")
     }
