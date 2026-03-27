@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Charts
 import KeyLensCore
 
 extension ChartsView {
@@ -42,6 +43,10 @@ extension ChartsView {
                              helpText: L10n.shared.helpPracticeDrills) {
                     practiceDrillsSection
                 }
+                chartSection(L10n.shared.trainingProgressTitle,
+                             helpText: L10n.shared.helpTrainingProgress) {
+                    trainingProgressSection
+                }
                 chartSection(L10n.shared.trainingHistoryTitle,
                              helpText: L10n.shared.helpTrainingHistory) {
                     trainingHistorySection
@@ -57,6 +62,151 @@ extension ChartsView {
             }
             .padding(24)
         }
+    }
+
+    // MARK: - Progress (Issue #233)
+
+    /// Summary stats: total sessions, day streak, best all-time improvement.
+    @ViewBuilder
+    var trainingProgressSection: some View {
+        let l = L10n.shared
+        let history = model.trainingHistory
+        if history.isEmpty {
+            Text(l.trainingProgressChartNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            VStack(alignment: .leading, spacing: 20) {
+                // Summary stats row
+                HStack(spacing: 28) {
+                    trainingStatCard(
+                        label: l.trainingProgressTotalSessions,
+                        value: "\(history.count)"
+                    )
+                    trainingStatCard(
+                        label: l.trainingProgressStreak,
+                        value: "\(trainingDayStreak) 🔥"
+                    )
+                    trainingStatCard(
+                        label: l.trainingProgressBestImprovement,
+                        value: trainingBestImprovementLabel
+                    )
+                }
+
+                // IKI trend line chart — top 5 most-practiced bigrams
+                let trendData = trainingIKITrendData
+                if !trendData.isEmpty {
+                    Chart(trendData, id: \.id) { point in
+                        LineMark(
+                            x: .value("Session", point.sessionIndex),
+                            y: .value(l.trainingProgressIKIAxis, point.iki)
+                        )
+                        .foregroundStyle(by: .value("Bigram", point.bigramDisplay))
+                        .interpolationMethod(.catmullRom)
+                        PointMark(
+                            x: .value("Session", point.sessionIndex),
+                            y: .value(l.trainingProgressIKIAxis, point.iki)
+                        )
+                        .foregroundStyle(by: .value("Bigram", point.bigramDisplay))
+                        .symbolSize(30)
+                    }
+                    .chartYAxisLabel(l.trainingProgressIKIAxis, alignment: .trailing)
+                    .chartXAxis {
+                        AxisMarks(values: .automatic(desiredCount: 5)) { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let idx = value.as(Int.self) {
+                                    Text("#\(idx)")
+                                        .font(.footnote)
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: 200)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func trainingStatCard(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.title3.bold())
+        }
+    }
+
+    /// Consecutive days with at least one completed session, counting back from today.
+    private var trainingDayStreak: Int {
+        let calendar = Calendar.current
+        let days = Set(model.trainingHistory.map { calendar.startOfDay(for: $0.completedAt) })
+        guard !days.isEmpty else { return 0 }
+        var streak = 0
+        var cursor = calendar.startOfDay(for: Date())
+        while days.contains(cursor) {
+            streak += 1
+            guard let prev = calendar.date(byAdding: .day, value: -1, to: cursor) else { break }
+            cursor = prev
+        }
+        return streak
+    }
+
+    /// Finds the bigram with the largest IKI reduction (first recorded beforeIKI vs. current).
+    /// Returns a display string like "th −27ms" or "—" if no improvement data is available.
+    private var trainingBestImprovementLabel: String {
+        var firstIKI: [String: Double] = [:]
+        for record in model.trainingHistory.reversed() {   // oldest first
+            for (bigram, iki) in record.beforeIKI {
+                firstIKI[bigram] = iki
+            }
+        }
+        let best = firstIKI
+            .compactMap { bigram, before -> (String, Double)? in
+                guard let current = model.bigramIKIMap[bigram], before > current else { return nil }
+                return (bigram, before - current)
+            }
+            .max(by: { $0.1 < $1.1 })
+        guard let (bigram, delta) = best else { return L10n.shared.trainingProgressNoBestImprovement }
+        let display = bigram.components(separatedBy: "→").joined()
+        return "\(display) −\(Int(delta))ms"
+    }
+
+    /// Data points for the IKI trend chart.
+    /// Returns one entry per (session × bigram) for the top 5 most-practiced bigrams,
+    /// ordered by session date ascending.
+    private var trainingIKITrendData: [IKITrendPoint] {
+        let history = model.trainingHistory.reversed()   // oldest first
+
+        // Count how many sessions each bigram appears in
+        var bigramSessionCount: [String: Int] = [:]
+        for record in history {
+            for bigram in record.beforeIKI.keys {
+                bigramSessionCount[bigram, default: 0] += 1
+            }
+        }
+        let topBigrams = bigramSessionCount
+            .sorted { $0.value > $1.value }
+            .prefix(5)
+            .map(\.key)
+
+        var points: [IKITrendPoint] = []
+        for (offset, record) in history.enumerated() {
+            let sessionIndex = offset + 1
+            for bigram in topBigrams {
+                guard let iki = record.beforeIKI[bigram] else { continue }
+                let display = bigram.components(separatedBy: "→").joined()
+                points.append(IKITrendPoint(
+                    id: "\(bigram)-\(sessionIndex)",
+                    sessionIndex: sessionIndex,
+                    bigramDisplay: display,
+                    iki: iki
+                ))
+            }
+        }
+        return points
     }
 
     // MARK: - Targets
@@ -479,6 +629,14 @@ extension ChartsView {
 }
 
 // MARK: - InteractivePracticeView
+
+/// A single data point in the IKI trend chart (Issue #233).
+struct IKITrendPoint {
+    let id: String
+    let sessionIndex: Int
+    let bigramDisplay: String
+    let iki: Double
+}
 
 struct TrainingCompletionResult {
     let targets: [String]

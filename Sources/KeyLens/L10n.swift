@@ -1823,10 +1823,15 @@ final class L10n {
 
     var layerEfficiencyHelp: String {
         ja(
-            "ファームウェアレイヤーキー (Lower, Raise など) の使用回数と担当指の負荷を表示します。レイヤーキーマッピングを設定すると有効になります。",
-            en: "Shows usage count and finger load for firmware layer keys (Lower, Raise, etc.). Requires Layer Key Mapping to be configured."
+            "ファームウェアレイヤーキー (Lower, Raise など) の使用回数、担当指の負荷、および同指率・交互打鍵率・高負荷率を表示します。レイヤーキーマッピングを設定すると有効になります。",
+            en: "Shows usage count, finger assignment, and ergonomic rates (same-finger, hand alternation, high-strain) for firmware layer keys (Lower, Raise, etc.). Requires Layer Key Mapping to be configured."
         )
     }
+
+    // Issue #236: per-layer ergonomic rate labels
+    var layerErgSF: String { ja("同指", en: "SF") }
+    var layerErgHA: String { ja("交互", en: "HA") }
+    var layerErgHS: String { ja("高負荷", en: "HS") }
 
     var layerEfficiencyNoData: String {
         ja("レイヤーキーマッピングが未設定です", en: "No layer key mappings configured")
@@ -1903,6 +1908,23 @@ final class L10n {
     var inspectorHeldKeys: String {
         ja("現在押中のキー", en: "Held Keys")
     }
+
+    // MARK: - Training Progress (Issue #233)
+
+    var trainingProgressTitle: String { ja("トレーニング進捗", en: "Training Progress") }
+    var helpTrainingProgress: String {
+        ja("直近20セッション分の IKI 推移を可視化します。最も練習したバイグラムの改善傾向を折れ線グラフで表示します。",
+           en: "Visualizes IKI trends across training sessions. Shows improvement in your most-practiced bigrams over the last 20 sessions.")
+    }
+    var trainingProgressTotalSessions: String { ja("総セッション数", en: "Total Sessions") }
+    var trainingProgressStreak: String { ja("連続日数", en: "Day Streak") }
+    var trainingProgressBestImprovement: String { ja("最大改善", en: "Best Improvement") }
+    var trainingProgressNoBestImprovement: String { ja("—", en: "—") }
+    var trainingProgressChartNoData: String {
+        ja("トレーニングを完了するとIKI推移グラフが表示されます。",
+           en: "Complete training sessions to see your IKI trend here.")
+    }
+    var trainingProgressIKIAxis: String { ja("IKI (ms)", en: "IKI (ms)") }
 
     // MARK: - Charts: Section Titles (Issue #266)
 
