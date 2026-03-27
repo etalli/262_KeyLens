@@ -1962,6 +1962,10 @@ final class L10n {
 
     // MARK: - Charts: Live Tab (Issue #266)
 
+    var liveSubTabMonitor: String      { ja("モニター",  en: "Monitor") }
+    var liveSubTabIntelligence: String { ja("分析",      en: "Intelligence") }
+    var liveSubTabWPMTest: String      { ja("WPMテスト", en: "WPM Test") }
+
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
            en: "Type with this window open to see live timing.")

@@ -1,45 +1,73 @@
 import SwiftUI
 import Charts
 
+// MARK: - Live sub-tab enum (Issue #271)
+
+enum LiveSubTab: String, CaseIterable {
+    case monitor
+    case intelligence
+    case wpmTest
+}
+
 extension ChartsView {
 
     var liveTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                chartSection(L10n.shared.chartTitleSpeedometer, helpText: L10n.shared.helpSpeedometer) {
-                    SpeedometerView()
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
-                .padding(.top, 24)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-                Divider().padding(.horizontal, 24)
-
-                chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
-                    .padding(.top, 24)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 16)
-
-                Divider().padding(.horizontal, 24)
-
-                chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 24)
-                    .padding(.leading, 24)
-                    .padding(.bottom, 24)
-                    .padding(.trailing, 12)
-
-                Divider().padding(.horizontal, 24)
-
-                wpmMeasurementSection
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 20)
-
-                Divider().padding(.horizontal, 24)
-
+        VStack(spacing: 0) {
+            // Sub-tab picker
+            Picker("", selection: $liveSubTab) {
+                Text(L10n.shared.liveSubTabMonitor).tag(LiveSubTab.monitor)
+                Text(L10n.shared.liveSubTabIntelligence).tag(LiveSubTab.intelligence)
+                Text(L10n.shared.liveSubTabWPMTest).tag(LiveSubTab.wpmTest)
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            // Sub-tab content — each fits without scrolling
+            switch liveSubTab {
+            case .monitor:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        chartSection(L10n.shared.chartTitleSpeedometer, helpText: L10n.shared.helpSpeedometer) {
+                            SpeedometerView()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        .padding(.top, 24)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 16)
+
+                        Divider().padding(.horizontal, 24)
+
+                        chartSection(L10n.shared.chartTitleRecentIKI, helpText: L10n.shared.helpRecentIKI) { recentIKIChart }
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 24)
+                            .padding(.leading, 24)
+                            .padding(.bottom, 24)
+                            .padding(.trailing, 12)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+
+            case .intelligence:
+                ScrollView {
+                    chartSection(L10n.shared.intelligenceSection, helpText: L10n.shared.helpIntelligence) { intelligenceGroup }
+                        .padding(.top, 24)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 24)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+
+            case .wpmTest:
+                ScrollView {
+                    wpmMeasurementSection
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 24)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+            }
         }
         .onAppear {
             model.refreshLiveData()

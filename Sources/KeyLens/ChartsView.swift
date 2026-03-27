@@ -21,6 +21,8 @@ struct ChartsView: View {
     @State var snapperStore = SnapperStore()
     /// Timer that drives real-time refresh on the Live tab.
     @State var liveTimer: Timer? = nil
+    /// Active sub-tab within the Live tab (Issue #271).
+    @State var liveSubTab: LiveSubTab = .monitor
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
     /// Whether a manual WPM session is active (Issue #150).
