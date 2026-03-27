@@ -18,7 +18,7 @@ struct SectionHeader: View {
                 .onHover { showHelp = $0 }
                 .popover(isPresented: $showHelp, arrowEdge: .bottom) {
                     Text(helpText)
-                        .font(.title3)
+                        .font(.callout)
                         .padding(10)
                         .frame(width: 280)
                         .fixedSize(horizontal: false, vertical: true)
