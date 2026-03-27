@@ -23,6 +23,8 @@ struct ChartsView: View {
     @State var liveTimer: Timer? = nil
     /// Active sub-tab within the Live tab (Issue #271).
     @State var liveSubTab: LiveSubTab = .monitor
+    /// Active sub-tab within the Activity tab (Issue #272).
+    @State var activitySubTab: ActivitySubTab = .speed
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
     /// Whether a manual WPM session is active (Issue #150).

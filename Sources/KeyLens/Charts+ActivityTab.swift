@@ -2,21 +2,61 @@ import SwiftUI
 import Charts
 import KeyLensCore
 
+// MARK: - Activity sub-tab enum (Issue #272)
+
+enum ActivitySubTab: String, CaseIterable {
+    case speed
+    case patterns
+    case volume
+}
+
 extension ChartsView {
 
     var activityTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
-                chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
-                chartSection(L10n.shared.chartTitleIKIHistogram, helpText: L10n.shared.helpIKIHistogram) { ikiHistogramChart }
-                chartSection(L10n.shared.chartTitleWeeklyHeatmap, helpText: L10n.shared.helpWeeklyHeatmap) { weeklyHeatmapChart }
-                chartSection(L10n.shared.chartTitleHourlyDistribution, helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
-                chartSection(L10n.shared.chartTitleDailyTotals, helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
-                chartSection(L10n.shared.chartTitleMonthlyTotals, helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
-                chartSection(L10n.shared.chartTitleSessions, helpText: L10n.shared.helpSessions) { sessionsChart }
+        VStack(spacing: 0) {
+            // Sub-tab picker
+            Picker("", selection: $activitySubTab) {
+                Text(L10n.shared.activitySubTabSpeed).tag(ActivitySubTab.speed)
+                Text(L10n.shared.activitySubTabPatterns).tag(ActivitySubTab.patterns)
+                Text(L10n.shared.activitySubTabVolume).tag(ActivitySubTab.volume)
             }
-            .padding(24)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch activitySubTab {
+            case .speed:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleTypingSpeed, helpText: L10n.shared.helpTypingSpeed) { dailyWPMChart }
+                        chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
+                        chartSection(L10n.shared.chartTitleIKIHistogram, helpText: L10n.shared.helpIKIHistogram) { ikiHistogramChart }
+                    }
+                    .padding(24)
+                }
+
+            case .patterns:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleWeeklyHeatmap, helpText: L10n.shared.helpWeeklyHeatmap) { weeklyHeatmapChart }
+                        chartSection(L10n.shared.chartTitleHourlyDistribution, helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
+                    }
+                    .padding(24)
+                }
+
+            case .volume:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleDailyTotals, helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
+                        chartSection(L10n.shared.chartTitleMonthlyTotals, helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
+                        chartSection(L10n.shared.chartTitleSessions, helpText: L10n.shared.helpSessions) { sessionsChart }
+                    }
+                    .padding(24)
+                }
+            }
         }
     }
 

@@ -1966,6 +1966,10 @@ final class L10n {
     var liveSubTabIntelligence: String { ja("分析",      en: "Intelligence") }
     var liveSubTabWPMTest: String      { ja("WPMテスト", en: "WPM Test") }
 
+    var activitySubTabSpeed: String    { ja("スピード",  en: "Speed") }
+    var activitySubTabPatterns: String { ja("パターン",  en: "Patterns") }
+    var activitySubTabVolume: String   { ja("ボリューム", en: "Volume") }
+
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
            en: "Type with this window open to see live timing.")
