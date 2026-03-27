@@ -173,6 +173,7 @@ struct MenuView: View {
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
                     .frame(width: 16)
+                    .accessibilityHidden(true)
             }
             Text(text)
                 .font(.system(size: 13))
@@ -180,6 +181,7 @@ struct MenuView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 
     private func menuRow(_ title: String, icon: String? = nil, destructive: Bool = false, action: @escaping () -> Void) -> some View {
@@ -222,6 +224,7 @@ private struct OverlayRow: View {
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .frame(width: 16)
+                        .accessibilityHidden(true)
                     Text(l.overlayMenuItem)
                         .font(.system(size: 13))
                         .foregroundColor(.primary)
@@ -233,12 +236,16 @@ private struct OverlayRow: View {
                 .padding(.vertical, 6)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(l.overlayMenuItem)
+            .accessibilityValue(isEnabled ? "on" : "off")
+            .accessibilityAddTraits(.isToggle)
 
             // Hotkey badge
             Text(OverlayHotkeyManager.shared.displayString)
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
                 .padding(.trailing, 4)
+                .accessibilityHidden(true)
 
             // ギアボタン：チェックマークの左、ホバー時のみ表示
             Button(action: { appDelegate.showOverlaySettings() }) {
@@ -250,6 +257,7 @@ private struct OverlayRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(l.overlaySettingsMenuItem)
 
             // チェックマーク（最右端・固定位置・他の toggleRow と揃える）
             Image(systemName: "checkmark")
@@ -258,6 +266,7 @@ private struct OverlayRow: View {
                 .padding(.trailing, 14)
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
+                .accessibilityHidden(true)
                 .onTapGesture { appDelegate.toggleOverlay() }
         }
         .background(
@@ -285,6 +294,7 @@ private struct WPMGaugeRow: View {
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .frame(width: 16)
+                        .accessibilityHidden(true)
                     Text(L10n.shared.wpmGaugeMenuItem)
                         .font(.system(size: 13))
                         .foregroundColor(.primary)
@@ -296,6 +306,9 @@ private struct WPMGaugeRow: View {
                 .padding(.vertical, 6)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(L10n.shared.wpmGaugeMenuItem)
+            .accessibilityValue(isEnabled ? "on" : "off")
+            .accessibilityAddTraits(.isToggle)
 
             Image(systemName: "checkmark")
                 .font(.system(size: 12, weight: .semibold))
@@ -303,6 +316,7 @@ private struct WPMGaugeRow: View {
                 .padding(.trailing, 14)
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
+                .accessibilityHidden(true)
                 .onTapGesture { appDelegate.toggleWPMGauge() }
         }
         .background(
