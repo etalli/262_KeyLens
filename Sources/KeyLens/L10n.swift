@@ -614,6 +614,14 @@ final class L10n {
         ja("保存しました！", en: "Saved!")
     }
 
+    var sectionCollapse: String {
+        ja("セクションを折りたたむ", en: "Collapse section")
+    }
+
+    var sectionExpand: String {
+        ja("セクションを展開する", en: "Expand section")
+    }
+
     var heatmapLayoutLabel: String {
         ja("レイアウト", en: "Layout")
     }

@@ -47,6 +47,9 @@ struct ChartsView: View {
     /// Whether the thumb key optimization subsection is shown in Layout Comparison (Issue #208).
     /// 親指キー最適化サブセクションを Layout Comparison に表示するか（Issue #208）。
     @AppStorage("thumbOptimizationEnabled") var thumbOptimizationEnabled: Bool = false
+    /// Set of section titles that are currently collapsed (Issue #251).
+    /// 折りたたまれているセクションのタイトルセット。
+    @State var collapsedSections: Set<String> = []
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。
@@ -124,6 +127,7 @@ struct ChartsView: View {
     func chartSection<C: View>(_ title: String, helpText: String? = nil, showSort: Bool = false, @ViewBuilder content: () -> C) -> some View {
         let contentView = AnyView(content())
         let isCopied = copiedSection == title
+        let isCollapsed = collapsedSections.contains(title)
         // ChartSnapper wraps the entire section (title + content) so the clipboard
         // image includes the section title. (Fix for Issue #156)
         return ZStack(alignment: .topLeading) {
@@ -132,6 +136,22 @@ struct ChartsView: View {
                 .allowsHitTesting(false)
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
+                    // Collapse/expand chevron (Issue #251)
+                    Button {
+                        if isCollapsed {
+                            collapsedSections.remove(title)
+                        } else {
+                            collapsedSections.insert(title)
+                        }
+                    } label: {
+                        Image(systemName: isCollapsed ? "chevron.right" : "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 16)
+                    }
+                    .buttonStyle(.plain)
+                    .help(isCollapsed ? L10n.shared.sectionExpand : L10n.shared.sectionCollapse)
+
                     if let helpText {
                         SectionHeader(title: title, helpText: helpText)
                     } else {
@@ -140,7 +160,7 @@ struct ChartsView: View {
 
                     Spacer()
 
-                    if showSort {
+                    if showSort && !isCollapsed {
                         Picker("", selection: $sortDescending) {
                             Image(systemName: "arrow.down.square").tag(true)
                                 .help("Descending (Most frequent first)")
@@ -176,7 +196,9 @@ struct ChartsView: View {
                     .help(isCopied ? L10n.shared.copiedConfirmation : "Copy chart as image")
                     .animation(.easeInOut(duration: 0.2), value: isCopied)
                 }
-                contentView
+                if !isCollapsed {
+                    contentView
+                }
             }
         }
     }
