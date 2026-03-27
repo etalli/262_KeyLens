@@ -98,7 +98,39 @@ private struct LayerKeyDetailRow: View {
                     }
                 }
             }
+
+            // Issue #236: ergonomic rates for today's layer bigrams
+            if entry.totalBigrams > 0 {
+                HStack(spacing: 12) {
+                    LayerErgRateBadge(label: l.layerErgSF, rate: entry.sfRate, color: .orange)
+                    LayerErgRateBadge(label: l.layerErgHA, rate: entry.haRate, color: .green)
+                    LayerErgRateBadge(label: l.layerErgHS, rate: entry.hsRate, color: .red)
+                }
+            }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Ergonomic rate badge (Issue #236)
+
+private struct LayerErgRateBadge: View {
+    let label: String
+    let rate: Double
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(String(format: "%.1f%%", rate * 100))
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(color.opacity(0.9))
+        }
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(color.opacity(0.08))
+        .cornerRadius(4)
     }
 }

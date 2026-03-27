@@ -799,6 +799,30 @@ extension KeyMetricsQuery {
         let lms = LayerMappingStore.shared
         guard !lms.layerKeys.isEmpty else { return [] }
 
+        // Issue #236: load today's ergonomic stats from SQLite + pending
+        var ergStats: [String: (total: Int, sf: Int, ha: Int, hs: Int)] = [:]
+        if let db = dbQueue,
+           let rows = try? db.read({ db in
+               try Row.fetchAll(db, sql: """
+                   SELECT layer_key, erg_total, erg_sf, erg_ha, erg_hs
+                   FROM daily_layer_ergonomics WHERE date = ?
+                   """, arguments: [todayKey])
+           }) {
+            for row in rows {
+                let lk: String = row["layer_key"]
+                ergStats[lk] = (
+                    total: (row["erg_total"] as Int) + (ergStats[lk]?.total ?? 0),
+                    sf:    (row["erg_sf"]    as Int) + (ergStats[lk]?.sf    ?? 0),
+                    ha:    (row["erg_ha"]    as Int) + (ergStats[lk]?.ha    ?? 0),
+                    hs:    (row["erg_hs"]    as Int) + (ergStats[lk]?.hs    ?? 0)
+                )
+            }
+        }
+        for (lk, sl) in pending.layerErgSlices[todayKey, default: [:]] {
+            let e = ergStats[lk] ?? (0, 0, 0, 0)
+            ergStats[lk] = (e.total + sl.ergTotal, e.sf + sl.ergSF, e.ha + sl.ergHA, e.hs + sl.ergHS)
+        }
+
         return lms.layerKeys.map { layerKey in
             let allTime   = lms.allTimePressCount[layerKey.name] ?? 0
             let todayCount = lms.dailyPressCount[todayKey]?[layerKey.name] ?? 0
@@ -807,12 +831,17 @@ extension KeyMetricsQuery {
                 .sorted { $0.value > $1.value }
                 .prefix(5)
                 .map { (outputKey: $0.key, count: $0.value) }
+            let erg = ergStats[layerKey.name]
             return LayerEfficiencyEntry(
-                layerKeyName:       layerKey.name,
-                finger:             layerKey.finger,
-                pressCount:         todayCount,
-                allTimePressCount:  allTime,
-                topCombos:          topCombos
+                layerKeyName:      layerKey.name,
+                finger:            layerKey.finger,
+                pressCount:        todayCount,
+                allTimePressCount: allTime,
+                topCombos:         topCombos,
+                totalBigrams:      erg?.total ?? 0,
+                sfCount:           erg?.sf    ?? 0,
+                haCount:           erg?.ha    ?? 0,
+                hsCount:           erg?.hs    ?? 0
             )
         }
         .sorted { $0.allTimePressCount > $1.allTimePressCount }

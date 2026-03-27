@@ -17,6 +17,8 @@ struct PendingStore {
     var pendingSessions: [SessionRecord]       = []
     // Issue #63: hourly fatigue data (IKI + ergonomics per hour)
     var hourlySlices:  [String: [Int: HourlySlice]] = [:]  // date → hour → slice
+    // Issue #236: per-layer ergonomic deltas
+    var layerErgSlices: [String: [String: LayerErgSlice]] = [:]  // date → layerKeyName → slice
 
     struct SessionRecord {
         var date: String        // yyyy-MM-dd of sessionStart
@@ -34,11 +36,19 @@ struct PendingStore {
         var ergHS:    Int    = 0   // high-strain bigrams in this hour
     }
 
+    /// Per-layer ergonomic accumulator (Issue #236).
+    struct LayerErgSlice {
+        var ergTotal: Int = 0   // total bigrams involving this layer key
+        var ergSF:    Int = 0   // same-finger bigrams
+        var ergHA:    Int = 0   // hand-alternation bigrams
+        var ergHS:    Int = 0   // high-strain bigrams
+    }
+
     var isEmpty: Bool {
         dailyKeys.isEmpty && dailyBigrams.isEmpty && dailyTrigrams.isEmpty &&
         dailyApps.isEmpty && dailyDevices.isEmpty && hourly.isEmpty &&
         bigramIKI.isEmpty && ikiBuckets.isEmpty && pendingSessions.isEmpty &&
-        hourlySlices.isEmpty
+        hourlySlices.isEmpty && layerErgSlices.isEmpty
     }
 }
 
@@ -177,6 +187,18 @@ extension KeyCountStore {
                     t.column("value", .text).notNull()
                 }
             }
+            // Issue #236: per-layer ergonomic stats
+            migrator.registerMigration("v7") { db in
+                try db.create(table: "daily_layer_ergonomics", ifNotExists: true) { t in
+                    t.column("date",       .text).notNull()
+                    t.column("layer_key",  .text).notNull()
+                    t.column("erg_total",  .integer).notNull().defaults(to: 0)
+                    t.column("erg_sf",     .integer).notNull().defaults(to: 0)
+                    t.column("erg_ha",     .integer).notNull().defaults(to: 0)
+                    t.column("erg_hs",     .integer).notNull().defaults(to: 0)
+                    t.primaryKey(["date", "layer_key"])
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db
@@ -283,6 +305,21 @@ extension KeyCountStore {
                                              sl.ergTotal, sl.ergSF, sl.ergHS])
                     }
                 }
+                // Issue #236: flush per-layer ergonomic slices
+                for (date, layers) in p.layerErgSlices {
+                    for (layerKey, sl) in layers where sl.ergTotal > 0 {
+                        try db.execute(sql: """
+                            INSERT INTO daily_layer_ergonomics
+                                (date, layer_key, erg_total, erg_sf, erg_ha, erg_hs)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(date, layer_key) DO UPDATE SET
+                                erg_total = erg_total + excluded.erg_total,
+                                erg_sf    = erg_sf    + excluded.erg_sf,
+                                erg_ha    = erg_ha    + excluded.erg_ha,
+                                erg_hs    = erg_hs    + excluded.erg_hs
+                            """, arguments: [date, layerKey, sl.ergTotal, sl.ergSF, sl.ergHA, sl.ergHS])
+                    }
+                }
                 // Issue #60: flush completed typing sessions
                 for s in p.pendingSessions where s.endTime > s.startTime && s.keystrokeCount > 0 {
                     try db.execute(sql: """
@@ -322,6 +359,13 @@ extension KeyCountStore {
                 e.ikiSum   += sl.ikiSum;   e.ikiCount += sl.ikiCount
                 e.ergTotal += sl.ergTotal; e.ergSF    += sl.ergSF; e.ergHS += sl.ergHS
                 r.hourlySlices[d, default: [:]][h] = e
+            }
+        }
+        for (d, layers) in source.layerErgSlices {
+            for (lk, sl) in layers {
+                var e = r.layerErgSlices[d, default: [:]][lk, default: PendingStore.LayerErgSlice()]
+                e.ergTotal += sl.ergTotal; e.ergSF += sl.ergSF; e.ergHA += sl.ergHA; e.ergHS += sl.ergHS
+                r.layerErgSlices[d, default: [:]][lk] = e
             }
         }
         return r

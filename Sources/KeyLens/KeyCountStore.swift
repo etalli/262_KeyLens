@@ -327,6 +327,7 @@ final class KeyCountStore {
     // In-memory rolling state (not persisted)
     private var lastKeyName: String?
     private var secondLastKeyName: String?
+    private var lastPhysicalKeyName: String?   // physical base key for layer-mapped keys (Issue #236)
     private var lastBigramWasHighStrain: Bool = false
     private var alternationStreak: Int = 0
 
@@ -506,12 +507,18 @@ final class KeyCountStore {
             store.activity.lastInputTime = timestamp
 
             // Same-finger / alternation / bigram ergonomics
+            // Issue #236: resolve physical key for layer-mapped output keys.
+            // If this key is a layer output (e.g. "←" = Lower+J), use the base key ("J")
+            // for finger/hand lookup so ergonomic scoring reflects the actual physical key pressed.
+            let physicalKey = LayerMappingStore.shared.lookupTable[key]?.baseKey ?? key
+            let prevPhysical = lastPhysicalKeyName ?? lastKeyName
+
             let layout = LayoutRegistry.shared
             if let prev = lastKeyName,
-               let prevFinger = layout.current.finger(for: prev),
-               let prevHand   = layout.hand(for: prev),
-               let curFinger  = layout.current.finger(for: key),
-               let curHand    = layout.hand(for: key) {
+               let prevFinger = layout.current.finger(for: prevPhysical ?? prev),
+               let prevHand   = layout.hand(for: prevPhysical ?? prev),
+               let curFinger  = layout.current.finger(for: physicalKey),
+               let curHand    = layout.hand(for: physicalKey) {
 
                 store.ergonomics.totalBigramCount += 1
                 store.ergonomics.dailyTotalBigramCount[today, default: 0] += 1
@@ -545,8 +552,9 @@ final class KeyCountStore {
                     }
                 }
 
-                // High-strain detection (Issue #28)
-                let highStrain = layout.highStrainDetector.isHighStrain(from: prev, to: key, layout: layout)
+                // High-strain detection (Issue #28); use physical keys for accuracy (Issue #236)
+                let highStrain = layout.highStrainDetector.isHighStrain(
+                    from: prevPhysical ?? prev, to: physicalKey, layout: layout)
                 if highStrain {
                     store.ergonomics.highStrainBigramCount += 1
                     store.ergonomics.dailyHighStrainBigramCount[today, default: 0] += 1
@@ -592,14 +600,32 @@ final class KeyCountStore {
                 secondLastKeyName = nil
             }
             lastKeyName = key
+            lastPhysicalKeyName = (physicalKey == key) ? nil : physicalKey
 
-            // Layer key tracking (Issue #209): record layer key activation for layer-mapped keys.
+            // Layer key tracking (Issue #209 / #236): record activation and per-layer ergonomic stats.
             if let combo = LayerMappingStore.shared.physicalCombo(for: key) {
                 LayerMappingStore.shared.recordPress(
                     layerKeyName: combo.layerKeyName,
                     outputKey: key,
                     date: today
                 )
+                // Issue #236: accumulate per-layer ergonomic deltas using the physical base key.
+                // prevPhysical was captured before lastKeyName/lastPhysicalKeyName were updated.
+                if let prevPhys = prevPhysical,
+                   let pFinger = layout.current.finger(for: prevPhys),
+                   let pHand   = layout.hand(for: prevPhys),
+                   let cFinger = layout.current.finger(for: physicalKey),
+                   let cHand   = layout.hand(for: physicalKey) {
+                    let sf = (pFinger == cFinger && pHand == cHand)
+                    let ha = (pHand != cHand)
+                    let hs = layout.highStrainDetector.isHighStrain(from: prevPhys, to: physicalKey, layout: layout)
+                    var sl = pending.layerErgSlices[today, default: [:]][combo.layerKeyName, default: PendingStore.LayerErgSlice()]
+                    sl.ergTotal += 1
+                    if sf { sl.ergSF += 1 }
+                    if ha { sl.ergHA += 1 }
+                    if hs { sl.ergHS += 1 }
+                    pending.layerErgSlices[today, default: [:]][combo.layerKeyName] = sl
+                }
             }
 
             checkGoalNotificationLocked(todayStr: today)
@@ -662,6 +688,7 @@ final class KeyCountStore {
             pending = PendingStore()
             lastKeyName = nil
             secondLastKeyName = nil
+            lastPhysicalKeyName = nil
             alternationStreak = 0
             lastBigramWasHighStrain = false
             currentSessionStart = nil
@@ -679,6 +706,7 @@ final class KeyCountStore {
             pending = PendingStore()
             lastKeyName = nil
             secondLastKeyName = nil
+            lastPhysicalKeyName = nil
             alternationStreak = 0
             lastBigramWasHighStrain = false
             currentSessionStart = nil

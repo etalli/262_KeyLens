@@ -206,4 +206,13 @@ struct LayerEfficiencyEntry: Identifiable {
     var pressCount: Int         // how many times this layer key was activated today
     var allTimePressCount: Int  // cumulative all-time press count
     var topCombos: [(outputKey: String, count: Int)]  // most-used output keys via this layer
+    // Issue #236: ergonomic breakdown for today's layer bigrams
+    var totalBigrams: Int = 0
+    var sfCount: Int      = 0   // same-finger bigrams
+    var haCount: Int      = 0   // hand-alternation bigrams
+    var hsCount: Int      = 0   // high-strain bigrams
+
+    var sfRate: Double { totalBigrams > 0 ? Double(sfCount) / Double(totalBigrams) : 0 }
+    var haRate: Double { totalBigrams > 0 ? Double(haCount) / Double(totalBigrams) : 0 }
+    var hsRate: Double { totalBigrams > 0 ? Double(hsCount) / Double(totalBigrams) : 0 }
 }
