@@ -62,7 +62,7 @@ extension ChartsView {
         if entries.isEmpty {
             VStack(spacing: 6) {
                 emptyState
-                Text("Type with this window open to see live timing.")
+                Text(L10n.shared.liveTypingHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -109,9 +109,9 @@ extension ChartsView {
                 }
                 .frame(height: recentIKIPlotHeight)
                 HStack(spacing: 16) {
-                    Label("Fast (<150ms)", systemImage: "circle.fill").foregroundStyle(.green)
-                    Label("Medium",        systemImage: "circle.fill").foregroundStyle(.orange)
-                    Label("Slow (>400ms)", systemImage: "circle.fill").foregroundStyle(.red)
+                    Label(L10n.shared.ikiSpeedFast,   systemImage: "circle.fill").foregroundStyle(.green)
+                    Label(L10n.shared.ikiSpeedMedium, systemImage: "circle.fill").foregroundStyle(.orange)
+                    Label(L10n.shared.ikiSpeedSlow,   systemImage: "circle.fill").foregroundStyle(.red)
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -155,7 +155,7 @@ extension ChartsView {
                 .buttonStyle(.plain)
 
                 if isMeasuringWPM {
-                    Label("Recording…", systemImage: "record.circle")
+                    Label(L10n.shared.wpmRecording, systemImage: "record.circle")
                         .font(.footnote)
                         .foregroundStyle(.red)
                 }

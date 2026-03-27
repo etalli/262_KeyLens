@@ -38,7 +38,7 @@ extension ChartsView {
                     }
                 }
                 .chartYScale(domain: keyOrder)
-                .chartXAxisLabel("All-time presses", alignment: .trailing)
+                .chartXAxisLabel(L10n.shared.layerAllTimePressesAxis, alignment: .trailing)
                 .chartLegend(.hidden)
                 .frame(height: CGFloat(chartData.count * 44 + 24))
 
@@ -72,10 +72,10 @@ private struct LayerKeyDetailRow: View {
                     .cornerRadius(4)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Today: \(entry.pressCount) \(l.layerEfficiencyPresses)")
+                    Text(l.layerKeyTodayCount(entry.pressCount, pressesLabel: l.layerEfficiencyPresses))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("All-time: \(entry.allTimePressCount) \(l.layerEfficiencyPresses)")
+                    Text(l.layerKeyAllTimeCount(entry.allTimePressCount, pressesLabel: l.layerEfficiencyPresses))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

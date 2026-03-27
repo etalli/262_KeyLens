@@ -6,8 +6,8 @@ extension ChartsView {
     var shortcutsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection("⌘ Keyboard Shortcuts", helpText: L10n.shared.helpShortcuts, showSort: true) { shortcutsChart }
-                chartSection("All Keyboard Combos", helpText: L10n.shared.helpAllCombos, showSort: true) { allCombosChart }
+                chartSection(L10n.shared.chartTitleCmdShortcuts, helpText: L10n.shared.helpShortcuts, showSort: true) { shortcutsChart }
+                chartSection(L10n.shared.chartTitleAllCombos, helpText: L10n.shared.helpAllCombos, showSort: true) { allCombosChart }
             }
             .padding(24)
         }

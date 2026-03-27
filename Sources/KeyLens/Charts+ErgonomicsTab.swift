@@ -7,7 +7,7 @@ extension ChartsView {
     var ergonomicsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
-                chartSection("Top 20 Bigrams", helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
+                chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
                 chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
                 chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
                     BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
@@ -15,9 +15,9 @@ extension ChartsView {
                 chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
                 chartSection(L10n.shared.layoutEfficiencyTitle, helpText: L10n.shared.helpLayoutEfficiency) { layoutEfficiencySection }
                 chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
-                chartSection("Ergonomic Learning Curve", helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
+                chartSection(L10n.shared.chartTitleLearningCurve, helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                 chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
-                chartSection("Layout Comparison", helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
+                chartSection(L10n.shared.chartTitleLayoutComparison, helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
                 chartSection(L10n.shared.layerEfficiencyTitle, helpText: L10n.shared.layerEfficiencyHelp) { layerEfficiencySection }
             }
             .padding(24)
@@ -96,7 +96,7 @@ extension ChartsView {
 
             // Finger filter picker (dimmed when key filter is active)
             HStack(spacing: 6) {
-                fingerFilterButton(label: "All", selected: slowBigramFingerFilter == nil) {
+                fingerFilterButton(label: L10n.shared.fingerFilterAll, selected: slowBigramFingerFilter == nil) {
                     slowBigramFingerFilter = nil
                 }
                 ForEach(fingers, id: \.self) { finger in
@@ -143,16 +143,16 @@ extension ChartsView {
             Grid(alignment: .trailing, horizontalSpacing: 20, verticalSpacing: 0) {
                 // Header
                 GridRow {
-                    Text("Layout")
+                    Text(L10n.shared.heatmapLayoutLabel)
                         .font(.footnote).bold().foregroundStyle(.secondary)
                         .gridColumnAlignment(.leading)
                     Text(L10n.shared.layoutEfficiencySFBHeader)
                         .font(.footnote).bold().foregroundStyle(.secondary)
                     Text(L10n.shared.layoutEfficiencyAltHeader)
                         .font(.footnote).bold().foregroundStyle(.secondary)
-                    Text("Ergo Score")
+                    Text(L10n.shared.tableHeaderErgoScore)
                         .font(.footnote).bold().foregroundStyle(.secondary)
-                    Text("Travel")
+                    Text(L10n.shared.tableHeaderTravel)
                         .font(.footnote).bold().foregroundStyle(.secondary)
                 }
                 .padding(.bottom, 6)
@@ -202,7 +202,7 @@ extension ChartsView {
             }
             .padding(.vertical, 4)
 
-            Text("Based on \(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0") bigrams. Your Layout is your current baseline; alternatives sorted by ergonomic score.")
+            Text(L10n.shared.layoutBasedOnBigrams(model.layoutEfficiency.first?.totalBigrams.formatted() ?? "0"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -324,12 +324,12 @@ extension ChartsView {
             // Ergonomic metrics summary (Phase 0 data — previously computed but not shown)
             HStack(spacing: 24) {
                 ergonomicMetricPair(
-                    label: "Same-finger rate",
+                    label: L10n.shared.ergoMetricSameFingerRate,
                     allTime: model.sameFingerRate,
                     today: model.todaySameFingerRate
                 )
                 ergonomicMetricPair(
-                    label: "Hand alternation rate",
+                    label: L10n.shared.ergoMetricHandAltRate,
                     allTime: model.handAlternationRate,
                     today: model.todayHandAltRate
                 )
@@ -344,10 +344,10 @@ extension ChartsView {
             Text(label).font(.footnote).foregroundStyle(.secondary)
             HStack(spacing: 12) {
                 if let v = allTime {
-                    Text("All-time: \(Int(v * 100))%").font(.footnote.monospacedDigit())
+                    Text(L10n.shared.ergoMetricAllTime(Int(v * 100))).font(.footnote.monospacedDigit())
                 }
                 if let v = today {
-                    Text("Today: \(Int(v * 100))%").font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
+                    Text(L10n.shared.ergoMetricToday(Int(v * 100))).font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
                 }
                 if allTime == nil && today == nil {
                     Text("—").font(.footnote).foregroundStyle(.secondary)
@@ -365,7 +365,7 @@ extension ChartsView {
                 let swapLabels = cmp.recommendedSwaps
                     .map { "\($0.from) ↔ \($0.to)" }
                     .joined(separator: ", ")
-                Text("Recommended swaps: \(swapLabels)")
+                Text(L10n.shared.recommendedSwapsLabel(swapLabels))
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
@@ -374,14 +374,14 @@ extension ChartsView {
                 Grid(alignment: .trailing, horizontalSpacing: 20, verticalSpacing: 0) {
                     // Header row
                     GridRow {
-                        Text("Metric")
+                        Text(L10n.shared.tableHeaderMetric)
                             .font(.footnote).bold().foregroundStyle(.secondary)
                             .gridColumnAlignment(.leading)
-                        Text("Current")
+                        Text(L10n.shared.tableHeaderCurrent)
                             .font(.footnote).bold().foregroundStyle(.secondary)
-                        Text("Proposed")
+                        Text(L10n.shared.tableHeaderProposed)
                             .font(.footnote).bold().foregroundStyle(.secondary)
-                        Text("Change")
+                        Text(L10n.shared.tableHeaderChange)
                             .font(.footnote).bold().foregroundStyle(.secondary)
                     }
                     .padding(.bottom, 6)
@@ -390,7 +390,7 @@ extension ChartsView {
 
                     // Ergonomic score (higher is better)
                     comparisonRow(
-                        metric: "Ergonomic score",
+                        metric: L10n.shared.ergoMetricErgoScore,
                         current:  String(format: "%.1f", cmp.current.ergonomicScore),
                         proposed: String(format: "%.1f", cmp.proposed.ergonomicScore),
                         delta: cmp.ergonomicScoreDelta,
@@ -400,7 +400,7 @@ extension ChartsView {
 
                     // Same-finger rate (lower is better)
                     comparisonRow(
-                        metric: "Same-finger rate",
+                        metric: L10n.shared.ergoMetricSameFingerRate,
                         current:  pct(cmp.current.sameFingerRate),
                         proposed: pct(cmp.proposed.sameFingerRate),
                         delta: cmp.sameFingerRateDelta,
@@ -410,7 +410,7 @@ extension ChartsView {
 
                     // Hand alternation rate (higher is better)
                     comparisonRow(
-                        metric: "Hand alternation",
+                        metric: L10n.shared.ergoMetricHandAlt,
                         current:  pct(cmp.current.handAlternationRate),
                         proposed: pct(cmp.proposed.handAlternationRate),
                         delta: cmp.handAlternationDelta,
@@ -420,7 +420,7 @@ extension ChartsView {
 
                     // High-strain rate (lower is better)
                     comparisonRow(
-                        metric: "High-strain rate",
+                        metric: L10n.shared.ergoMetricHighStrainRate,
                         current:  pct(cmp.current.highStrainRate),
                         proposed: pct(cmp.proposed.highStrainRate),
                         delta: cmp.highStrainRateDelta,
@@ -430,7 +430,7 @@ extension ChartsView {
 
                     // Thumb imbalance (lower is better)
                     comparisonRow(
-                        metric: "Thumb imbalance",
+                        metric: L10n.shared.ergoMetricThumbImbalance,
                         current:  String(format: "%.2f", cmp.current.thumbImbalanceRatio),
                         proposed: String(format: "%.2f", cmp.proposed.thumbImbalanceRatio),
                         delta: cmp.thumbImbalanceDelta,
@@ -440,7 +440,7 @@ extension ChartsView {
 
                     // Finger travel (lower is better)
                     comparisonRow(
-                        metric: "Finger travel",
+                        metric: L10n.shared.ergoMetricFingerTravel,
                         current:  String(format: "%.0f", cmp.current.estimatedTravelDistance),
                         proposed: String(format: "%.0f", cmp.proposed.estimatedTravelDistance),
                         delta: cmp.travelDistanceDelta,
@@ -465,12 +465,12 @@ extension ChartsView {
         } else if model.isLayoutComparisonLoading {
             HStack(spacing: 8) {
                 ProgressView().scaleEffect(0.7)
-                Text("Calculating layout comparison…")
+                Text(L10n.shared.layoutComparisonCalculating)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
         } else {
-            Text("Need more typing data to compute layout comparison")
+            Text(L10n.shared.layoutComparisonNeedData)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
         }

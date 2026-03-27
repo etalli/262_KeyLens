@@ -1904,6 +1904,81 @@ final class L10n {
         ja("現在押中のキー", en: "Held Keys")
     }
 
+    // MARK: - Charts: Section Titles (Issue #266)
+
+    var chartTitleActivityCalendar: String { ja("アクティビティカレンダー", en: "Activity Calendar") }
+    var chartTitleWeeklyReport: String { ja("週次レポート", en: "Weekly Report") }
+    var chartTitleHourlyDistribution: String { ja("時間別分布", en: "Hourly Distribution") }
+    var chartTitleDailyTotals: String { ja("日別合計", en: "Daily Totals") }
+    var chartTitleMonthlyTotals: String { ja("月別合計", en: "Monthly Totals") }
+    var chartTitleKeyboardHeatmap: String { ja("キーボードヒートマップ", en: "Keyboard Heatmap") }
+    var chartTitleTopKeys: String { ja("上位20キー — 全期間", en: "Top 20 Keys — All Time") }
+    var chartTitleKeyCategories: String { ja("キー分類", en: "Key Categories") }
+    var chartTitleTopKeysPerDay: String { ja("日別上位10キー", en: "Top 10 Keys per Day") }
+    var chartTitleTopBigrams: String { ja("上位20バイグラム", en: "Top 20 Bigrams") }
+    var chartTitleLearningCurve: String { ja("エルゴノミクス学習曲線", en: "Ergonomic Learning Curve") }
+    var chartTitleLayoutComparison: String { ja("レイアウト比較", en: "Layout Comparison") }
+    var chartTitleCmdShortcuts: String { ja("⌘ キーボードショートカット", en: "⌘ Keyboard Shortcuts") }
+    var chartTitleAllCombos: String { ja("全キーボードコンボ", en: "All Keyboard Combos") }
+
+    // MARK: - Charts: Common UI Labels (Issue #266)
+
+    var noDataYet: String { ja("(データなし)", en: "(no data yet)") }
+    var copyChartAsImageHelp: String { ja("チャートを画像としてコピー", en: "Copy chart as image") }
+    var sortDescendingHelp: String { ja("降順 (最多から)", en: "Descending (Most frequent first)") }
+    var sortAscendingHelp: String { ja("昇順 (最少から)", en: "Ascending (Least frequent first)") }
+    var weeklyReportNeedTwoWeeks: String { ja("2週間以上のデータが必要です", en: "Need at least two weeks of data") }
+    var tableHeaderMetric: String { ja("指標", en: "Metric") }
+    var tableHeaderThisWeek: String { ja("今週", en: "This week") }
+    var tableHeaderLastWeek: String { ja("先週", en: "Last week") }
+    var tableHeaderErgoScore: String { ja("エルゴスコア", en: "Ergo Score") }
+    var tableHeaderTravel: String { ja("移動距離", en: "Travel") }
+    var tableHeaderCurrent: String { ja("現在", en: "Current") }
+    var tableHeaderProposed: String { ja("提案", en: "Proposed") }
+    var tableHeaderChange: String { ja("変化", en: "Change") }
+    var fingerFilterAll: String { ja("すべて", en: "All") }
+
+    // MARK: - Charts: Live Tab (Issue #266)
+
+    var liveTypingHint: String {
+        ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
+           en: "Type with this window open to see live timing.")
+    }
+    var ikiSpeedFast: String { ja("速い (<150ms)", en: "Fast (<150ms)") }
+    var ikiSpeedMedium: String { ja("普通", en: "Medium") }
+    var ikiSpeedSlow: String { ja("遅い (>400ms)", en: "Slow (>400ms)") }
+    var wpmRecording: String { ja("記録中…", en: "Recording…") }
+
+    // MARK: - Charts: Ergonomics / Layout Comparison (Issue #266)
+
+    var ergoMetricSameFingerRate: String { ja("同指率", en: "Same-finger rate") }
+    var ergoMetricHandAltRate: String { ja("交互打鍵率", en: "Hand alternation rate") }
+    var ergoMetricHandAlt: String { ja("交互打鍵", en: "Hand alternation") }
+    var ergoMetricErgoScore: String { ja("エルゴノミクススコア", en: "Ergonomic score") }
+    var ergoMetricHighStrainRate: String { ja("高負荷率", en: "High-strain rate") }
+    var ergoMetricThumbImbalance: String { ja("親指アンバランス", en: "Thumb imbalance") }
+    var ergoMetricFingerTravel: String { ja("指移動距離", en: "Finger travel") }
+    var layoutComparisonCalculating: String { ja("レイアウト比較を計算中…", en: "Calculating layout comparison…") }
+    var layoutComparisonNeedData: String {
+        ja("レイアウト比較を計算するにはより多くのタイピングデータが必要です",
+           en: "Need more typing data to compute layout comparison")
+    }
+    var layerAllTimePressesAxis: String { ja("全期間プレス数", en: "All-time presses") }
+
+    func ergoMetricAllTime(_ percent: Int) -> String { ja("全期間: \(percent)%", en: "All-time: \(percent)%") }
+    func ergoMetricToday(_ percent: Int) -> String { ja("本日: \(percent)%", en: "Today: \(percent)%") }
+    func recommendedSwapsLabel(_ swaps: String) -> String { ja("推奨スワップ: \(swaps)", en: "Recommended swaps: \(swaps)") }
+    func layoutBasedOnBigrams(_ count: String) -> String {
+        ja("合計 \(count) バイグラムに基づく。あなたのレイアウトが現在のベースライン。代替案はエルゴノミクススコア順。",
+           en: "Based on \(count) bigrams. Your Layout is your current baseline; alternatives sorted by ergonomic score.")
+    }
+    func layerKeyTodayCount(_ count: Int, pressesLabel: String) -> String {
+        ja("本日: \(count) \(pressesLabel)", en: "Today: \(count) \(pressesLabel)")
+    }
+    func layerKeyAllTimeCount(_ count: Int, pressesLabel: String) -> String {
+        ja("全期間: \(count) \(pressesLabel)", en: "All-time: \(count) \(pressesLabel)")
+    }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {

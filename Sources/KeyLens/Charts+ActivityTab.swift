@@ -11,9 +11,9 @@ extension ChartsView {
                 chartSection(L10n.shared.chartTitleBackspaceRate, helpText: L10n.shared.helpBackspaceRate) { dailyAccuracyChart }
                 chartSection(L10n.shared.chartTitleIKIHistogram, helpText: L10n.shared.helpIKIHistogram) { ikiHistogramChart }
                 chartSection(L10n.shared.chartTitleWeeklyHeatmap, helpText: L10n.shared.helpWeeklyHeatmap) { weeklyHeatmapChart }
-                chartSection("Hourly Distribution", helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
-                chartSection("Daily Totals", helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
-                chartSection("Monthly Totals", helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
+                chartSection(L10n.shared.chartTitleHourlyDistribution, helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
+                chartSection(L10n.shared.chartTitleDailyTotals, helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
+                chartSection(L10n.shared.chartTitleMonthlyTotals, helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
                 chartSection(L10n.shared.chartTitleSessions, helpText: L10n.shared.helpSessions) { sessionsChart }
             }
             .padding(24)

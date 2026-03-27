@@ -11,8 +11,8 @@ extension ChartsView {
                         WeeklySummaryCardView(data: .current(), embedded: true)
                     }
                 }
-                chartSection("Activity Calendar", helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
-                chartSection("Weekly Report", helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
+                chartSection(L10n.shared.chartTitleActivityCalendar, helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
+                chartSection(L10n.shared.chartTitleWeeklyReport, helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
 chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) {
                     mouseKeyboardBalanceChart
                 }
@@ -137,7 +137,7 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
     @ViewBuilder
     var weeklyDeltaSection: some View {
         if model.weeklyDeltas.isEmpty {
-            Text("Need at least two weeks of data")
+            Text(L10n.shared.weeklyReportNeedTwoWeeks)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
         } else {
@@ -145,12 +145,12 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
                 // Header
                 Grid(alignment: .trailing, horizontalSpacing: 20, verticalSpacing: 0) {
                     GridRow {
-                        Text("Metric")
+                        Text(L10n.shared.tableHeaderMetric)
                             .font(.caption).bold().foregroundStyle(.secondary)
                             .gridColumnAlignment(.leading)
-                        Text("This week")
+                        Text(L10n.shared.tableHeaderThisWeek)
                             .font(.caption).bold().foregroundStyle(.secondary)
-                        Text("Last week")
+                        Text(L10n.shared.tableHeaderLastWeek)
                             .font(.caption).bold().foregroundStyle(.secondary)
                         Text("Δ")
                             .font(.caption).bold().foregroundStyle(.secondary)

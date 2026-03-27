@@ -163,9 +163,9 @@ struct ChartsView: View {
                     if showSort && !isCollapsed {
                         Picker("", selection: $sortDescending) {
                             Image(systemName: "arrow.down.square").tag(true)
-                                .help("Descending (Most frequent first)")
+                                .help(L10n.shared.sortDescendingHelp)
                             Image(systemName: "arrow.up.square").tag(false)
-                                .help("Ascending (Least frequent first)")
+                                .help(L10n.shared.sortAscendingHelp)
                         }
                         .pickerStyle(.segmented)
                         .frame(width: 80)
@@ -193,7 +193,7 @@ struct ChartsView: View {
                             .foregroundStyle(isCopied ? .green : .secondary)
                     }
                     .buttonStyle(.plain)
-                    .help(isCopied ? L10n.shared.copiedConfirmation : "Copy chart as image")
+                    .help(isCopied ? L10n.shared.copiedConfirmation : L10n.shared.copyChartAsImageHelp)
                     .animation(.easeInOut(duration: 0.2), value: isCopied)
                 }
                 if !isCollapsed {
@@ -275,7 +275,7 @@ struct ChartsView: View {
     // MARK: - Empty state
 
     var emptyState: some View {
-        Text("(no data yet)")
+        Text(L10n.shared.noDataYet)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, minHeight: 80, alignment: .center)
     }
