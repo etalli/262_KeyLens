@@ -21,7 +21,14 @@
             <div class="logo">
                 <span class="logo-accent">Key</span>Lens
             </div>
-            <ul class="nav-links">
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12" class="line1"></line>
+                    <line x1="3" y1="6" x2="21" y2="6" class="line2"></line>
+                    <line x1="3" y1="18" x2="21" y2="18" class="line3"></line>
+                </svg>
+            </button>
+            <ul id="main-nav" class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#screenshots">Screenshots</a></li>
                 <li><a href="#security">Security</a></li>
@@ -29,6 +36,8 @@
             </ul>
         </div>
     </nav>
+
+    <main>
 
     <header class="hero">
         <div class="container hero-grid">
@@ -57,7 +66,7 @@
         <div class="features-grid">
             <div class="feature-card glass">
                 <div class="feature-icon icon-blue">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M21 12V7H5a2 2 0 010-4h14v4"></path>
                         <path d="M3 5v14c0 1.1.9 2 2 2h16v-5"></path>
                         <path d="M18 12a2 2 0 000 4h4v-4h-4z"></path>
@@ -68,7 +77,7 @@
             </div>
             <div class="feature-card glass">
                 <div class="feature-icon icon-cyan">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M18 20V10M12 20V4M6 20v-6"></path>
                     </svg>
                 </div>
@@ -77,7 +86,7 @@
             </div>
             <div class="feature-card glass">
                 <div class="feature-icon icon-purple">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"></path>
                     </svg>
                 </div>
@@ -94,17 +103,17 @@
                 <h2>See It in Action</h2>
                 <p>Real screenshots from the app — your data, visualized.</p>
             </div>
-            <div class="screenshot-tabs">
-                <button class="ss-tab active" data-tab="overview">Overview</button>
-                <button class="ss-tab" data-tab="heatmap-layout">Heatmap &amp; Layout</button>
-                <button class="ss-tab" data-tab="ergonomics">Ergonomics</button>
-                <button class="ss-tab" data-tab="keys-timing">Keys &amp; Timing</button>
-                <button class="ss-tab" data-tab="activity">Activity</button>
-                <button class="ss-tab" data-tab="training">Training</button>
-                <button class="ss-tab" data-tab="mouse">Mouse</button>
+            <div class="screenshot-tabs" role="tablist" aria-label="Screenshots">
+                <button class="ss-tab active" data-tab="overview" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview">Overview</button>
+                <button class="ss-tab" data-tab="heatmap-layout" role="tab" aria-selected="false" aria-controls="panel-heatmap-layout" id="tab-heatmap-layout">Heatmap &amp; Layout</button>
+                <button class="ss-tab" data-tab="ergonomics" role="tab" aria-selected="false" aria-controls="panel-ergonomics" id="tab-ergonomics">Ergonomics</button>
+                <button class="ss-tab" data-tab="keys-timing" role="tab" aria-selected="false" aria-controls="panel-keys-timing" id="tab-keys-timing">Keys &amp; Timing</button>
+                <button class="ss-tab" data-tab="activity" role="tab" aria-selected="false" aria-controls="panel-activity" id="tab-activity">Activity</button>
+                <button class="ss-tab" data-tab="training" role="tab" aria-selected="false" aria-controls="panel-training" id="tab-training">Training</button>
+                <button class="ss-tab" data-tab="mouse" role="tab" aria-selected="false" aria-controls="panel-mouse" id="tab-mouse">Mouse</button>
             </div>
 
-            <div class="screenshot-panel active" data-panel="overview">
+            <div class="screenshot-panel active" data-panel="overview" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Typing Profile.png" alt="Typing Profile" class="ss-img">
                     <img src="../images/Weekly Summary.png" alt="Weekly Summary" class="ss-img">
@@ -114,7 +123,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="heatmap-layout">
+            <div class="screenshot-panel" data-panel="heatmap-layout" role="tabpanel" id="panel-heatmap-layout" aria-labelledby="tab-heatmap-layout" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Heatmap_Frequency.png" alt="Heatmap Frequency" class="ss-img">
                     <img src="../images/Layout Efficiency Comparison.png" alt="Layout Efficiency Comparison" class="ss-img">
@@ -122,7 +131,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="ergonomics">
+            <div class="screenshot-panel" data-panel="ergonomics" role="tabpanel" id="panel-ergonomics" aria-labelledby="tab-ergonomics" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Ergonomic Score by App.png" alt="Ergonomic Score by App" class="ss-img">
                     <img src="../images/Ergonomic Score by Device.png" alt="Ergonomic Score by Device" class="ss-img">
@@ -130,7 +139,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="keys-timing">
+            <div class="screenshot-panel" data-panel="keys-timing" role="tabpanel" id="panel-keys-timing" aria-labelledby="tab-keys-timing" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Top 20 Keys — All Time.png" alt="Top 20 Keys" class="ss-img">
                     <img src="../images/Top 20 Bigrams.png" alt="Top 20 Bigrams" class="ss-img">
@@ -147,7 +156,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="activity">
+            <div class="screenshot-panel" data-panel="activity" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Activity Calendar.png" alt="Activity Calendar" class="ss-img">
                     <img src="../images/Daily Totals.png" alt="Daily Totals" class="ss-img">
@@ -160,7 +169,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="training">
+            <div class="screenshot-panel" data-panel="training" role="tabpanel" id="panel-training" aria-labelledby="tab-training" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Practice Drills.png" alt="Practice Drills" class="ss-img">
                     <img src="../images/Typing Speed (WPM).png" alt="Typing Speed WPM" class="ss-img">
@@ -171,7 +180,7 @@
                 </div>
             </div>
 
-            <div class="screenshot-panel" data-panel="mouse">
+            <div class="screenshot-panel" data-panel="mouse" role="tabpanel" id="panel-mouse" aria-labelledby="tab-mouse" hidden>
                 <div class="ss-grid ss-grid-auto">
                     <img src="../images/Daily Mouse Travel (Last 30 Days).png" alt="Daily Mouse Travel" class="ss-img">
                     <img src="../images/Hourly Mouse Activity.png" alt="Hourly Mouse Activity" class="ss-img">
@@ -183,6 +192,8 @@
             </div>
         </div>
     </section>
+
+    </main>
 
     <section id="security" class="security container">
         <div class="security-card glass">

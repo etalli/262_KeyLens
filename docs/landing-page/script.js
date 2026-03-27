@@ -16,12 +16,47 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.ss-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const target = tab.dataset.tab;
-            document.querySelectorAll('.ss-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.screenshot-panel').forEach(p => p.classList.remove('active'));
+            
+            document.querySelectorAll('.ss-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            
+            document.querySelectorAll('.screenshot-panel').forEach(p => {
+                p.classList.remove('active');
+                p.setAttribute('hidden', '');
+            });
+            
             tab.classList.add('active');
-            document.querySelector(`.screenshot-panel[data-panel="${target}"]`).classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
+            
+            const panel = document.querySelector(`.screenshot-panel[data-panel="${target}"]`);
+            if (panel) {
+                panel.classList.add('active');
+                panel.removeAttribute('hidden');
+            }
         });
     });
+
+    // Mobile menu toggle
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', () => {
+            const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+            menuToggle.setAttribute('aria-expanded', !isExpanded);
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when a link is clicked
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.setAttribute('aria-expanded', 'false');
+                navLinks.classList.remove('active');
+            });
+        });
+    }
 
     document.querySelectorAll('.feature-card, .opt-text, .opt-image, .security-card').forEach(el => {
         el.style.opacity = '0';
