@@ -2,17 +2,47 @@ import SwiftUI
 import Charts
 import KeyLensCore
 
+// MARK: - Keyboard sub-tab enum (Issue #277)
+
+enum KeyboardSubTab: String, CaseIterable {
+    case heatmap
+    case topKeys
+}
+
 extension ChartsView {
 
     var keyboardTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.chartTitleKeyboardHeatmap, helpText: L10n.shared.helpKeyboardHeatmap) { KeyboardHeatmapView(counts: model.keyCounts) }
-                chartSection(L10n.shared.chartTitleTopKeys, helpText: L10n.shared.helpTopKeys, showSort: true) { topKeysChart }
-                chartSection(L10n.shared.chartTitleKeyCategories, helpText: L10n.shared.helpKeyCategories) { categoryChart }
-                chartSection(L10n.shared.chartTitleTopKeysPerDay, helpText: L10n.shared.helpTopKeysPerDay, showSort: true) { perDayChart }
+        VStack(spacing: 0) {
+            Picker("", selection: $keyboardSubTab) {
+                Text(L10n.shared.keyboardSubTabHeatmap).tag(KeyboardSubTab.heatmap)
+                Text(L10n.shared.keyboardSubTabTopKeys).tag(KeyboardSubTab.topKeys)
             }
-            .padding(24)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch keyboardSubTab {
+            case .heatmap:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleKeyboardHeatmap, helpText: L10n.shared.helpKeyboardHeatmap) { KeyboardHeatmapView(counts: model.keyCounts) }
+                        chartSection(L10n.shared.chartTitleKeyCategories, helpText: L10n.shared.helpKeyCategories) { categoryChart }
+                    }
+                    .padding(24)
+                }
+
+            case .topKeys:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleTopKeys, helpText: L10n.shared.helpTopKeys, showSort: true) { topKeysChart }
+                        chartSection(L10n.shared.chartTitleTopKeysPerDay, helpText: L10n.shared.helpTopKeysPerDay, showSort: true) { perDayChart }
+                    }
+                    .padding(24)
+                }
+            }
         }
     }
 

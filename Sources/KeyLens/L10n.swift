@@ -1970,6 +1970,9 @@ final class L10n {
     var activitySubTabPatterns: String { ja("パターン",  en: "Patterns") }
     var activitySubTabVolume: String   { ja("ボリューム", en: "Volume") }
 
+    var keyboardSubTabHeatmap: String  { ja("ヒートマップ", en: "Heatmap") }
+    var keyboardSubTabTopKeys: String  { ja("頻度",        en: "Top Keys") }
+
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
            en: "Type with this window open to see live timing.")
