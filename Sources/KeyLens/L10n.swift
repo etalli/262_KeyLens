@@ -1973,6 +1973,21 @@ final class L10n {
     var keyboardSubTabHeatmap: String  { ja("ヒートマップ", en: "Heatmap") }
     var keyboardSubTabTopKeys: String  { ja("頻度",        en: "Top Keys") }
 
+    var trainingSubTabDrill: String    { ja("ドリル",    en: "Drill") }
+    var trainingSubTabProgress: String { ja("進捗",      en: "Progress") }
+    var trainingSubTabTargets: String  { ja("ターゲット", en: "Targets") }
+
+    var mouseSubTabDistance: String    { ja("距離",      en: "Distance") }
+    var mouseSubTabDirection: String   { ja("方向",      en: "Direction") }
+    var mouseSubTabClicks: String      { ja("クリック",  en: "Clicks") }
+
+    var appsSubTabApps: String         { ja("アプリ",    en: "Apps") }
+    var appsSubTabDevices: String      { ja("デバイス",  en: "Devices") }
+
+    var ergoSubTabBigrams: String      { ja("バイグラム", en: "Bigrams") }
+    var ergoSubTabLayout: String       { ja("レイアウト", en: "Layout") }
+    var ergoSubTabFatigue: String      { ja("疲労",      en: "Fatigue") }
+
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
            en: "Type with this window open to see live timing.")

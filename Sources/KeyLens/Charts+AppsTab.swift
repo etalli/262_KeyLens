@@ -2,27 +2,57 @@ import SwiftUI
 import Charts
 import KeyLensCore
 
+// MARK: - Apps sub-tab enum (Issue #274)
+
+enum AppsSubTab: String, CaseIterable {
+    case apps
+    case devices
+}
+
 extension ChartsView {
 
     var appsTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.appsAllTime, helpText: L10n.shared.helpApps, showSort: true) { topAppsChart }
-                chartSection(L10n.shared.appsToday, helpText: L10n.shared.helpAppsToday, showSort: true) { todayTopAppsChart }
-                if !model.appErgScores.isEmpty {
-                    chartSection(L10n.shared.appErgScoreSection, helpText: L10n.shared.helpAppErgScore) {
-                        appErgScoreTable
+        VStack(spacing: 0) {
+            Picker("", selection: $appsSubTab) {
+                Text(L10n.shared.appsSubTabApps).tag(AppsSubTab.apps)
+                Text(L10n.shared.appsSubTabDevices).tag(AppsSubTab.devices)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch appsSubTab {
+            case .apps:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.appsAllTime, helpText: L10n.shared.helpApps, showSort: true) { topAppsChart }
+                        chartSection(L10n.shared.appsToday, helpText: L10n.shared.helpAppsToday, showSort: true) { todayTopAppsChart }
+                        if !model.appErgScores.isEmpty {
+                            chartSection(L10n.shared.appErgScoreSection, helpText: L10n.shared.helpAppErgScore) {
+                                appErgScoreTable
+                            }
+                        }
                     }
+                    .padding(24)
                 }
-                chartSection(L10n.shared.devicesAllTime, helpText: L10n.shared.helpDevices, showSort: true) { topDevicesChart }
-                chartSection(L10n.shared.devicesToday, helpText: L10n.shared.helpDevicesToday, showSort: true) { todayTopDevicesChart }
-                if !model.deviceErgScores.isEmpty {
-                    chartSection(L10n.shared.deviceErgScoreSection, helpText: L10n.shared.helpDeviceErgScore) {
-                        deviceErgScoreTable
+
+            case .devices:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.devicesAllTime, helpText: L10n.shared.helpDevices, showSort: true) { topDevicesChart }
+                        chartSection(L10n.shared.devicesToday, helpText: L10n.shared.helpDevicesToday, showSort: true) { todayTopDevicesChart }
+                        if !model.deviceErgScores.isEmpty {
+                            chartSection(L10n.shared.deviceErgScoreSection, helpText: L10n.shared.helpDeviceErgScore) {
+                                deviceErgScoreTable
+                            }
+                        }
                     }
+                    .padding(24)
                 }
             }
-            .padding(24)
         }
     }
 

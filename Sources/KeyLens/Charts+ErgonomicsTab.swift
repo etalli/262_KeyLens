@@ -2,25 +2,64 @@ import SwiftUI
 import Charts
 import KeyLensCore
 
+// MARK: - Ergonomics sub-tab enum (Issue #273)
+
+enum ErgoSubTab: String, CaseIterable {
+    case bigrams
+    case layout
+    case fatigue
+}
+
 extension ChartsView {
 
     var ergonomicsTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
-                chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
-                chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
-                    BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
-                }
-                chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
-                chartSection(L10n.shared.layoutEfficiencyTitle, helpText: L10n.shared.helpLayoutEfficiency) { layoutEfficiencySection }
-                chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
-                chartSection(L10n.shared.chartTitleLearningCurve, helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
-                chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
-                chartSection(L10n.shared.chartTitleLayoutComparison, helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
-                chartSection(L10n.shared.layerEfficiencyTitle, helpText: L10n.shared.layerEfficiencyHelp) { layerEfficiencySection }
+        VStack(spacing: 0) {
+            Picker("", selection: $ergoSubTab) {
+                Text(L10n.shared.ergoSubTabBigrams).tag(ErgoSubTab.bigrams)
+                Text(L10n.shared.ergoSubTabLayout).tag(ErgoSubTab.layout)
+                Text(L10n.shared.ergoSubTabFatigue).tag(ErgoSubTab.fatigue)
             }
-            .padding(24)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch ergoSubTab {
+            case .bigrams:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
+                        chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
+                        chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
+                            BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
+                        }
+                        chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
+                    }
+                    .padding(24)
+                }
+
+            case .layout:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.layoutEfficiencyTitle, helpText: L10n.shared.helpLayoutEfficiency) { layoutEfficiencySection }
+                        chartSection(L10n.shared.chartTitleLayoutComparison, helpText: L10n.shared.helpLayoutComparison) { layoutComparisonSection }
+                        chartSection(L10n.shared.layerEfficiencyTitle, helpText: L10n.shared.layerEfficiencyHelp) { layerEfficiencySection }
+                    }
+                    .padding(24)
+                }
+
+            case .fatigue:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
+                        chartSection(L10n.shared.chartTitleLearningCurve, helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
+                        chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
+                    }
+                    .padding(24)
+                }
+            }
         }
     }
 

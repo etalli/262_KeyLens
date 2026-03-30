@@ -1,29 +1,68 @@
 import SwiftUI
 import Charts
 
+// MARK: - Mouse sub-tab enum (Issue #275)
+
+enum MouseSubTab: String, CaseIterable {
+    case distance
+    case direction
+    case clicks
+}
+
 extension ChartsView {
 
     var mouseTab: some View {
         let l = L10n.shared
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(l.chartTitleMouseDailyDistance, helpText: l.helpMouseDailyDistance) {
-                    mouseDailyDistanceChart
+        return VStack(spacing: 0) {
+            Picker("", selection: $mouseSubTab) {
+                Text(l.mouseSubTabDistance).tag(MouseSubTab.distance)
+                Text(l.mouseSubTabDirection).tag(MouseSubTab.direction)
+                Text(l.mouseSubTabClicks).tag(MouseSubTab.clicks)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch mouseSubTab {
+            case .distance:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(l.chartTitleMouseDailyDistance, helpText: l.helpMouseDailyDistance) {
+                            mouseDailyDistanceChart
+                        }
+                        chartSection(l.chartTitleMouseHourly, helpText: l.helpMouseHourly) {
+                            mouseHourlyChart
+                        }
+                    }
+                    .padding(24)
                 }
-                chartSection(l.chartTitleMouseHourly, helpText: l.helpMouseHourly) {
-                    mouseHourlyChart
+
+            case .direction:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(l.chartTitleMouseDirection, helpText: l.helpMouseDirection) {
+                            mouseDirectionChart
+                        }
+                        chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
+                            mouseDailyDirectionTable
+                        }
+                    }
+                    .padding(24)
                 }
-                chartSection(l.chartTitleMouseDirection, helpText: l.helpMouseDirection) {
-                    mouseDirectionChart
-                }
-                chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
-                    mouseDailyDirectionTable
-                }
-                chartSection(l.chartTitleMouseClickCount, helpText: l.helpMouseClickCount) {
-                    mouseClickCountView
+
+            case .clicks:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(l.chartTitleMouseClickCount, helpText: l.helpMouseClickCount) {
+                            mouseClickCountView
+                        }
+                    }
+                    .padding(24)
                 }
             }
-            .padding(24)
         }
     }
 

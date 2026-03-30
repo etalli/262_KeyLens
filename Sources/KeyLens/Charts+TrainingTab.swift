@@ -3,6 +3,14 @@ import AppKit
 import Charts
 import KeyLensCore
 
+// MARK: - Training sub-tab enum (Issue #276)
+
+enum TrainingSubTab: String, CaseIterable {
+    case drill
+    case progress
+    case targets
+}
+
 extension ChartsView {
 
     // MARK: - Training Tab
@@ -37,30 +45,61 @@ extension ChartsView {
     }
 
     var trainingTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 40) {
-                chartSection(L10n.shared.practiceDrillsTitle,
-                             helpText: L10n.shared.helpPracticeDrills) {
-                    practiceDrillsSection
+        VStack(spacing: 0) {
+            Picker("", selection: $trainingSubTab) {
+                Text(L10n.shared.trainingSubTabDrill).tag(TrainingSubTab.drill)
+                Text(L10n.shared.trainingSubTabProgress).tag(TrainingSubTab.progress)
+                Text(L10n.shared.trainingSubTabTargets).tag(TrainingSubTab.targets)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            switch trainingSubTab {
+            case .drill:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.practiceDrillsTitle,
+                                     helpText: L10n.shared.helpPracticeDrills) {
+                            practiceDrillsSection
+                        }
+                    }
+                    .padding(24)
                 }
-                chartSection(L10n.shared.trainingProgressTitle,
-                             helpText: L10n.shared.helpTrainingProgress) {
-                    trainingProgressSection
+
+            case .progress:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.trainingProgressTitle,
+                                     helpText: L10n.shared.helpTrainingProgress) {
+                            trainingProgressSection
+                        }
+                        chartSection(L10n.shared.trainingHistoryTitle,
+                                     helpText: L10n.shared.helpTrainingHistory) {
+                            trainingHistorySection
+                        }
+                    }
+                    .padding(24)
                 }
-                chartSection(L10n.shared.trainingHistoryTitle,
-                             helpText: L10n.shared.helpTrainingHistory) {
-                    trainingHistorySection
-                }
-                chartSection(L10n.shared.trainingTargetsTitle,
-                             helpText: L10n.shared.helpTrainingTargets) {
-                    trainingTargetsSection
-                }
-                chartSection(L10n.shared.trainingTrigramTargetsTitle,
-                             helpText: L10n.shared.helpTrainingTrigrams) {
-                    trainingTrigramTargetsSection
+
+            case .targets:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        chartSection(L10n.shared.trainingTargetsTitle,
+                                     helpText: L10n.shared.helpTrainingTargets) {
+                            trainingTargetsSection
+                        }
+                        chartSection(L10n.shared.trainingTrigramTargetsTitle,
+                                     helpText: L10n.shared.helpTrainingTrigrams) {
+                            trainingTrigramTargetsSection
+                        }
+                    }
+                    .padding(24)
                 }
             }
-            .padding(24)
         }
     }
 
