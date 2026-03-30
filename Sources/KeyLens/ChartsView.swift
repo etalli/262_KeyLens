@@ -98,9 +98,9 @@ struct ChartsView: View {
                 .tabItem { Label(ChartTab.keyboard.rawValue, systemImage: ChartTab.keyboard.icon) }
                 .tag(ChartTab.keyboard)
 
-            ergonomicsTab
-                .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
-                .tag(ChartTab.ergonomics)
+            mouseTab
+                .tabItem { Label(ChartTab.mouse.rawValue, systemImage: ChartTab.mouse.icon) }
+                .tag(ChartTab.mouse)
 
             shortcutsTab
                 .tabItem { Label(ChartTab.shortcuts.rawValue, systemImage: ChartTab.shortcuts.icon) }
@@ -110,9 +110,9 @@ struct ChartsView: View {
                 .tabItem { Label(ChartTab.apps.rawValue, systemImage: ChartTab.apps.icon) }
                 .tag(ChartTab.apps)
 
-            mouseTab
-                .tabItem { Label(ChartTab.mouse.rawValue, systemImage: ChartTab.mouse.icon) }
-                .tag(ChartTab.mouse)
+            ergonomicsTab
+                .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
+                .tag(ChartTab.ergonomics)
 
             trainingTab
                 .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }

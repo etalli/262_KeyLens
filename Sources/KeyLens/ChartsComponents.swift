@@ -30,15 +30,20 @@ struct SectionHeader: View {
 // MARK: - ChartTab
 
 enum ChartTab: String, CaseIterable, Identifiable {
+    // Overview
     case summary     = "Summary"
     case live        = "Live"
     case activity    = "Activity"
+    // Input
     case keyboard    = "Keyboard"
-    case ergonomics  = "Ergonomics"
+    case mouse       = "Mouse"
+    // Analysis
     case shortcuts   = "Shortcuts"
     case apps        = "Apps"
-    case mouse       = "Mouse"
+    // Health
+    case ergonomics  = "Ergonomics"
     case training    = "Training"
+    // Tools
     case comparison  = "Compare"
     case inspector   = "Inspector"
 
