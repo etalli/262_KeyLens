@@ -1977,6 +1977,11 @@ final class L10n {
     var trainingSubTabProgress: String { ja("進捗",      en: "Progress") }
     var trainingSubTabTargets: String  { ja("ターゲット", en: "Targets") }
 
+    var drillPresetsLabel: String       { ja("プリセット",          en: "Presets") }
+    var drillPresetsEmpty: String       { ja("保存済みプリセットなし", en: "No saved presets") }
+    var drillPresetsSaveCurrent: String { ja("現在の設定を保存",      en: "Save current settings") }
+    var drillPresetsDelete: String      { ja("削除",                en: "Delete") }
+
     var mouseSubTabDistance: String    { ja("距離",      en: "Distance") }
     var mouseSubTabDirection: String   { ja("方向",      en: "Direction") }
     var mouseSubTabClicks: String      { ja("クリック",  en: "Clicks") }

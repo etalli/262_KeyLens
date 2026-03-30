@@ -35,6 +35,8 @@ struct ChartsView: View {
     @State var appsSubTab: AppsSubTab = .apps
     /// Active sub-tab within the Ergonomics tab (Issue #273).
     @State var ergoSubTab: ErgoSubTab = .bigrams
+    /// Saved drill presets stored as JSON (Issue #278).
+    @AppStorage("drillPresets") var drillPresetsJSON: String = "[]"
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
     /// Whether a manual WPM session is active (Issue #150).

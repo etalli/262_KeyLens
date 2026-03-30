@@ -11,6 +11,15 @@ enum TrainingSubTab: String, CaseIterable {
     case targets
 }
 
+// MARK: - DrillPreset (Issue #278)
+
+struct DrillPreset: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var sessionLengthRaw: String
+    var ikIThreshold: Double
+}
+
 extension ChartsView {
 
     // MARK: - Training Tab
@@ -428,17 +437,82 @@ extension ChartsView {
 
     // MARK: - Drills (interactive)
 
-    @ViewBuilder
+    // MARK: - Preset helpers (Issue #278)
+
+    private var savedPresets: [DrillPreset] {
+        guard let data = drillPresetsJSON.data(using: .utf8),
+              let presets = try? JSONDecoder().decode([DrillPreset].self, from: data)
+        else { return [] }
+        return presets
+    }
+
+    private func writePresets(_ presets: [DrillPreset]) {
+        guard let data = try? JSONEncoder().encode(presets),
+              let str = String(data: data, encoding: .utf8) else { return }
+        drillPresetsJSON = str
+    }
+
+    private func saveCurrentAsPreset() {
+        let name = drillIKIThreshold > 0
+            ? "\(sessionLength.rawValue) · \(Int(drillIKIThreshold))ms"
+            : sessionLength.rawValue
+        var presets = savedPresets
+        presets.append(DrillPreset(name: name, sessionLengthRaw: sessionLength.rawValue, ikIThreshold: drillIKIThreshold))
+        writePresets(presets)
+    }
+
+    private func loadPreset(_ preset: DrillPreset) {
+        if let length = SessionLength(rawValue: preset.sessionLengthRaw) {
+            sessionLength = length
+        }
+        drillIKIThreshold = preset.ikIThreshold
+        trainingResetToken = UUID()
+    }
+
+    private func deletePreset(_ preset: DrillPreset) {
+        var presets = savedPresets
+        presets.removeAll { $0.id == preset.id }
+        writePresets(presets)
+    }
+
+    // MARK: - Drill section
+
     private var practiceDrillsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Length picker
-            Picker("", selection: $sessionLength) {
-                ForEach(SessionLength.allCases, id: \.self) { length in
-                    Text(length.rawValue).tag(length)
+            // Length picker + presets menu
+            HStack(spacing: 12) {
+                Picker("", selection: $sessionLength) {
+                    ForEach(SessionLength.allCases, id: \.self) { length in
+                        Text(length.rawValue).tag(length)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 220)
+
+                let presets = savedPresets
+                Menu {
+                    if presets.isEmpty {
+                        Text(L10n.shared.drillPresetsEmpty)
+                    } else {
+                        ForEach(presets) { preset in
+                            Button(preset.name) { loadPreset(preset) }
+                        }
+                        Divider()
+                    }
+                    Button(L10n.shared.drillPresetsSaveCurrent) { saveCurrentAsPreset() }
+                    if !presets.isEmpty {
+                        Divider()
+                        ForEach(presets) { preset in
+                            Button(role: .destructive, action: { deletePreset(preset) }) {
+                                Label("\(L10n.shared.drillPresetsDelete) \(preset.name)", systemImage: "trash")
+                            }
+                        }
+                    }
+                } label: {
+                    Label(L10n.shared.drillPresetsLabel, systemImage: "bookmark")
+                        .font(.subheadline)
                 }
             }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 220)
 
             // Speed threshold filter
             HStack(spacing: 10) {
