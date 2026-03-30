@@ -49,6 +49,7 @@ extension ChartsView {
                     }
                     .padding(24)
                 }
+                .onAppear { model.reloadLayoutComparison() }
 
             case .fatigue:
                 ScrollView {

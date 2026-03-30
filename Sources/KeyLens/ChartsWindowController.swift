@@ -86,8 +86,10 @@ final class ChartDataModel: ObservableObject {
 
     /// Loads all chart data on a background queue and publishes results to the main thread.
     /// Previously all queries ran synchronously on the main thread, causing stutter on window open.
+    /// LayoutComparison is excluded — it is deferred to the Layout sub-tab's onAppear (Issue #280).
     func reload() {
         isLoading = true
+        layoutComparison = nil  // Invalidate so it is recomputed on next Layout tab visit.
         let store = KeyCountStore.shared
         let ms    = MouseStore.shared
 
@@ -153,8 +155,13 @@ final class ChartDataModel: ObservableObject {
             let fatigueCurve       = store.todayHourlyFatigueCurve()
             // Issue #88: Training history
             let trainingHistory    = store.trainingHistory(limit: 20)
-            // Issue #84: Full IKI map for before/after comparison
-            let bigramIKIMap       = store.allBigramIKI()
+            // Issue #84: Full IKI map for before/after comparison.
+            // Issue #280: Bounded to bigrams between the top-40 keys (≤1,600 entries).
+            let topKeySet = Set(keyCounts.sorted { $0.value > $1.value }.prefix(40).map(\.key))
+            let bigramIKIMap = store.allBigramIKI().filter { bigram, _ in
+                guard let b = Bigram.parse(bigram) else { return true }
+                return topKeySet.contains(b.from) && topKeySet.contains(b.to)
+            }
             // Issue #209: Layer key efficiency
             let layerEfficiency    = store.layerEfficiency()
 
@@ -179,11 +186,6 @@ final class ChartDataModel: ObservableObject {
                 return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
                                                  distancePts: entry.distancePts, keystrokes: keys)
             }.sorted { $0.date < $1.date }
-
-            // --- Layout comparison (CPU-heavy optimizer) ---
-            let bigramSnapshot = store.allBigramCounts
-            let keySnapshot    = store.allKeyCounts
-            let layoutResult   = LayoutComparison.make(bigramCounts: bigramSnapshot, keyCounts: keySnapshot)
 
             // Publish all results on the main thread in one batch.
             DispatchQueue.main.async { [weak self] in
@@ -229,14 +231,28 @@ final class ChartDataModel: ObservableObject {
                 self.mouseDirectionEntries      = mouseDirectionEntries
                 self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
                 self.mouseKeyboardBalance       = mouseKeyboardBalance
-                self.layoutComparison           = layoutResult
-                self.isLayoutComparisonLoading  = false
                 self.isLoading                  = false
             }
         }
 
-        // Signal that the layout comparison is being computed (shown immediately).
+    }
+
+    /// Runs LayoutComparison on a background queue (Issue #280).
+    /// Called lazily from the Ergonomics → Layout sub-tab's onAppear instead of reload(),
+    /// because the optimizer runs ~1,800 ErgonomicSnapshot simulations and is CPU-heavy.
+    func reloadLayoutComparison() {
+        guard !isLayoutComparisonLoading, layoutComparison == nil else { return }
         isLayoutComparisonLoading = true
+        let store = KeyCountStore.shared
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let bigramSnapshot = store.allBigramCounts
+            let keySnapshot    = store.allKeyCounts
+            let result         = LayoutComparison.make(bigramCounts: bigramSnapshot, keyCounts: keySnapshot)
+            DispatchQueue.main.async { [weak self] in
+                self?.layoutComparison          = result
+                self?.isLayoutComparisonLoading = false
+            }
+        }
     }
 
     /// Reloads key transition data for the given target key (Issue #98).

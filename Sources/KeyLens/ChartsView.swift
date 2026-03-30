@@ -19,8 +19,6 @@ struct ChartsView: View {
     @State var savedSection: String? = nil
     /// Stores each chart section's SwiftUI global frame and the Charts NSWindow reference.
     @State var snapperStore = SnapperStore()
-    /// Timer that drives real-time refresh on the Live tab.
-    @State var liveTimer: Timer? = nil
     /// Active sub-tab within the Live tab (Issue #271).
     @State var liveSubTab: LiveSubTab = .monitor
     /// Active sub-tab within the Activity tab (Issue #272).

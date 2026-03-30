@@ -70,15 +70,9 @@ extension ChartsView {
             }
         }
         .onAppear {
+            // Trigger an immediate refresh on tab appearance.
+            // Periodic refresh is handled by ChartsWindowController's 0.5s liveTimer.
             model.refreshLiveData()
-            liveTimer?.invalidate()
-            liveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                model.refreshLiveData()
-            }
-        }
-        .onDisappear {
-            liveTimer?.invalidate()
-            liveTimer = nil
         }
     }
 
