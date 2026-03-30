@@ -38,9 +38,6 @@ struct WeeklySummaryCardView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Image(systemName: "keyboard")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.accentColor)
             Text(data.weekRange)
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
