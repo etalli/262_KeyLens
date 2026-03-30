@@ -50,6 +50,7 @@ struct KeyDef {
 struct KeyboardHeatmapView: View {
     let counts: [String: Int]
 
+    @StateObject private var vm = HeatmapViewModel()   // Issue #270: async score computation
     @State private var mode: HeatmapMode = .frequency
     @State private var selectedCellID: String?
     @State private var showModeHelp: Bool = false
@@ -328,46 +329,18 @@ struct KeyboardHeatmapView: View {
 
     // Strain score per key: sum of high-strain bigram counts in which the key participates.
     // キーごとの高負荷スコア：そのキーが関係する高負荷ビグラムのカウント合計。
-    private var strainScores: [String: Int] {
-        var scores: [String: Int] = [:]
-        for (pair, count) in KeyCountStore.shared.topHighStrainBigrams(limit: 1000) {
-            guard let b = Bigram.parse(pair) else { continue }
-            scores[b.from, default: 0] += count
-            scores[b.to, default: 0] += count
-        }
-        return scores
-    }
-
-    private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
-
-    // Speed score per key: average IKI across all bigrams in which the key participates.
-    // Requires ≥3 contributing bigrams to suppress noise from rarely-typed keys.
-    // キーごとの速度スコア：関連するビグラムのIKI平均値。データが少ないキーはnilとなる。
-    private var speedScores: [String: Double] {
-        let bigramIKI = KeyCountStore.shared.allBigramIKI()
-        var acc: [String: (sum: Double, count: Int)] = [:]
-        for (bigram, avgIKI) in bigramIKI {
-            guard let b = Bigram.parse(bigram) else { continue }
-            for key in [b.from, b.to] {
-                let e = acc[key] ?? (sum: 0, count: 0)
-                acc[key] = (sum: e.sum + avgIKI, count: e.count + 1)
-            }
-        }
-        return acc.compactMapValues { d -> Double? in
-            guard d.count >= 3 else { return nil }
-            return d.sum / Double(d.count)
-        }
-    }
+    // strainScores and speedScores are now published by HeatmapViewModel (Issue #270).
+    // Accessed as vm.strainScores / vm.speedScores — computed once async, not per-render.
 
     // Returns (count, max) for a key based on the current display mode.
     // 現在の表示モードに応じてキーの（カウント, 最大値）ペアを返す。
     private func keyDisplayValues(for keyName: String) -> (Int, Int) {
         switch mode {
         case .frequency: return (counts[keyName] ?? 0, maxKeyCount)
-        case .strain:    return (strainScores[keyName] ?? 0, maxStrainScore)
+        case .strain:    return (vm.strainScores[keyName] ?? 0, vm.strainScores.values.max() ?? 1)
         case .speed:
-            let ms = speedScores[keyName] ?? 0
-            let maxMs = speedScores.values.max() ?? 1.0
+            let ms = vm.speedScores[keyName] ?? 0
+            let maxMs = vm.speedScores.values.max() ?? 1.0
             return (Int(ms * 100), Int(maxMs * 100))
         }
     }
@@ -487,12 +460,14 @@ struct KeyboardHeatmapView: View {
                 mode: mode,
                 template: effectiveTemplate,
                 keyboardKeyNames: keyboardKeyNames,
-                strainScores: strainScores,
-                speedScores: speedScores,
+                strainScores: vm.strainScores,
+                speedScores: vm.speedScores,
                 selectedCellID: $selectedCellID,
                 customKeys: customKeys
             )
         }
+        .onAppear { vm.reload() }
+        .onChange(of: counts) { _ in vm.reload() }
     }
 
     @MainActor
