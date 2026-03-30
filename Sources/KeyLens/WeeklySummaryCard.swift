@@ -14,8 +14,6 @@ struct WeeklySummaryCardView: View {
             headerSection
             Divider().padding(.vertical, 12)
             statsRow
-            Divider().padding(.vertical, 12)
-            topKeysSection
             if !embedded {
                 Divider().padding(.vertical, 12)
             }
@@ -94,29 +92,7 @@ struct WeeklySummaryCardView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Top keys
 
-    private var topKeysSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.shared.weeklySummaryCardTopKeys)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.secondary)
-            HStack(spacing: 8) {
-                ForEach(data.topKeys, id: \.key) { entry in
-                    VStack(spacing: 2) {
-                        Text(entry.key)
-                            .font(.system(size: 15, weight: .bold, design: .monospaced))
-                            .frame(width: 36, height: 36)
-                            .background(Color.accentColor.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                        Text(entry.count.formatted())
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-        }
-    }
 }
 
 // MARK: - WeeklySummaryData
@@ -128,7 +104,6 @@ struct WeeklySummaryData {
     let streak: Int
     let goalIsSet: Bool
     let ergonomicScore: Double
-    let topKeys: [(key: String, count: Int)]
 
     /// Build from current KeyCountStore state, using the last 7 days as the week window.
     static func current() -> WeeklySummaryData {
@@ -155,8 +130,7 @@ struct WeeklySummaryData {
             estimatedWPM: store.estimatedWPM,
             streak: store.currentStreak(),
             goalIsSet: store.dailyGoal > 0,
-            ergonomicScore: store.currentErgonomicScore,
-            topKeys: store.topKeys(limit: 5)
+            ergonomicScore: store.currentErgonomicScore
         )
     }
 }
