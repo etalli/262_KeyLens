@@ -453,7 +453,7 @@ extension ChartsView {
                         Text(L10n.shared.drillSpeedThresholdValue(Int(drillIKIThreshold)))
                     }
                 }
-                .onChange(of: drillIKIThreshold) { _ in trainingResetToken = UUID() }
+                .onChange(of: drillIKIThreshold) { trainingResetToken = UUID() }
                 if drillIKIThreshold > 0 {
                     Button(L10n.shared.drillSpeedThresholdReset) {
                         drillIKIThreshold = 0
