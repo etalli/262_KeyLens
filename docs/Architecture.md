@@ -749,6 +749,33 @@ ensuring forward/backward compatibility when new fields are added.
 
 ---
 
+## Performance baselines & hot paths
+
+### Baseline metrics to track
+
+- **Menu bar CPU usage**: Background monitoring (`KeyboardMonitor` + `KeyCountStore.increment`) should keep CPU in the low single digits while idle and during normal typing.
+- **Memory footprint**: Track RSS after ~1 hour and ~8 hours of typical use; KeyLens should remain within a reasonable range for a menu bar utility (tens, not hundreds, of MB).
+- **Charts window latency**: Opening `ChartsWindowController` and loading the default tab should complete within roughly 300–500 ms on a typical macOS 13+ machine.
+- **Heavy chart render time**: The slowest chart sections (heatmaps, weekly activity grids) should render interactively; scrolling and tab switches should not visibly stutter.
+
+### Event pipeline hot path
+
+- The main hot path is `CGEventTap` → `KeyboardMonitor.handleEvent` → `KeyCountStore.increment`.
+- `KeyCountStore.increment` performs all mutations on a serial `queue` and pushes time-series updates into a `PendingStore` that is flushed to SQLite asynchronously.
+- Slow event handling is already monitored: if `handleEvent` takes longer than `kHandleEventSlowThresholdMs` (~5 ms) for a single event, the app logs a `[perf] handleEvent slow` line and increments `KeyCountStore.slowEventCount` via `recordSlowEvent()`.
+- SQLite scalar writes are debounced: `scheduleSave()` captures a snapshot of `CountData` on the store queue and serializes it on a separate `saveQueue`, keeping serialization work off the keystroke hot path.
+
+### Data model and UI performance considerations
+
+- `KeyCountStore` centralises all mutable state in `CountData` but surfaces a read-only snapshot through `makeQuery()`, which is consumed by `KeyMetricsQuery` in the charts layer. This keeps chart computations off the mutating store path.
+- When adding new charts or overlays, prefer:
+  - computing heavy aggregates (per-day/per-hour summaries, bigram IKI averages) on a background queue, then publishing lightweight view models to SwiftUI;
+  - limiting the default visible range (e.g. recent weeks or months) and paging older history on demand;
+  - reusing existing aggregates from SQLite (`daily_keys`, `hourly_counts`, `bigram_iki`, etc.) instead of scanning raw JSON or in-memory maps.
+- Long-lived singletons (e.g. `ChartsWindowController`, `StatsWindowController`) should release or refresh large data snapshots when windows are closed or re-opened, to avoid unbounded growth in memory usage over very long sessions.
+
+---
+
 ## Build & Test
 
 ### Build commands
