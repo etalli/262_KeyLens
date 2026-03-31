@@ -58,6 +58,9 @@ struct KeyboardHeatmapView: View {
     @State private var showKLEHelp: Bool = false
     @State private var showImportError = false
     @State private var importErrorMessage = ""
+    // Issue #284: toast when Auto resolves to a non-default layout
+    @State private var toastMessage: String? = nil
+    @State private var toastDismissTask: DispatchWorkItem? = nil
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
     @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
@@ -283,8 +286,8 @@ struct KeyboardHeatmapView: View {
         return Set(defs.map(\.keyName)).subtracting(["_spacer_"])
     }
 
-    // 接続中キーボード名（ウィンドウ表示時に一度だけ取得）
-    private let deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
+    // Issue #284: refreshed on appear so layout changes are detected across window reopen
+    @State private var deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
 
     // Resolves the `auto` template to a concrete layout based on connected keyboard names.
     // Priority: Custom keywords → split/ergo (Pangaea) → JIS → ANSI
@@ -467,9 +470,58 @@ struct KeyboardHeatmapView: View {
                 selectedCellID: $selectedCellID,
                 customKeys: customKeys
             )
+            .overlay(alignment: .bottom) {
+                if let msg = toastMessage {
+                    Text(msg)
+                        .font(.callout)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                        .shadow(radius: 4)
+                        .padding(.bottom, 12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .onTapGesture { dismissToast() }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: toastMessage)
         }
-        .onAppear { vm.reload() }
+        .onAppear {
+            vm.reload()
+            checkLayoutChange()
+        }
         .onChange(of: counts) { _ in vm.reload() }
+    }
+
+    // MARK: - Toast helpers (Issue #284)
+
+    private func checkLayoutChange() {
+        guard template == .auto else { return }
+        let resolved = effectiveTemplate
+        guard resolved != .ansi else { return }
+        // Find the device name that triggered the resolution
+        let triggerName = deviceNames.first { name in
+            let n = name.lowercased()
+            switch resolved {
+            case .jis:     return n.contains("jis") || n.contains("japanese")
+            case .pangaea: return ["split","ergo","moonlander","advantage","corne","reviung","pangaea"].contains { n.contains($0) }
+            case .custom:  return true
+            default:       return false
+            }
+        } ?? deviceNames.first
+        let msg = L10n.shared.heatmapAutoSwitched(layout: resolved.rawValue, device: triggerName ?? "")
+        showToast(msg)
+    }
+
+    private func showToast(_ message: String) {
+        toastDismissTask?.cancel()
+        withAnimation { toastMessage = message }
+        let task = DispatchWorkItem { dismissToast() }
+        toastDismissTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: task)
+    }
+
+    private func dismissToast() {
+        withAnimation { toastMessage = nil }
     }
 
     @MainActor

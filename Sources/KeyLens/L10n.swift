@@ -684,6 +684,13 @@ final class L10n {
         ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
     }
 
+    // Issue #284: toast shown when Auto mode switches to a non-ANSI layout
+    func heatmapAutoSwitched(layout: String, device: String) -> String {
+        device.isEmpty
+            ? ja("レイアウトを \(layout) に切り替えました", en: "Layout switched to \(layout)")
+            : ja("レイアウトを \(layout) に切り替えました — \(device) を検出", en: "Switched to \(layout) — \(device) detected")
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }
