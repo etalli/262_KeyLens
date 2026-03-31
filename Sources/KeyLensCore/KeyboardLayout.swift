@@ -563,7 +563,7 @@ public final class LayoutRegistry {
     /// Updates the active profile based on the detected keyboard hardware names.
     /// 接続中のキーボード名に基づいてアクティブプロファイルを更新する。
     public func applyProfile(forDeviceNames names: [String]) {
-        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
+        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung"]
         currentDeviceLabel = Self.resolvedDeviceLabel(for: names)
 
         let detectedSplit = names.contains { name in
