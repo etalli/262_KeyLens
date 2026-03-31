@@ -441,17 +441,7 @@ struct KeyboardHeatmapView: View {
                             .frame(maxWidth: 220)
                     }
                 }
-                // Auto-match info (only when .auto resolved to Custom)
-                if let matchedName = autoMatchedCustomName {
-                    Text(L10n.shared.autoMatchedCustom(matchedName))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if let matchedName = autoKLEMatchedDeviceName, !kleCustomLayoutFileName.isEmpty {
-                    Text(L10n.shared.kleAutoMatchedCaption(device: matchedName, fileName: kleCustomLayoutFileName))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                // Mode toggle + connected keyboard names
+                // Mode toggle + connected keyboard names + KLE caption
                 HStack {
                     Picker("", selection: $mode) {
                         ForEach(HeatmapMode.allCases, id: \.self) { m in
@@ -480,12 +470,24 @@ struct KeyboardHeatmapView: View {
 
                     Spacer()
 
-                    // Only show device names when Auto is active — avoids showing
-                    // dormant receivers (e.g. wireless dongle) for manual template picks.
+                    // Right side: device name(s) and KLE caption grouped together.
+                    // Only shown in Auto mode so dormant receivers are not displayed.
                     if template == .auto, !deviceNames.isEmpty {
-                        Text(deviceNames.joined(separator: "  /  "))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.primary)
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(deviceNames.joined(separator: "  /  "))
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.primary)
+                            if let matchedName = autoMatchedCustomName {
+                                Text(L10n.shared.autoMatchedCustom(matchedName))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else if let matchedName = autoKLEMatchedDeviceName,
+                                      !kleCustomLayoutFileName.isEmpty {
+                                Text(L10n.shared.kleAutoMatchedCaption(device: matchedName, fileName: kleCustomLayoutFileName))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }  // end mode HStack
             }  // end controls VStack
