@@ -447,7 +447,9 @@ struct KeyboardHeatmapView: View {
 
                     Spacer()
 
-                    if !deviceNames.isEmpty {
+                    // Only show device names when Auto is active — avoids showing
+                    // dormant receivers (e.g. wireless dongle) for manual template picks.
+                    if template == .auto, !deviceNames.isEmpty {
                         Text(deviceNames.joined(separator: "  /  "))
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.primary)
