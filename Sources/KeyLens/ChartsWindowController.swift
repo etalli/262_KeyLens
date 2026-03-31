@@ -87,13 +87,15 @@ final class ChartDataModel: ObservableObject {
     /// Loads all chart data on a background queue and publishes results to the main thread.
     /// Previously all queries ran synchronously on the main thread, causing stutter on window open.
     /// LayoutComparison is excluded — it is deferred to the Layout sub-tab's onAppear (Issue #280).
-    func reload() {
+    func reload(onComplete: (() -> Void)? = nil) {
+        let reloadStartedAt = CFAbsoluteTimeGetCurrent()
         isLoading = true
         layoutComparison = nil  // Invalidate so it is recomputed on next Layout tab visit.
         let store = KeyCountStore.shared
         let ms    = MouseStore.shared
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let queryStartedAt = CFAbsoluteTimeGetCurrent()
             // --- Keyboard data ---
             let topKeys             = store.topKeys(limit: 20).map(TopKeyEntry.init)
             let rawDailyTotals      = store.dailyTotals()
@@ -186,9 +188,14 @@ final class ChartDataModel: ObservableObject {
                 return MouseKeyboardBalanceEntry(id: entry.date, date: entry.date,
                                                  distancePts: entry.distancePts, keystrokes: keys)
             }.sorted { $0.date < $1.date }
+            PerformanceProfiler.shared.record(
+                metric: "charts.reload.query",
+                ms: (CFAbsoluteTimeGetCurrent() - queryStartedAt) * 1000
+            )
 
             // Publish all results on the main thread in one batch.
             DispatchQueue.main.async { [weak self] in
+                let publishStartedAt = CFAbsoluteTimeGetCurrent()
                 guard let self else { return }
                 self.topKeys              = topKeys
                 self.dailyTotals          = dailyTotals
@@ -232,6 +239,15 @@ final class ChartDataModel: ObservableObject {
                 self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
                 self.mouseKeyboardBalance       = mouseKeyboardBalance
                 self.isLoading                  = false
+                PerformanceProfiler.shared.record(
+                    metric: "charts.reload.publish",
+                    ms: (CFAbsoluteTimeGetCurrent() - publishStartedAt) * 1000
+                )
+                PerformanceProfiler.shared.record(
+                    metric: "charts.reload.total",
+                    ms: (CFAbsoluteTimeGetCurrent() - reloadStartedAt) * 1000
+                )
+                onComplete?()
             }
         }
 
@@ -332,6 +348,8 @@ final class ChartsWindowController: NSWindowController {
     private let model = ChartDataModel()
     private var liveTimer:    Timer?
     private var fatigueTimer: Timer?
+    private var uiJankProbeTimer: Timer?
+    private var lastJankProbeAt: Date?
 
     private init() {
         let hostVC = NSHostingController(rootView: ChartsView(model: model))
@@ -346,7 +364,14 @@ final class ChartsWindowController: NSWindowController {
     required init?(coder: NSCoder) { fatalError() }
 
     func showWindow() {
-        model.reload()
+        let showStartedAt = CFAbsoluteTimeGetCurrent()
+        model.reload { [weak self] in
+            PerformanceProfiler.shared.record(
+                metric: "charts.window.open",
+                ms: (CFAbsoluteTimeGetCurrent() - showStartedAt) * 1000
+            )
+            self?.startUIJankProbe()
+        }
         if !(window?.isVisible ?? false) { window?.center() }
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -361,6 +386,20 @@ final class ChartsWindowController: NSWindowController {
         // Refresh fatigue curve every 10s so it updates without reopening the window.
         fatigueTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.fatigueRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.model.fatigueCurve = KeyCountStore.shared.todayHourlyFatigueCurve()
+        }
+    }
+
+    private func startUIJankProbe() {
+        guard uiJankProbeTimer == nil else { return }
+        lastJankProbeAt = Date()
+        uiJankProbeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            guard PerformanceProfiler.shared.isEnabled else { return }
+            let now = Date()
+            let last = self.lastJankProbeAt ?? now
+            let deltaMs = now.timeIntervalSince(last) * 1000
+            self.lastJankProbeAt = now
+            // Main-thread timer drift is a simple proxy for UI jank/stutter.
+            PerformanceProfiler.shared.record(metric: "charts.mainThread.timerDrift", ms: deltaMs)
         }
     }
 }

@@ -38,4 +38,12 @@ enum AppConfiguration {
 
     /// How often the fatigue curve in the charts window refreshes (seconds).
     static let fatigueRefreshIntervalSecs: Double = 10
+
+    // MARK: - Performance profiling (Issue #287)
+
+    /// How often aggregated performance metrics are flushed to app.log (seconds).
+    static let perfLogIntervalSecs: Double = 30
+
+    /// Max number of in-memory samples per metric before percentile fallback.
+    static let perfSampleCapPerMetric: Int = 512
 }
