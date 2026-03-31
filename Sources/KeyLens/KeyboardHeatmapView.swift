@@ -66,6 +66,7 @@ struct KeyboardHeatmapView: View {
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
     @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
+    @AppStorage("kleCustomLayoutFileName") private var kleCustomLayoutFileName: String = ""
     @ObservedObject private var theme = ThemeStore.shared
     @Environment(\.colorScheme) private var colorScheme
 
@@ -337,6 +338,16 @@ struct KeyboardHeatmapView: View {
         return deviceNames.first { n in customKWs.contains { n.lowercased().contains($0) } }
     }
 
+    // Returns the matched device name when `.auto` resolves to Custom via KLE import + split device
+    // (Issue #288: no keywords configured, but KLE imported and a split/ergo keyboard is connected).
+    private var autoKLEMatchedDeviceName: String? {
+        guard template == .auto,
+              !kleCustomLayoutJSON.isEmpty,
+              kleCustomKeywords.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
+        return deviceNames.first { n in splitKeywords.contains { n.lowercased().contains($0) } }
+    }
+
     private var maxKeyCount: Int {
         counts.filter { keyboardKeyNames.contains($0.key) }.values.max() ?? 1
     }
@@ -430,9 +441,13 @@ struct KeyboardHeatmapView: View {
                             .frame(maxWidth: 220)
                     }
                 }
-                // Auto-match info (only when .auto resolved to Custom via keyword)
+                // Auto-match info (only when .auto resolved to Custom)
                 if let matchedName = autoMatchedCustomName {
                     Text(L10n.shared.autoMatchedCustom(matchedName))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if let matchedName = autoKLEMatchedDeviceName, !kleCustomLayoutFileName.isEmpty {
+                    Text(L10n.shared.kleAutoMatchedCaption(device: matchedName, fileName: kleCustomLayoutFileName))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -538,6 +553,12 @@ struct KeyboardHeatmapView: View {
             lastResolvedTemplate = resolved
             if resolved == .ansi {
                 showToast(L10n.shared.heatmapAutoSwitchedToANSI)
+            } else if resolved == .custom, !kleCustomLayoutFileName.isEmpty {
+                // KLE import path (Issue #288): toast includes device name + KLE filename
+                let splitKWs = ["split","ergo","moonlander","advantage","corne","reviung","pangaea"]
+                let kbName = newNames.first { n in splitKWs.contains { n.lowercased().contains($0) } }
+                    ?? newNames.first ?? ""
+                showToast(L10n.shared.heatmapAutoSwitchedToKLE(device: kbName, fileName: kleCustomLayoutFileName))
             } else {
                 let triggerName = newNames.first { name in
                     let n = name.lowercased()
@@ -580,6 +601,7 @@ struct KeyboardHeatmapView: View {
             let rows = try KLEParser.parse(data)
             let encoded = try JSONEncoder().encode(rows)
             kleCustomLayoutJSON = String(data: encoded, encoding: .utf8) ?? ""
+            kleCustomLayoutFileName = url.lastPathComponent
         } catch {
             importErrorMessage = error.localizedDescription
             showImportError = true

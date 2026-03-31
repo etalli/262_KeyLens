@@ -691,6 +691,16 @@ final class L10n {
             : ja("レイアウトを \(layout) に切り替えました — \(device) を検出", en: "Switched to \(layout) — \(device) detected")
     }
 
+    // Issue #288: toast and caption when Auto selects Custom because KLE is imported + split device
+    func heatmapAutoSwitchedToKLE(device: String, fileName: String) -> String {
+        ja("KLE レイアウトを読み込みました — \(device) / \(fileName)",
+           en: "Custom KLE loaded — \(device) / \(fileName)")
+    }
+
+    func kleAutoMatchedCaption(device: String, fileName: String) -> String {
+        ja("↳ \(device) → \(fileName)", en: "↳ \(device) → \(fileName)")
+    }
+
     var heatmapAutoSwitchedToANSI: String {
         ja("キーボードが取り外されました — ANSI レイアウトに戻しました", en: "Keyboard disconnected — switched back to ANSI")
     }
