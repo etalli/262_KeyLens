@@ -481,9 +481,9 @@ struct KeyboardHeatmapView: View {
                                 Text(L10n.shared.autoMatchedCustom(matchedName))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                            } else if let matchedName = autoKLEMatchedDeviceName,
-                                      !kleCustomLayoutFileName.isEmpty {
-                                Text(L10n.shared.kleAutoMatchedCaption(device: matchedName, fileName: kleCustomLayoutFileName))
+                            } else if let matchedName = autoKLEMatchedDeviceName {
+                                let fileName = kleCustomLayoutFileName.isEmpty ? "Custom KLE" : kleCustomLayoutFileName
+                                Text(L10n.shared.kleAutoMatchedCaption(device: matchedName, fileName: fileName))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
