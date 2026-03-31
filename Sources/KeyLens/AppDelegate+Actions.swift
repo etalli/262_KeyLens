@@ -286,8 +286,20 @@ extension AppDelegate {
         alert.buttons[0].hasDestructiveAction = true
 
         NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn {
-            KeyCountStore.shared.reset()
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        let backup = KeyCountStore.shared.backupDBForUndo()
+        KeyCountStore.shared.reset()
+
+        let undoAlert = NSAlert()
+        undoAlert.messageText = l.resetUndoAlertTitle
+        undoAlert.informativeText = l.resetUndoAlertMessage
+        undoAlert.addButton(withTitle: l.resetUndoButton)
+        undoAlert.addButton(withTitle: l.cancel)
+        if undoAlert.runModal() == .alertFirstButtonReturn, let backup {
+            KeyCountStore.shared.restoreFromUndo(url: backup)
+        } else if let backup {
+            try? FileManager.default.removeItem(at: backup)
         }
     }
 

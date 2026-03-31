@@ -699,6 +699,43 @@ final class KeyCountStore {
         }
     }
 
+    /// Copies keylens.db to a temp file and returns the URL. Call before reset() to enable undo.
+    func backupDBForUndo() -> URL? {
+        guard let db = dbQueue else { return nil }
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("keylens_undo_\(Int(Date().timeIntervalSince1970)).db")
+        let src = URL(fileURLWithPath: db.path)
+        do {
+            try FileManager.default.copyItem(at: src, to: tmp)
+            return tmp
+        } catch {
+            return nil
+        }
+    }
+
+    /// Restores data from a backup URL produced by backupDBForUndo().
+    /// Closes the current DB, overwrites the live file with the backup, and reloads in-memory state.
+    func restoreFromUndo(url: URL) {
+        queue.sync {
+            guard let db = dbQueue else { return }
+            let dest = URL(fileURLWithPath: db.path)
+            dbQueue = nil
+            do {
+                try FileManager.default.removeItem(at: dest)
+                try FileManager.default.copyItem(at: url, to: dest)
+                try FileManager.default.removeItem(at: url)
+                dbQueue = try DatabaseQueue(path: dest.path)
+            } catch {
+                return
+            }
+            store = CountData(startedAt: Date(), counts: [:])
+            pending = PendingStore()
+            _todayCount = 0
+            _todayCacheDate = todayKey
+        }
+        loadFromSQLite()
+    }
+
     /// Reset all counts to zero.
     func reset() {
         queue.sync {
@@ -818,9 +855,15 @@ final class KeyCountStore {
     // Captures a snapshot of `store` on `queue`, then writes scalars to SQLite on `saveQueue`.
     // This prevents serialization (O(store size)) from blocking `queue.sync` in increment().
     private func snapshotAndSave() {
+        let snapshotStart = CFAbsoluteTimeGetCurrent()
         let snapshot = store
+        PerformanceProfiler.shared.record(
+            metric: "store.snapshot.capture",
+            ms: (CFAbsoluteTimeGetCurrent() - snapshotStart) * 1000
+        )
         guard let db = dbQueue else { return }
         saveQueue.async {
+            let writeStart = CFAbsoluteTimeGetCurrent()
             do {
                 try db.write { db in
                     for (key, value) in snapshot.toScalars() {
@@ -829,13 +872,17 @@ final class KeyCountStore {
                             arguments: [key, value])
                     }
                 }
+                PerformanceProfiler.shared.record(
+                    metric: "store.snapshot.sqliteWrite",
+                    ms: (CFAbsoluteTimeGetCurrent() - writeStart) * 1000
+                )
             } catch {
                 KeyLens.log("KeyCountStore: scalars write error: \(error)")
             }
         }
     }
 
-    private func loadFromSQLite() {
+    func loadFromSQLite() {
         guard let db = dbQueue else { return }
         let rows = (try? db.read { db in
             try Row.fetchAll(db, sql: "SELECT key, value FROM scalars")

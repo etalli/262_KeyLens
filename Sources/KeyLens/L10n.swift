@@ -110,6 +110,18 @@ final class L10n {
         ja("リセット", en: "Reset")
     }
 
+    var resetUndoAlertTitle: String {
+        ja("リセットが完了しました", en: "Reset complete")
+    }
+
+    var resetUndoAlertMessage: String {
+        ja("元に戻す場合は「元に戻す」を押してください。", en: "Press Undo to restore the previous data.")
+    }
+
+    var resetUndoButton: String {
+        ja("元に戻す", en: "Undo")
+    }
+
     var cancel: String {
         ja("キャンセル", en: "Cancel")
     }
