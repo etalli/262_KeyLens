@@ -292,17 +292,17 @@ struct KeyboardHeatmapView: View {
     @State private var deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
 
     // Resolves a list of device names to a concrete layout.
-    // Priority: Custom keywords → split/ergo (Pangaea) → JIS → ANSI
+    // Priority: Custom keywords → KLE import + split device → split/ergo (Pangaea) → JIS → ANSI
     //
-    // Tip: if you have two keymaps on the same physical keyboard (e.g. Pangaea default
-    // and a custom remap), macOS reports the same USB product string for both, so Auto
-    // cannot distinguish them. The fix is firmware-side: give the custom keymap a
-    // distinct USB product string (e.g. "Pangaea Custom" in QMK's config.h or info.json),
-    // then add that suffix as a Custom keyword. Because Custom is checked first, the
-    // custom keymap will resolve to .custom while the default keymap still resolves to
-    // .pangaea — no app changes required.
+    // If a KLE layout has been imported, connecting any split/ergo keyboard (e.g. Pangaea)
+    // automatically resolves to .custom — no keyword configuration required.
+    // Custom keywords can still override this for keyboards that should NOT use the KLE layout.
     private func resolveTemplate(from names: [String]) -> HeatmapTemplate {
         let lower = names.map { $0.lowercased() }
+        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
+        let jisKeywords   = ["jis", "japanese"]
+        let isSplitDevice = lower.contains(where: { n in splitKeywords.contains { n.contains($0) } })
+
         if !kleCustomLayoutJSON.isEmpty {
             let customKWs = kleCustomKeywords
                 .split(separator: ",")
@@ -311,11 +311,12 @@ struct KeyboardHeatmapView: View {
             if !customKWs.isEmpty && lower.contains(where: { n in customKWs.contains { n.contains($0) } }) {
                 return .custom
             }
+            // KLE imported + split/ergo device detected → use the imported layout (Issue #288)
+            if isSplitDevice { return .custom }
         }
-        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
-        let jisKeywords   = ["jis", "japanese"]
-        if lower.contains(where: { n in splitKeywords.contains { n.contains($0) } }) { return .pangaea }
-        if lower.contains(where: { n in jisKeywords.contains   { n.contains($0) } }) { return .jis }
+
+        if isSplitDevice { return .pangaea }
+        if lower.contains(where: { n in jisKeywords.contains { n.contains($0) } }) { return .jis }
         return .ansi
     }
 
