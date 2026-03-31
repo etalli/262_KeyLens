@@ -613,6 +613,10 @@ struct HeatmapExportView: View {
     private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
     private var maxSpeedScore: Double { speedScores.values.max() ?? 1.0 }
 
+    // HeatmapExportView always receives an already-resolved template from the parent.
+    // This alias exists so the internal switches read identically to KeyboardHeatmapView.
+    private var effectiveTemplate: HeatmapTemplate { template }
+
     private var keyboardFrameHeight: CGFloat {
         let rowH = keyHeight + keySpacing
         switch template {
@@ -648,7 +652,7 @@ struct HeatmapExportView: View {
     // Returns the row definitions for the current template.
     // .auto falls back to ANSI (HeatmapExportView always receives a resolved template).
     private var rowsForTemplate: [[KeyDef]] {
-        switch effectiveTemplate {
+        switch template {
         case .ortholinear: return KeyboardHeatmapView.ortholinearRows
         case .jis:         return KeyboardHeatmapView.jisRows
         default:           return KeyboardHeatmapView.ansiRows
@@ -674,7 +678,7 @@ struct HeatmapExportView: View {
             GeometryReader { geo in
                 let availableWidth = geo.size.width - 16
                 VStack(alignment: .leading, spacing: keySpacing) {
-                    switch effectiveTemplate {
+                    switch template {
                     case .auto, .ansi, .ortholinear, .jis:
                         ForEach(Array(rowsForTemplate.enumerated()), id: \.offset) { rowIndex, row in
                             rowView(row, rowID: "row-\(rowIndex)", availableWidth: availableWidth)
