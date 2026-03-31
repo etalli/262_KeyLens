@@ -61,6 +61,8 @@ struct KeyboardHeatmapView: View {
     // Issue #284: toast when Auto resolves to a non-default layout
     @State private var toastMessage: String? = nil
     @State private var toastDismissTask: DispatchWorkItem? = nil
+    // Tracks the last resolved template so the toast fires only on *changes*, not every poll tick
+    @State private var lastResolvedTemplate: HeatmapTemplate? = nil
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
     @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
@@ -289,12 +291,18 @@ struct KeyboardHeatmapView: View {
     // Issue #284: refreshed on appear so layout changes are detected across window reopen
     @State private var deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
 
-    // Resolves the `auto` template to a concrete layout based on connected keyboard names.
+    // Resolves a list of device names to a concrete layout.
     // Priority: Custom keywords → split/ergo (Pangaea) → JIS → ANSI
-    private var effectiveTemplate: HeatmapTemplate {
-        guard template == .auto else { return template }
-        let lower = deviceNames.map { $0.lowercased() }
-        // Custom keywords take priority when a KLE layout is imported
+    //
+    // Tip: if you have two keymaps on the same physical keyboard (e.g. Pangaea default
+    // and a custom remap), macOS reports the same USB product string for both, so Auto
+    // cannot distinguish them. The fix is firmware-side: give the custom keymap a
+    // distinct USB product string (e.g. "Pangaea Custom" in QMK's config.h or info.json),
+    // then add that suffix as a Custom keyword. Because Custom is checked first, the
+    // custom keymap will resolve to .custom while the default keymap still resolves to
+    // .pangaea — no app changes required.
+    private func resolveTemplate(from names: [String]) -> HeatmapTemplate {
+        let lower = names.map { $0.lowercased() }
         if !kleCustomLayoutJSON.isEmpty {
             let customKWs = kleCustomKeywords
                 .split(separator: ",")
@@ -309,6 +317,12 @@ struct KeyboardHeatmapView: View {
         if lower.contains(where: { n in splitKeywords.contains { n.contains($0) } }) { return .pangaea }
         if lower.contains(where: { n in jisKeywords.contains   { n.contains($0) } }) { return .jis }
         return .ansi
+    }
+
+    // Resolves the `auto` template to a concrete layout based on connected keyboard names.
+    private var effectiveTemplate: HeatmapTemplate {
+        guard template == .auto else { return template }
+        return resolveTemplate(from: deviceNames)
     }
 
     // Returns the matched device name when `.auto` resolves to Custom via keyword match.
@@ -470,47 +484,66 @@ struct KeyboardHeatmapView: View {
                 selectedCellID: $selectedCellID,
                 customKeys: customKeys
             )
-            .overlay(alignment: .bottom) {
-                if let msg = toastMessage {
-                    Text(msg)
-                        .font(.callout)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
-                        .shadow(radius: 4)
-                        .padding(.bottom, 12)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .onTapGesture { dismissToast() }
-                }
-            }
-            .animation(.easeInOut(duration: 0.3), value: toastMessage)
         }
+        .overlay(alignment: .bottom) {
+            if let msg = toastMessage {
+                Text(msg)
+                    .font(.callout)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    .shadow(radius: 4)
+                    .padding(.bottom, 12)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onTapGesture { dismissToast() }
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: toastMessage)
         .onAppear {
             vm.reload()
-            checkLayoutChange()
+            // Set initial lastResolvedTemplate and show toast if auto already resolved to non-ANSI
+            let initial = resolveTemplate(from: deviceNames)
+            lastResolvedTemplate = initial
+            if initial != .ansi {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showToast(L10n.shared.heatmapAutoSwitched(layout: initial.rawValue, device: deviceNames.first ?? ""))
+                }
+            }
+        }
+        .task {
+            // Poll for hot-plug events every 2 s.
+            // Only updates deviceNames — all toast logic is in onChange(of: deviceNames)
+            // which runs in the proper SwiftUI render context (not a captured value-type copy).
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                let fresh = KeyboardDeviceInfo.connectedNames()
+                if fresh != deviceNames { deviceNames = fresh }
+            }
+        }
+        .onChange(of: deviceNames) { newNames in
+            guard template == .auto else { return }
+            let resolved = resolveTemplate(from: newNames)
+            guard resolved != lastResolvedTemplate else { return }
+            lastResolvedTemplate = resolved
+            if resolved == .ansi {
+                showToast(L10n.shared.heatmapAutoSwitchedToANSI)
+            } else {
+                let triggerName = newNames.first { name in
+                    let n = name.lowercased()
+                    switch resolved {
+                    case .jis:     return n.contains("jis") || n.contains("japanese")
+                    case .pangaea: return ["split","ergo","moonlander","advantage","corne","reviung","pangaea"].contains { n.contains($0) }
+                    case .custom:  return true
+                    default:       return false
+                    }
+                } ?? newNames.first
+                showToast(L10n.shared.heatmapAutoSwitched(layout: resolved.rawValue, device: triggerName ?? ""))
+            }
         }
         .onChange(of: counts) { _ in vm.reload() }
     }
 
     // MARK: - Toast helpers (Issue #284)
-
-    private func checkLayoutChange() {
-        guard template == .auto else { return }
-        let resolved = effectiveTemplate
-        guard resolved != .ansi else { return }
-        // Find the device name that triggered the resolution
-        let triggerName = deviceNames.first { name in
-            let n = name.lowercased()
-            switch resolved {
-            case .jis:     return n.contains("jis") || n.contains("japanese")
-            case .pangaea: return ["split","ergo","moonlander","advantage","corne","reviung","pangaea"].contains { n.contains($0) }
-            case .custom:  return true
-            default:       return false
-            }
-        } ?? deviceNames.first
-        let msg = L10n.shared.heatmapAutoSwitched(layout: resolved.rawValue, device: triggerName ?? "")
-        showToast(msg)
-    }
 
     private func showToast(_ message: String) {
         toastDismissTask?.cancel()
@@ -615,7 +648,7 @@ struct HeatmapExportView: View {
     // Returns the row definitions for the current template.
     // .auto falls back to ANSI (HeatmapExportView always receives a resolved template).
     private var rowsForTemplate: [[KeyDef]] {
-        switch template {
+        switch effectiveTemplate {
         case .ortholinear: return KeyboardHeatmapView.ortholinearRows
         case .jis:         return KeyboardHeatmapView.jisRows
         default:           return KeyboardHeatmapView.ansiRows
@@ -641,7 +674,7 @@ struct HeatmapExportView: View {
             GeometryReader { geo in
                 let availableWidth = geo.size.width - 16
                 VStack(alignment: .leading, spacing: keySpacing) {
-                    switch template {
+                    switch effectiveTemplate {
                     case .auto, .ansi, .ortholinear, .jis:
                         ForEach(Array(rowsForTemplate.enumerated()), id: \.offset) { rowIndex, row in
                             rowView(row, rowID: "row-\(rowIndex)", availableWidth: availableWidth)

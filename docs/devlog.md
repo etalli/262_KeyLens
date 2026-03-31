@@ -4,12 +4,19 @@ Daily summaries of development activity, generated from git history.
 
 ---
 
+## 2026-03-31
+
+- **chore:** bump version to v0.82
+
 ## 2026-03-27
 
 - **feat:** moved Key Event Inspector to its own dedicated tab with keyboard icon (#260)
 - **feat:** distinguish left/right modifier keys in Inspector — Key field shows `L⇧A` / `R⇧A`, Flags field shows `L⇧` / `R⇧` using NXEventData raw bit masks (#264)
 - **ux:** improved Inspector help text readability — bullet-point layout with full Raw Flags explanation (left/right bit values)
 - **fix:** reverted black font for Inspector values — broke dark mode; restored `.primary` adaptive foreground (#265)
+- **fix:** correct snapshot Y coordinate for flipped SwiftUI content views; use default font design for symbol fields (⇧ was rendering as 'o' in monospaced); HID Name strips modifier symbols to show base key only (#265)
+- **perf:** run `ChartDataModel.reload()` on background queue to avoid blocking the main thread (#258)
+- **chore:** bump version to v0.80
 
 ## 2026-03-23
 

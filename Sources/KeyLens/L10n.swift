@@ -691,6 +691,10 @@ final class L10n {
             : ja("レイアウトを \(layout) に切り替えました — \(device) を検出", en: "Switched to \(layout) — \(device) detected")
     }
 
+    var heatmapAutoSwitchedToANSI: String {
+        ja("キーボードが取り外されました — ANSI レイアウトに戻しました", en: "Keyboard disconnected — switched back to ANSI")
+    }
+
     var editPromptMenuItem: String {
         ja("AIプロンプトを編集…", en: "Edit AI Prompt…")
     }
