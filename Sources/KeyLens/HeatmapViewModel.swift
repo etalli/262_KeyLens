@@ -17,16 +17,17 @@ final class HeatmapViewModel: ObservableObject {
 
     /// Recompute scores in the background and publish the result on the main actor.
     /// Cancels any in-flight reload before starting a new one.
+    /// Uses Task (inherits @MainActor) + async let over Task.detached to avoid
+    /// the "captured var self in concurrently-executing code" error in strict concurrency.
     func reload() {
         reloadTask?.cancel()
-        reloadTask = Task.detached(priority: .userInitiated) { [weak self] in
-            let strain = Self.computeStrainScores()
-            let speed  = Self.computeSpeedScores()
+        reloadTask = Task {
+            async let strain = Task.detached(priority: .userInitiated) { Self.computeStrainScores() }.value
+            async let speed  = Task.detached(priority: .userInitiated) { Self.computeSpeedScores() }.value
+            let (s, sp) = await (strain, speed)
             guard !Task.isCancelled else { return }
-            await MainActor.run {
-                self?.strainScores = strain
-                self?.speedScores  = speed
-            }
+            strainScores = s
+            speedScores  = sp
         }
     }
 
