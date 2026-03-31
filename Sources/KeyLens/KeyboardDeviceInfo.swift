@@ -31,6 +31,20 @@ enum KeyboardDeviceInfo {
         IOHIDManagerSetDeviceMatching(manager, matching as CFDictionary)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
 
+        return connectedDevices(copyingFrom: manager)
+    }
+
+    /// Returns connected devices from an existing, run-loop-scheduled IOHIDManager.
+    /// Use this overload inside hot-plug callbacks — the scheduled manager has already
+    /// processed the removal event, so its device set is authoritative and up-to-date.
+    /// ランループにスケジュール済みの IOHIDManager からデバイス一覧を返す。
+    /// ホットプラグコールバック内では、このオーバーロードを使うこと。
+    static func connectedDevices(using manager: IOHIDManager) -> [(name: String, kind: KeyboardKind)] {
+        connectedDevices(copyingFrom: manager)
+    }
+
+    // Shared implementation: copies and parses the device set from any manager.
+    private static func connectedDevices(copyingFrom manager: IOHIDManager) -> [(name: String, kind: KeyboardKind)] {
         guard let devices = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else {
             return []
         }

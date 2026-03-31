@@ -112,9 +112,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     private func detectHardware() {
-        let devices = KeyboardDeviceInfo.connectedDevices()
+        // Use the scheduled hidManager so its device set is already updated by the
+        // IOKit callback — avoids a race where a freshly-opened manager still returns
+        // the removed device.
+        let devices = hidManager.map { KeyboardDeviceInfo.connectedDevices(using: $0) }
+                      ?? KeyboardDeviceInfo.connectedDevices()
         LayoutRegistry.shared.applyProfile(forDevices: devices)
-        NotificationCenter.default.post(name: .keyboardDevicesChanged, object: nil)
+        // Pass the authoritative name list as the notification object so the heatmap
+        // does not need to re-query IOKit independently.
+        let names = devices.map(\.name)
+        NotificationCenter.default.post(name: .keyboardDevicesChanged, object: names)
     }
 
     // MARK: - IOKit hot-plug
@@ -139,7 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         IOHIDManagerRegisterDeviceMatchingCallback(manager, callback, ctx)
         IOHIDManagerRegisterDeviceRemovalCallback(manager, callback, ctx)
 
-        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         hidManager = manager
     }

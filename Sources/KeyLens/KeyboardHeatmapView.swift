@@ -61,8 +61,9 @@ struct KeyboardHeatmapView: View {
     // Issue #284: toast when Auto resolves to a non-default layout
     @State private var toastMessage: String? = nil
     @State private var toastDismissTask: DispatchWorkItem? = nil
-    // Tracks the last resolved template so the toast fires only on *changes*, not every poll tick
-    @State private var lastResolvedTemplate: HeatmapTemplate? = nil
+    // Tracks the last resolved template so the toast fires only on *changes*, not every poll tick.
+    // @AppStorage so it survives view unmount — allows detecting disconnect while window was closed.
+    @AppStorage("heatmapLastResolvedTemplate") private var lastResolvedTemplate: HeatmapTemplate = .ansi
     @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
     @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
@@ -519,33 +520,36 @@ struct KeyboardHeatmapView: View {
         .animation(.easeInOut(duration: 0.3), value: toastMessage)
         .onAppear {
             vm.reload()
-            // Set initial lastResolvedTemplate and show toast if auto already resolved to non-ANSI
             let initial = resolveTemplate(from: deviceNames)
-            lastResolvedTemplate = initial
-            if initial != .ansi {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showToast(L10n.shared.heatmapAutoSwitched(layout: initial.rawValue, device: deviceNames.first ?? ""))
+            // lastResolvedTemplate persists via @AppStorage — compare to detect disconnects
+            // that happened while the view was unmounted (e.g. window closed).
+            if initial != lastResolvedTemplate {
+                if initial == .ansi {
+                    // Was on a custom/split layout, now ANSI → keyboard was disconnected
+                    showToast(L10n.shared.heatmapAutoSwitchedToANSI)
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showToast(L10n.shared.heatmapAutoSwitched(layout: initial.rawValue, device: deviceNames.first ?? ""))
+                    }
                 }
             }
+            lastResolvedTemplate = initial
         }
         .task {
-            // Poll for hot-plug events every 2 s as a safety net.
-            // The primary path is onReceive(.keyboardDevicesChanged) which fires immediately
-            // from AppDelegate's IOKit callback. The poll catches any events that arrive
-            // before the view is mounted, or edge cases where the notification is missed.
+            // Poll every 2 s as a safety net for events missed before view mount.
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 let fresh = KeyboardDeviceInfo.connectedNames()
                 if fresh != deviceNames { deviceNames = fresh }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .keyboardDevicesChanged)) { _ in
-            // IOKit fired a connect/remove callback — refresh device list immediately.
-            // A 300 ms delay lets the IORegistry settle before querying (removal callbacks
-            // can fire slightly before the device disappears from IOHIDManagerCopyDevices).
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                let fresh = KeyboardDeviceInfo.connectedNames()
-                if fresh != deviceNames { deviceNames = fresh }
+        .onReceive(NotificationCenter.default.publisher(for: .keyboardDevicesChanged)) { notification in
+            // Use device names carried in the notification object — these come directly from
+            // AppDelegate's scheduled hidManager, which already reflects the removal.
+            // No fresh IOKit query needed, eliminating the race that caused stale results.
+            if let names = notification.object as? [String] {
+                let sorted = names.sorted()
+                if sorted != deviceNames { deviceNames = sorted }
             }
         }
         .onChange(of: deviceNames) { newNames in
