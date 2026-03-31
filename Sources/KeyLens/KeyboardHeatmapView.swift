@@ -511,11 +511,21 @@ struct KeyboardHeatmapView: View {
             }
         }
         .task {
-            // Poll for hot-plug events every 2 s.
-            // Only updates deviceNames — all toast logic is in onChange(of: deviceNames)
-            // which runs in the proper SwiftUI render context (not a captured value-type copy).
+            // Poll for hot-plug events every 2 s as a safety net.
+            // The primary path is onReceive(.keyboardDevicesChanged) which fires immediately
+            // from AppDelegate's IOKit callback. The poll catches any events that arrive
+            // before the view is mounted, or edge cases where the notification is missed.
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
+                let fresh = KeyboardDeviceInfo.connectedNames()
+                if fresh != deviceNames { deviceNames = fresh }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .keyboardDevicesChanged)) { _ in
+            // IOKit fired a connect/remove callback — refresh device list immediately.
+            // A 300 ms delay lets the IORegistry settle before querying (removal callbacks
+            // can fire slightly before the device disappears from IOHIDManagerCopyDevices).
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 let fresh = KeyboardDeviceInfo.connectedNames()
                 if fresh != deviceNames { deviceNames = fresh }
             }

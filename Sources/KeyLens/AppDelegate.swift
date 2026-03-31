@@ -114,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func detectHardware() {
         let devices = KeyboardDeviceInfo.connectedDevices()
         LayoutRegistry.shared.applyProfile(forDevices: devices)
+        NotificationCenter.default.post(name: .keyboardDevicesChanged, object: nil)
     }
 
     // MARK: - IOKit hot-plug

@@ -217,8 +217,9 @@ final class KeyboardMonitor {
 // MARK: - Notification Names
 
 extension Notification.Name {
-    static let keystrokeInput    = Notification.Name("com.keylens.keystrokeInput")
-    static let keystrokeReleased = Notification.Name("com.keylens.keystrokeReleased")
+    static let keystrokeInput         = Notification.Name("com.keylens.keystrokeInput")
+    static let keystrokeReleased      = Notification.Name("com.keylens.keystrokeReleased")
+    static let keyboardDevicesChanged = Notification.Name("com.keylens.keyboardDevicesChanged")
 }
 
 // MARK: - CGEventTap コールバック
@@ -247,6 +248,7 @@ extension KeyboardMonitor {
         type: CGEventType,
         event: CGEvent
     ) -> Unmanaged<CGEvent>? {
+        let handlerStartedAt = CFAbsoluteTimeGetCurrent()
         // タイムアウトで無効化された場合は即座に再有効化
         if type == .tapDisabledByTimeout {
             KeyLens.log("CGEventTap disabled by timeout — re-enabling")
@@ -303,6 +305,7 @@ extension KeyboardMonitor {
         let incrementStart = Date()
         let result = store.increment(key: name, at: now, appName: appName)
         let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
+        PerformanceProfiler.shared.record(metric: "store.increment", ms: elapsedMs)
         if elapsedMs > kHandleEventSlowThresholdMs {
             KeyLens.log("[perf] handleEvent slow: \(String(format: "%.1f", elapsedMs))ms (key: \(name))")
             store.recordSlowEvent()
@@ -347,6 +350,8 @@ extension KeyboardMonitor {
             // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
             NotificationCenter.default.post(name: .keystrokeInput, object: evt)
         }
+        let handlerMs = (CFAbsoluteTimeGetCurrent() - handlerStartedAt) * 1000
+        PerformanceProfiler.shared.record(metric: "event.handle.total", ms: handlerMs)
         return Unmanaged.passRetained(event)
     }
 }
