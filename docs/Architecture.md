@@ -765,6 +765,56 @@ ensuring forward/backward compatibility when new fields are added.
 - Slow event handling is already monitored: if `handleEvent` takes longer than `kHandleEventSlowThresholdMs` (~5 ms) for a single event, the app logs a `[perf] handleEvent slow` line and increments `KeyCountStore.slowEventCount` via `recordSlowEvent()`.
 - SQLite scalar writes are debounced: `scheduleSave()` captures a snapshot of `CountData` on the store queue and serializes it on a separate `saveQueue`, keeping serialization work off the keystroke hot path.
 
+### Profiling runbook
+
+**Enable profiling** (survives app restarts):
+```bash
+defaults write com.example.KeyLens perfProfilingEnabled -bool true
+```
+
+**Disable profiling:**
+```bash
+defaults delete com.example.KeyLens perfProfilingEnabled
+```
+
+**Read the log** (profiler flushes every 30 s when enabled):
+```bash
+tail -f ~/Library/Logs/KeyLens/app.log | grep '\[perf\]'
+```
+
+**Metrics emitted** (format: `metric=<name> n=<count> mean=<ms>ms p95=<ms>ms min=<ms>ms max=<ms>ms`):
+
+| Metric | What it measures |
+|--------|-----------------|
+| `store.increment` | Time spent inside `KeyCountStore.increment` per keystroke |
+| `event.handle.total` | Full `handleEvent` wall time including increment + notification dispatch |
+| `charts.open` | Time from `ChartsWindowController.show()` to window visible |
+| `charts.reload` | Time to rebuild `ChartDataModel` (background queue) |
+| `charts.mainThread.timerDrift` | Main-thread timer drift while charts window is open |
+
+**Baseline measurement steps:**
+
+1. Quit KeyLens, enable profiling, relaunch.
+2. Type normally for 2–3 minutes (at least 500 keystrokes).
+3. Open "Show charts…", browse all tabs, close.
+4. Wait 30 s for the profiler to flush, then check the log.
+5. Record the `mean` and `p95` values for each metric.
+
+**Performance budgets (informal):**
+
+| Metric | Budget |
+|--------|--------|
+| `store.increment` mean | < 1 ms |
+| `store.increment` p95 | < 3 ms |
+| `event.handle.total` mean | < 2 ms |
+| `event.handle.total` p95 | < 5 ms |
+| `charts.open` | < 500 ms |
+| `charts.reload` | < 300 ms |
+| Menu bar CPU (idle) | < 1% |
+| Memory RSS after 8 h | < 100 MB |
+
+Any regression beyond these budgets should be investigated before merging.
+
 ### Data model and UI performance considerations
 
 - `KeyCountStore` centralises all mutable state in `CountData` but surfaces a read-only snapshot through `makeQuery()`, which is consumed by `KeyMetricsQuery` in the charts layer. This keeps chart computations off the mutating store path.
