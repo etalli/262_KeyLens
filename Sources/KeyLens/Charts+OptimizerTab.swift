@@ -287,6 +287,14 @@ extension ChartsView {
             .background(Color.secondary.opacity(0.07))
             .clipShape(RoundedRectangle(cornerRadius: 10))
 
+            // Per-metric breakdown — only shown once swaps are active
+            // スワップが存在する場合のみ指標別の内訳を表示
+            if let base = optimizerState.baseSnapshot,
+               let curr = optimizerState.currentSnapshot,
+               !optimizerState.swapHistory.isEmpty {
+                optimizerBreakdown(base: base, curr: curr)
+            }
+
             // Action bar
             HStack(spacing: 10) {
                 if optimizerState.isComputing {
@@ -341,6 +349,88 @@ extension ChartsView {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Score breakdown table
+
+    /// Compact grid showing per-metric before/after/delta for the current swap state.
+    /// 現在のスワップ状態における指標別の変更前/後/差分をコンパクトなグリッドで表示する。
+    @ViewBuilder
+    private func optimizerBreakdown(
+        base: ErgonomicSnapshot,
+        curr: ErgonomicSnapshot
+    ) -> some View {
+        Grid(alignment: .trailing, horizontalSpacing: 16, verticalSpacing: 0) {
+            // Header
+            GridRow {
+                Text(L10n.shared.tableHeaderMetric)
+                    .font(.caption).bold().foregroundStyle(.secondary)
+                    .gridColumnAlignment(.leading)
+                Text(L10n.shared.optimizerScoreBefore)
+                    .font(.caption).bold().foregroundStyle(.secondary)
+                Text(L10n.shared.optimizerScoreAfter)
+                    .font(.caption).bold().foregroundStyle(.secondary)
+                Text(L10n.shared.tableHeaderChange)
+                    .font(.caption).bold().foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 4)
+
+            Divider().gridCellUnsizedAxes(.horizontal)
+
+            // Same-finger rate — lower is better
+            comparisonRow(
+                metric:          L10n.shared.ergoMetricSameFingerRate,
+                current:         pct(base.sameFingerRate),
+                proposed:        pct(curr.sameFingerRate),
+                delta:           -(curr.sameFingerRate - base.sameFingerRate),
+                positiveIsBetter: true,
+                format:          { pp(-$0) }
+            )
+
+            // High-strain rate — lower is better
+            comparisonRow(
+                metric:          L10n.shared.ergoMetricHighStrainRate,
+                current:         pct(base.highStrainRate),
+                proposed:        pct(curr.highStrainRate),
+                delta:           -(curr.highStrainRate - base.highStrainRate),
+                positiveIsBetter: true,
+                format:          { pp(-$0) }
+            )
+
+            // Hand alternation — higher is better
+            comparisonRow(
+                metric:          L10n.shared.ergoMetricHandAlt,
+                current:         pct(base.handAlternationRate),
+                proposed:        pct(curr.handAlternationRate),
+                delta:           curr.handAlternationRate - base.handAlternationRate,
+                positiveIsBetter: true,
+                format:          { pp($0) }
+            )
+
+            // Thumb imbalance — lower is better
+            comparisonRow(
+                metric:          L10n.shared.ergoMetricThumbImbalance,
+                current:         String(format: "%.2f", base.thumbImbalanceRatio),
+                proposed:        String(format: "%.2f", curr.thumbImbalanceRatio),
+                delta:           -(curr.thumbImbalanceRatio - base.thumbImbalanceRatio),
+                positiveIsBetter: true,
+                format:          { String(format: "%+.2f", -$0) }
+            )
+
+            // Finger travel — lower is better
+            comparisonRow(
+                metric:          L10n.shared.ergoMetricFingerTravel,
+                current:         String(format: "%.0f", base.estimatedTravelDistance),
+                proposed:        String(format: "%.0f", curr.estimatedTravelDistance),
+                delta:           -(curr.estimatedTravelDistance - base.estimatedTravelDistance),
+                positiveIsBetter: true,
+                format:          { String(format: "%+.0f", -$0) }
+            )
+        }
+        .padding(12)
+        .background(Color.secondary.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+
     }
 
     // MARK: - Keyboard grid
