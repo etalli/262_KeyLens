@@ -4,6 +4,12 @@ Daily summaries of development activity, generated from git history.
 
 ---
 
+## 2026-04-02
+
+- **refactor:** extracted domain sub-structs (`BigramPair`, `KeyPressEvent`, etc.) from `KeyCountStore` into a dedicated `KeyCountStore+Types.swift` file (#269)
+- **docs:** updated dev log with recent feature additions and documentation improvements
+- **chore:** installed Codex plugin for Claude Code to support AI-assisted code review in the dev environment
+
 ## 2026-04-01
 
 - **fix:** resolved long-standing keyboard disconnect bug — root cause was a fresh unscheduled `IOHIDManager` returning stale device data; switched to querying AppDelegate's live `hidManager` and passing names via notification object (#285)
