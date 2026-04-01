@@ -9,8 +9,11 @@ Daily summaries of development activity, generated from git history.
 - **fix:** resolved long-standing keyboard disconnect bug — root cause was a fresh unscheduled `IOHIDManager` returning stale device data; switched to querying AppDelegate's live `hidManager` and passing names via notification object (#285)
 - **fix:** run loop mode changed from `.defaultMode` → `.commonModes` so IOKit callbacks fire during UI event tracking; `lastResolvedTemplate` promoted to `@AppStorage` to detect disconnects while view was unmounted (#285)
 - **feat:** Auto mode now selects Custom layout automatically when a KLE file is imported and a split/ergo keyboard connects — no keyword configuration needed (#288)
+- **feat:** added opt-in `PerformanceProfiler` with aggregated hot-path metrics (mean/p95/min/max) flushed to app.log every 30 s (#287)
+- **feat:** added undo option after Reset Counts — DB is backed up before reset and restored if user chooses Undo (#286)
 - **ux:** heatmap mode row shows `↳ [device] → [filename]` caption when Auto resolves to Custom KLE; falls back to "Custom KLE" if filename was not stored (#288)
 - **refactor:** removed `"pangaea"` from `LayoutRegistry` split keywords — Pangaea no longer triggers the `splitErgo` ergonomic profile
+- **docs:** added perf profiling runbook and budgets to Architecture.md and HowToBuild.md (#287)
 
 ## 2026-03-31
 
