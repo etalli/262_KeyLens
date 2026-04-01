@@ -360,6 +360,7 @@ extension ChartsView {
         base: ErgonomicSnapshot,
         curr: ErgonomicSnapshot
     ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
         Grid(alignment: .trailing, horizontalSpacing: 16, verticalSpacing: 0) {
             // Header
             GridRow {
@@ -426,7 +427,21 @@ extension ChartsView {
                 positiveIsBetter: true,
                 format:          { String(format: "%+.0f", -$0) }
             )
-        }
+        } // end Grid
+
+        Divider()
+
+        // Score formula
+        Text(L10n.shared.optimizerScoreFormula)
+            .font(.system(size: 10, design: .monospaced))
+            .foregroundStyle(.secondary)
+
+        // Finger travel caveat
+        Text(L10n.shared.optimizerTravelNote)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+
+        } // end VStack
         .padding(12)
         .background(Color.secondary.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 8))

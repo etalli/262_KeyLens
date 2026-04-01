@@ -2050,6 +2050,14 @@ final class L10n {
            en: "Drag keys to simulate swaps and preview the ergonomic score change live. Double-click a key to lock it in place.")
     }
     var optimizerSwapHistoryTitle: String { ja("スワップ履歴",   en: "Swap History") }
+    var optimizerScoreFormula: String     {
+        ja("スコア = 100 − 0.30×同指 − 0.25×高負荷 − 0.15×親指偏り + 0.20×交互 + 0.10×親指効率  (0〜100 に丸め)",
+           en: "score = 100 − 0.30×SFB − 0.25×HS − 0.15×TI + 0.20×Alt + 0.10×TE  (clamped 0–100)")
+    }
+    var optimizerTravelNote: String       {
+        ja("※ フィンガートラベルはスコアに影響しません (参考値)。",
+           en: "* Finger travel is shown for reference only and does not affect the score.")
+    }
 
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",
