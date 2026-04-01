@@ -2022,9 +2022,34 @@ final class L10n {
     var appsSubTabApps: String         { ja("アプリ",    en: "Apps") }
     var appsSubTabDevices: String      { ja("デバイス",  en: "Devices") }
 
-    var ergoSubTabBigrams: String      { ja("バイグラム", en: "Bigrams") }
-    var ergoSubTabLayout: String       { ja("レイアウト", en: "Layout") }
-    var ergoSubTabFatigue: String      { ja("疲労",      en: "Fatigue") }
+    var ergoSubTabBigrams: String      { ja("バイグラム",         en: "Bigrams") }
+    var ergoSubTabLayout: String       { ja("レイアウト",         en: "Layout") }
+    var ergoSubTabFatigue: String      { ja("疲労",              en: "Fatigue") }
+    var ergoSubTabOptimizer: String    { ja("オプティマイザ",     en: "Optimizer") }
+
+    // MARK: - Charts: Key Swap Optimizer (Issue #235)
+
+    var optimizerTitle: String         { ja("キースワップシミュレータ",  en: "Key Swap Simulator") }
+    var optimizerInstruction: String   {
+        ja("キーをドラッグしてスワップ。ダブルクリックでロック/解除。",
+           en: "Drag a key onto another to swap. Double-click to lock/unlock.")
+    }
+    var optimizerScoreBefore: String   { ja("変更前",            en: "Before") }
+    var optimizerScoreAfter: String    { ja("変更後",            en: "After") }
+    var optimizerResetButton: String   { ja("リセット",          en: "Reset") }
+    var optimizerUndoButton: String    { ja("元に戻す",          en: "Undo") }
+    var optimizerExportButton: String  { ja("レイアウトを保存",  en: "Export Layout") }
+    var optimizerSwapCount: String     { ja("スワップ",          en: "swap(s)") }
+    var optimizerExported: String      { ja("保存済み: ",        en: "Saved: ") }
+    var optimizerNoData: String        {
+        ja("データ不足。しばらくタイプしてからお試しください。",
+           en: "Not enough data yet. Type for a while first.")
+    }
+    var optimizerHelpText: String      {
+        ja("キーをドラッグしてスワップし、エルゴノミクススコアの変化をリアルタイムでプレビューします。ダブルクリックでキーをロック。",
+           en: "Drag keys to simulate swaps and preview the ergonomic score change live. Double-click a key to lock it in place.")
+    }
+    var optimizerSwapHistoryTitle: String { ja("スワップ履歴",   en: "Swap History") }
 
     var liveTypingHint: String {
         ja("このウィンドウを開いたままタイプするとライブタイミングが表示されます。",

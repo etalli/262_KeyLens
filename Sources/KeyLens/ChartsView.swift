@@ -33,6 +33,8 @@ struct ChartsView: View {
     @State var appsSubTab: AppsSubTab = .apps
     /// Active sub-tab within the Ergonomics tab (Issue #273).
     @State var ergoSubTab: ErgoSubTab = .bigrams
+    /// State object for the Key Swap Optimizer (Issue #235).
+    @StateObject var optimizerState = OptimizerSimulatorState()
     /// Saved drill presets stored as JSON (Issue #278).
     @AppStorage("drillPresets") var drillPresetsJSON: String = "[]"
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).

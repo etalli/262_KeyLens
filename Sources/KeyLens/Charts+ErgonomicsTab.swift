@@ -8,6 +8,7 @@ enum ErgoSubTab: String, CaseIterable {
     case bigrams
     case layout
     case fatigue
+    case optimizer
 }
 
 extension ChartsView {
@@ -18,6 +19,7 @@ extension ChartsView {
                 Text(L10n.shared.ergoSubTabBigrams).tag(ErgoSubTab.bigrams)
                 Text(L10n.shared.ergoSubTabLayout).tag(ErgoSubTab.layout)
                 Text(L10n.shared.ergoSubTabFatigue).tag(ErgoSubTab.fatigue)
+                Text(L10n.shared.ergoSubTabOptimizer).tag(ErgoSubTab.optimizer)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 24)
@@ -60,6 +62,9 @@ extension ChartsView {
                     }
                     .padding(24)
                 }
+
+            case .optimizer:
+                optimizerTab
             }
         }
     }
