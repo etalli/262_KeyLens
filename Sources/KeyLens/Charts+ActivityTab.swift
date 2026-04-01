@@ -405,12 +405,6 @@ extension ChartsView {
                     )
                     .foregroundStyle(theme.accentColor.opacity(0.7))
                     .cornerRadius(3)
-                    PointMark(
-                        x: .value("Date", item.date),
-                        y: .value("Minutes", item.avgMinutes)
-                    )
-                    .foregroundStyle(theme.accentColor)
-                    .symbolSize(30)
                 }
                 .chartXAxis {
                     let stride = max(2, model.sessionSummaries.count / 5)
@@ -429,9 +423,36 @@ extension ChartsView {
                 }
                 .chartYAxisLabel(L10n.shared.axisLabelMinutes, alignment: .trailing)
                 .frame(height: 140)
-                Text("● \(L10n.shared.avgSessionLabel)")
-                    .font(.caption)
+
+                // Average session per day (bar chart)
+                Text(L10n.shared.avgSessionLabel)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
+                Chart(model.sessionSummaries) { item in
+                    BarMark(
+                        x: .value("Date", item.date),
+                        y: .value("Minutes", item.avgMinutes)
+                    )
+                    .foregroundStyle(theme.accentColor.opacity(0.5))
+                    .cornerRadius(3)
+                }
+                .chartXAxis {
+                    let stride = max(2, model.sessionSummaries.count / 5)
+                    AxisMarks(values: model.sessionSummaries.enumerated()
+                        .filter { $0.offset % stride == 0 }
+                        .map { $0.element.date }
+                    ) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let d = value.as(String.self) {
+                                Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))  // "yyyy-MM-dd" → "MM/dd"
+                                    .font(.footnote)
+                            }
+                        }
+                    }
+                }
+                .chartYAxisLabel(L10n.shared.axisLabelMinutes, alignment: .trailing)
+                .frame(height: 140)
             }
         }
     }
