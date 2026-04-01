@@ -6,9 +6,11 @@ Daily summaries of development activity, generated from git history.
 
 ## 2026-04-02
 
-- **refactor:** extracted domain sub-structs (`BigramPair`, `KeyPressEvent`, etc.) from `KeyCountStore` into a dedicated `KeyCountStore+Types.swift` file (#269)
-- **docs:** updated dev log with recent feature additions and documentation improvements
-- **chore:** installed Codex plugin for Claude Code to support AI-assisted code review in the dev environment
+- **feat:** added Key Swap Simulator to Ergonomics tab — drag keys to swap, live before/after ergonomic score, lock/unlock keys, undo, export as JSON preset (#235)
+- **feat:** added per-metric score breakdown table and score formula footnote to the simulator; clarified that finger travel is informational only
+- **fix:** added dedicated Avg Session chart in Sessions tab (#289)
+- **refactor:** extracted domain sub-structs from `KeyCountStore` into `KeyCountStore+Types.swift` (#269)
+- **chore:** installed Codex plugin for Claude Code; created issue #293 for missing row-reach penalty in `ErgonomicScoreEngine`
 
 ## 2026-04-01
 
