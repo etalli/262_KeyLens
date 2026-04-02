@@ -2067,12 +2067,12 @@ final class L10n {
     }
     var optimizerSwapHistoryTitle: String { ja("スワップ履歴",   en: "Swap History") }
     var optimizerScoreFormula: String     {
-        ja("スコア = 100 − 0.30×同指 − 0.25×高負荷 − 0.15×親指偏り + 0.20×交互 + 0.10×親指効率  (0〜100 に丸め)",
-           en: "score = 100 − 0.30×SFB − 0.25×HS − 0.15×TI + 0.20×Alt + 0.10×TE  (clamped 0–100)")
+        ja("スコア = 100 − 0.30×同指 − 0.25×高負荷 − 0.15×親指偏り − 0.20×行到達 + 0.20×交互 + 0.10×親指効率  (0〜100 に丸め)",
+           en: "score = 100 − 0.30×SFB − 0.25×HS − 0.15×TI − 0.20×Reach + 0.20×Alt + 0.10×TE  (clamped 0–100)")
     }
     var optimizerTravelNote: String       {
-        ja("※ フィンガートラベルはスコアに影響しません (参考値)。",
-           en: "* Finger travel is shown for reference only and does not affect the score.")
+        ja("※ 行到達 = 頻度加重平均のホーム行からの距離 (正規化)。フィンガートラベルは参考値のみ。",
+           en: "* Reach = frequency-weighted mean row distance from home row (normalised). Finger travel is shown for reference only.")
     }
 
     var liveTypingHint: String {

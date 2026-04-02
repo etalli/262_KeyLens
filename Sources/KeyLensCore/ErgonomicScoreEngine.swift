@@ -8,6 +8,7 @@
 //     - weights.sameFingerPenalty    × (sameFingerRate   × 100)
 //     - weights.highStrainPenalty    × (highStrainRate   × 100)
 //     - weights.thumbImbalancePenalty× (thumbImbalanceRatio × 100)
+//     - weights.rowReachPenalty      × (rowReachScore    × 100)
 //     + weights.alternationReward    × (handAlternationRate × 100)
 //     + weights.thumbEfficiencyBonus × (min(teCoeff / teMax, 1.0) × 100)
 //
@@ -45,6 +46,7 @@ import Foundation
 /// | sameFingerPenalty     | negative  | 0.30    |
 /// | highStrainPenalty     | negative  | 0.25    |
 /// | thumbImbalancePenalty | negative  | 0.15    |
+/// | rowReachPenalty       | negative  | 0.20    |
 /// | alternationReward     | positive  | 0.20    |
 /// | thumbEfficiencyBonus  | positive  | 0.10    |
 ///
@@ -63,6 +65,11 @@ public struct ErgonomicScoreWeights: Equatable {
     /// 親指偏りペナルティの重み。方向：減点。
     public let thumbImbalancePenalty: Double
 
+    /// Weight for row-reach penalty (Issue #293). Direction: negative.
+    /// Penalises layouts that place frequent keys far from the home row.
+    /// 行到達ペナルティの重み。頻繁に使うキーがホーム行から離れた行にあるほど減点。方向：減点。
+    public let rowReachPenalty: Double
+
     /// Weight for hand alternation reward (Issue #25). Direction: positive.
     /// 手交互打鍵報酬の重み。方向：加点。
     public let alternationReward: Double
@@ -75,28 +82,31 @@ public struct ErgonomicScoreWeights: Equatable {
         sameFingerPenalty: Double,
         highStrainPenalty: Double,
         thumbImbalancePenalty: Double,
+        rowReachPenalty: Double,
         alternationReward: Double,
         thumbEfficiencyBonus: Double
     ) {
         self.sameFingerPenalty     = sameFingerPenalty
         self.highStrainPenalty     = highStrainPenalty
         self.thumbImbalancePenalty = thumbImbalancePenalty
+        self.rowReachPenalty       = rowReachPenalty
         self.alternationReward     = alternationReward
         self.thumbEfficiencyBonus  = thumbEfficiencyBonus
     }
 
     // MARK: - Default
 
-    /// Default weights as specified in Issue #29.
+    /// Default weights as specified in Issue #29, extended with rowReachPenalty (Issue #293).
     ///
-    /// Penalty total: 0.30 + 0.25 + 0.15 = 0.70 (max deduction: 70 pts)
+    /// Penalty total: 0.30 + 0.25 + 0.15 + 0.20 = 0.90 (max deduction: 90 pts)
     /// Reward total:  0.20 + 0.10 = 0.30 (max addition: 30 pts)
     ///
-    /// Issue #29 仕様のデフォルト重みテーブル。
+    /// Issue #29 仕様のデフォルト重みテーブル (Issue #293 の行到達ペナルティを追加)。
     public static let `default` = ErgonomicScoreWeights(
         sameFingerPenalty:     0.30,
         highStrainPenalty:     0.25,
         thumbImbalancePenalty: 0.15,
+        rowReachPenalty:       0.20,
         alternationReward:     0.20,
         thumbEfficiencyBonus:  0.10
     )
@@ -159,25 +169,29 @@ public struct ErgonomicScoreEngine: Equatable {
     ///   - sameFingerRate:             Fraction of bigrams using the same finger. [0, 1]
     ///   - highStrainRate:             Fraction of bigrams classified as high-strain. [0, 1]
     ///   - thumbImbalanceRatio:        Normalised left/right thumb usage imbalance. [0, 1]
+    ///   - rowReachScore:              Frequency-weighted mean row distance from home row,
+    ///                                 normalised to [0, 1] (0 = all keys on home row, 1 = max reach). [0, 1]
     ///   - handAlternationRate:        Fraction of bigrams that alternate hands. [0, 1]
     ///   - thumbEfficiencyCoefficient: Thumb keystrokes / (total × expectedRatio). [0, ∞]
     /// - Returns: Ergonomic score clamped to [0, 100]. Higher is better.
     ///
-    /// 5つの正規化済みサブ指標からエルゴノミクススコアを算出する。高いほど良好。
+    /// 6つの正規化済みサブ指標からエルゴノミクススコアを算出する。高いほど良好。
     public func score(
         sameFingerRate:             Double,
         highStrainRate:             Double,
         thumbImbalanceRatio:        Double,
+        rowReachScore:              Double,
         handAlternationRate:        Double,
         thumbEfficiencyCoefficient: Double
     ) -> Double {
         // Normalise each sub-metric to [0, 100].
         // 各サブ指標を [0, 100] に正規化する。
-        let sfb100 = sameFingerRate  * 100
-        let hs100  = highStrainRate  * 100
-        let ti100  = thumbImbalanceRatio * 100
-        let alt100 = handAlternationRate * 100
-        let te100  = thumbEfficiencyMax > 0
+        let sfb100    = sameFingerRate      * 100
+        let hs100     = highStrainRate      * 100
+        let ti100     = thumbImbalanceRatio * 100
+        let reach100  = rowReachScore       * 100
+        let alt100    = handAlternationRate * 100
+        let te100     = thumbEfficiencyMax > 0
             ? min(thumbEfficiencyCoefficient / thumbEfficiencyMax, 1.0) * 100
             : 0.0
 
@@ -185,6 +199,7 @@ public struct ErgonomicScoreEngine: Equatable {
             - weights.sameFingerPenalty     * sfb100
             - weights.highStrainPenalty     * hs100
             - weights.thumbImbalancePenalty * ti100
+            - weights.rowReachPenalty       * reach100
             + weights.alternationReward     * alt100
             + weights.thumbEfficiencyBonus  * te100
 

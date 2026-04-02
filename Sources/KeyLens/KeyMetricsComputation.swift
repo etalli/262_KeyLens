@@ -42,10 +42,22 @@ enum KeyMetricsComputation {
         let teCoeff = keyCounts.flatMap {
             layout.thumbEfficiencyCalculator.coefficient(counts: $0, layout: layout)
         } ?? 0.0
+        // Frequency-weighted mean row distance from home row (row 2), normalised to [0, 1].
+        var reachSum   = 0.0
+        var reachTotal = 0
+        if let kc = keyCounts {
+            for (key, count) in kc where count > 0 {
+                guard let pos = layout.current.position(for: key) else { continue }
+                reachSum   += Double(abs(pos.row - 2) * count)
+                reachTotal += count
+            }
+        }
+        let rowReach = reachTotal > 0 ? min(reachSum / Double(reachTotal) / 2.0, 1.0) : 0.0
         return engine.score(
             sameFingerRate:             Double(sfCount)  / Double(bigramCount),
             highStrainRate:             Double(hsCount)  / Double(bigramCount),
             thumbImbalanceRatio:        tiRatio,
+            rowReachScore:              rowReach,
             handAlternationRate:        Double(altCount) / Double(bigramCount),
             thumbEfficiencyCoefficient: teCoeff
         )

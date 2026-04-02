@@ -15,6 +15,7 @@
 //   - handAlternationRate        [0, 1]    fraction of bigrams that alternate hands
 //   - thumbImbalanceRatio        [0, 1]    normalised left/right thumb usage imbalance
 //   - thumbEfficiencyCoefficient [0, ∞]   thumb keystrokes / (total × expectedRatio)
+//   - rowReachScore              [0, 1]    frequency-weighted mean row distance from home row (lower = better)
 //   - estimatedTravelDistance    [0, ∞]   total finger travel in grid units (lower = better)
 //   - typingStyle                TypingStyle detected typing context
 //   - fatigueLevel               FatigueLevel detected typing fatigue
@@ -68,6 +69,11 @@ public struct ErgonomicSnapshot: Equatable {
 
     // MARK: - Travel distance
 
+    /// Frequency-weighted mean row distance from the home row (row 2), normalised to [0, 1].
+    /// 0 = all typed keys on home row; 1 = maximum reach (number row or thumb row). Lower is better.
+    /// ホーム行(row 2)からの頻度加重平均行距離（0〜1 正規化）。低いほど良好。
+    public let rowReachScore: Double
+
     /// Estimated total finger travel distance (in grid units). Lower is better.
     /// 総指移動距離の推定値（グリッド単位）。低いほど良好。
     public let estimatedTravelDistance: Double
@@ -87,6 +93,7 @@ public struct ErgonomicSnapshot: Equatable {
         handAlternationRate: Double,
         thumbImbalanceRatio: Double,
         thumbEfficiencyCoefficient: Double,
+        rowReachScore: Double,
         estimatedTravelDistance: Double,
         typingStyle: TypingStyle = .unknown,
         fatigueLevel: FatigueLevel = .low
@@ -97,6 +104,7 @@ public struct ErgonomicSnapshot: Equatable {
         self.handAlternationRate        = handAlternationRate
         self.thumbImbalanceRatio        = thumbImbalanceRatio
         self.thumbEfficiencyCoefficient = thumbEfficiencyCoefficient
+        self.rowReachScore              = rowReachScore
         self.estimatedTravelDistance    = estimatedTravelDistance
         self.typingStyle                = typingStyle
         self.fatigueLevel               = fatigueLevel
@@ -131,6 +139,7 @@ public struct ErgonomicSnapshot: Equatable {
                 sameFingerRate: 0, highStrainRate: 0,
                 handAlternationRate: 0,
                 thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0,
+                rowReachScore: 0,
                 estimatedTravelDistance: 0,
                 typingStyle: .unknown, fatigueLevel: .low
             )
@@ -182,6 +191,19 @@ public struct ErgonomicSnapshot: Equatable {
         let teCoeff = layout.thumbEfficiencyCalculator
             .coefficient(counts: keyCounts, layout: layout) ?? 0.0
 
+        // --- Row-reach score --------------------------------------------------------
+        // Frequency-weighted mean |row − 2| (home row = 2), normalised to [0, 1].
+        // Max row distance from home is 2 (number row = 0, thumb row = 4), so divide by 2.
+        // 頻度加重平均の行距離（ホーム行 = row 2 基準）。最大距離 2 で正規化して [0, 1] にする。
+        var reachSum   = 0.0
+        var reachTotal = 0
+        for (key, count) in keyCounts where count > 0 {
+            guard let pos = layout.current.position(for: key) else { continue }
+            reachSum   += Double(abs(pos.row - 2) * count)
+            reachTotal += count
+        }
+        let rowReach = reachTotal > 0 ? min(reachSum / Double(reachTotal) / 2.0, 1.0) : 0.0
+
         // --- Travel distance --------------------------------------------------------
         let travel = estimator.totalTravel(counts: bigramCounts, layout: layout.current)
 
@@ -190,6 +212,7 @@ public struct ErgonomicSnapshot: Equatable {
             sameFingerRate:             sfbRate,
             highStrainRate:             hsRate,
             thumbImbalanceRatio:        tiRatio,
+            rowReachScore:              rowReach,
             handAlternationRate:        altRate,
             thumbEfficiencyCoefficient: teCoeff
         )
@@ -214,6 +237,7 @@ public struct ErgonomicSnapshot: Equatable {
             handAlternationRate:        altRate,
             thumbImbalanceRatio:        tiRatio,
             thumbEfficiencyCoefficient: teCoeff,
+            rowReachScore:              rowReach,
             estimatedTravelDistance:    travel,
             typingStyle:                style,
             fatigueLevel:               fatigue
