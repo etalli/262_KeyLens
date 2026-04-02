@@ -2,6 +2,7 @@ import XCTest
 @testable import KeyLensCore
 
 // Tests for ErgonomicScoreEngine and ErgonomicScoreWeights (Issue #29 — Phase 1).
+// Updated for row-reach penalty (Issue #293).
 //
 // ## What is being tested
 //
@@ -10,9 +11,10 @@ import XCTest
 //    - All same-finger (sfb=1.0) → 100 - 0.30×100 = 70.0
 //    - All high-strain (hs=1.0)  → 100 - 0.25×100 = 75.0
 //    - Max thumb imbalance        → 100 - 0.15×100 = 85.0
+//    - Max row reach              → 100 - 0.20×100 = 80.0
 //    - Perfect alternation        → 100 + 0.20×100 = 120 → clamped to 100.0
 //    - Max thumb efficiency (2.0) → 100 + 0.10×100 = 110 → clamped to 100.0
-//    - Worst-case all penalties   → 100 - 70 = 30.0
+//    - Worst-case (sfb+hs+ti)     → 100 - 70 = 30.0 (reach=0)
 //    - Clamping at zero           → never goes below 0
 //
 // 2. Thumb efficiency normalisation
@@ -24,7 +26,7 @@ import XCTest
 //    - Custom weight table produces expected result
 //
 // 4. Default values
-//    - ErgonomicScoreWeights.default matches Issue #29 spec
+//    - ErgonomicScoreWeights.default matches Issue #29/#293 spec
 //    - ErgonomicScoreEngine.default uses .default weights and teMax=2.0
 //
 // 5. LayoutRegistry integration
@@ -52,8 +54,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // データゼロ時は全率 = 0 → スコア = 100。
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
     }
@@ -62,8 +64,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // sfbRate = 1.0 → penalty = 0.30 × 100 = 30 → score = 70.
         let s = engine.score(
             sameFingerRate: 1.0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 70.0, accuracy: accuracy)
     }
@@ -72,8 +74,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // hsRate = 1.0 → penalty = 0.25 × 100 = 25 → score = 75.
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 1.0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 75.0, accuracy: accuracy)
     }
@@ -82,18 +84,29 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // tiRatio = 1.0 → penalty = 0.15 × 100 = 15 → score = 85.
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 1.0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 1.0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 85.0, accuracy: accuracy)
+    }
+
+    func testMaxRowReach_reducesScoreBy20() {
+        // rowReachScore = 1.0 → penalty = 0.20 × 100 = 20 → score = 80.
+        // 行到達スコア = 1.0 → ペナルティ = 0.20 × 100 = 20 → スコア = 80。
+        let s = engine.score(
+            sameFingerRate: 0, highStrainRate: 0,
+            thumbImbalanceRatio: 0, rowReachScore: 1.0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
+        )
+        XCTAssertEqual(s, 80.0, accuracy: accuracy)
     }
 
     func testPerfectAlternation_clampedTo100() {
         // altRate = 1.0 → bonus = 0.20 × 100 = 20 → raw 120 → clamped to 100.
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 1.0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 1.0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
     }
@@ -102,18 +115,18 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // teCoeff = 2.0 (= thumbEfficiencyMax) → sub-score 100 → bonus = 0.10×100 = 10 → raw 110 → clamped to 100.
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 2.0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 2.0
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
     }
 
     func testWorstCase_allNegative_equals30() {
-        // sfb=1 + hs=1 + ti=1, no rewards → 100 - 30 - 25 - 15 = 30.
+        // sfb=1 + hs=1 + ti=1, reach=0, no rewards → 100 - 30 - 25 - 15 = 30.
         let s = engine.score(
             sameFingerRate: 1.0, highStrainRate: 1.0,
-            thumbImbalanceRatio: 1.0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 1.0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 30.0, accuracy: accuracy)
     }
@@ -126,6 +139,7 @@ final class ErgonomicScoreEngineTests: XCTestCase {
                 sameFingerPenalty: 2.0,
                 highStrainPenalty: 2.0,
                 thumbImbalancePenalty: 2.0,
+                rowReachPenalty: 2.0,
                 alternationReward: 0,
                 thumbEfficiencyBonus: 0
             ),
@@ -133,8 +147,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         )
         let s = heavy.score(
             sameFingerRate: 1.0, highStrainRate: 1.0,
-            thumbImbalanceRatio: 1.0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 1.0, rowReachScore: 1.0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertGreaterThanOrEqual(s, 0.0)
     }
@@ -145,7 +159,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // coeff = teMax → te100 = 100 → bonus = 0.10 × 100 = 10 → raw = 110 → 100.
         let s = engine.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0,
             thumbEfficiencyCoefficient: engine.thumbEfficiencyMax
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
@@ -153,8 +168,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
 
     func testThumbEfficiency_aboveMax_capped() {
         // coeff > teMax must produce the same sub-score as coeff = teMax (capped at 100).
-        let atMax  = engine.score(sameFingerRate: 0, highStrainRate: 0, thumbImbalanceRatio: 0, handAlternationRate: 0, thumbEfficiencyCoefficient: 2.0)
-        let beyond = engine.score(sameFingerRate: 0, highStrainRate: 0, thumbImbalanceRatio: 0, handAlternationRate: 0, thumbEfficiencyCoefficient: 99.0)
+        let atMax  = engine.score(sameFingerRate: 0, highStrainRate: 0, thumbImbalanceRatio: 0, rowReachScore: 0, handAlternationRate: 0, thumbEfficiencyCoefficient: 2.0)
+        let beyond = engine.score(sameFingerRate: 0, highStrainRate: 0, thumbImbalanceRatio: 0, rowReachScore: 0, handAlternationRate: 0, thumbEfficiencyCoefficient: 99.0)
         XCTAssertEqual(atMax, beyond, accuracy: accuracy)
     }
 
@@ -164,8 +179,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // sfb=0.50 → -15, coeff=1.0 → +5 → raw = 90.
         let s = engine.score(
             sameFingerRate: 0.50, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 1.0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 1.0
         )
         // 100 - 0.30×50 + 0.10×50 = 100 - 15 + 5 = 90.
         XCTAssertEqual(s, 90.0, accuracy: accuracy)
@@ -176,8 +191,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         let zeroMax = ErgonomicScoreEngine(weights: .default, thumbEfficiencyMax: 0)
         let s = zeroMax.score(
             sameFingerRate: 0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 1.5
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 1.5
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)  // no TE bonus → baseline 100.
     }
@@ -191,6 +206,7 @@ final class ErgonomicScoreEngineTests: XCTestCase {
                 sameFingerPenalty: 0.10,
                 highStrainPenalty: 0.10,
                 thumbImbalancePenalty: 0.10,
+                rowReachPenalty: 0.10,
                 alternationReward: 0.10,
                 thumbEfficiencyBonus: 0.10
             ),
@@ -199,8 +215,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // sfb=1 → -10; alt=1 → +10; rest=0 → raw = 100.
         let s = flat.score(
             sameFingerRate: 1.0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 1.0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 1.0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
     }
@@ -210,15 +226,15 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         let zero = ErgonomicScoreEngine(
             weights: ErgonomicScoreWeights(
                 sameFingerPenalty: 0, highStrainPenalty: 0,
-                thumbImbalancePenalty: 0, alternationReward: 0,
-                thumbEfficiencyBonus: 0
+                thumbImbalancePenalty: 0, rowReachPenalty: 0,
+                alternationReward: 0, thumbEfficiencyBonus: 0
             ),
             thumbEfficiencyMax: 2.0
         )
         let s = zero.score(
             sameFingerRate: 1.0, highStrainRate: 1.0,
-            thumbImbalanceRatio: 1.0, handAlternationRate: 1.0,
-            thumbEfficiencyCoefficient: 1.0
+            thumbImbalanceRatio: 1.0, rowReachScore: 1.0,
+            handAlternationRate: 1.0, thumbEfficiencyCoefficient: 1.0
         )
         XCTAssertEqual(s, 100.0, accuracy: accuracy)
     }
@@ -230,6 +246,7 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         XCTAssertEqual(w.sameFingerPenalty,     0.30, accuracy: accuracy)
         XCTAssertEqual(w.highStrainPenalty,     0.25, accuracy: accuracy)
         XCTAssertEqual(w.thumbImbalancePenalty, 0.15, accuracy: accuracy)
+        XCTAssertEqual(w.rowReachPenalty,       0.20, accuracy: accuracy)
         XCTAssertEqual(w.alternationReward,     0.20, accuracy: accuracy)
         XCTAssertEqual(w.thumbEfficiencyBonus,  0.10, accuracy: accuracy)
     }
@@ -261,8 +278,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         let custom = ErgonomicScoreEngine(
             weights: ErgonomicScoreWeights(
                 sameFingerPenalty: 0.50, highStrainPenalty: 0,
-                thumbImbalancePenalty: 0, alternationReward: 0,
-                thumbEfficiencyBonus: 0
+                thumbImbalancePenalty: 0, rowReachPenalty: 0,
+                alternationReward: 0, thumbEfficiencyBonus: 0
             ),
             thumbEfficiencyMax: 2.0
         )
@@ -273,8 +290,8 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         // sfb=1.0 with custom weight 0.50 → 100 - 50 = 50.
         let s = LayoutRegistry.shared.ergonomicScoreEngine.score(
             sameFingerRate: 1.0, highStrainRate: 0,
-            thumbImbalanceRatio: 0, handAlternationRate: 0,
-            thumbEfficiencyCoefficient: 0
+            thumbImbalanceRatio: 0, rowReachScore: 0,
+            handAlternationRate: 0, thumbEfficiencyCoefficient: 0
         )
         XCTAssertEqual(s, 50.0, accuracy: accuracy)
     }
@@ -286,12 +303,13 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         //   sfbRate = 0.06  (6% — typical for QWERTY English text)
         //   hsRate  = 0.03  (3% — plausible high-strain fraction)
         //   tiRatio = 0.10  (10% thumb imbalance)
+        //   reach   = 0.00  (ignored in this scenario)
         //   altRate = 0.52  (52% hand alternation — slightly above 50%)
         //   teCoeff = 1.10  (10% above Space-key baseline)
         //
         // Expected (with default weights):
-        //   100 - 0.30×6 - 0.25×3 - 0.15×10 + 0.20×52 + 0.10×(1.10/2.0)×100
-        //   = 100 - 1.80 - 0.75 - 1.50 + 10.40 + 5.50
+        //   100 - 0.30×6 - 0.25×3 - 0.15×10 - 0.20×0 + 0.20×52 + 0.10×(1.10/2.0)×100
+        //   = 100 - 1.80 - 0.75 - 1.50 - 0 + 10.40 + 5.50
         //   = 111.85 → clamped to 100.0
         //
         // QWERTY 平均的タイパーの実測値に近い入力でスコアを検証する。
@@ -299,6 +317,7 @@ final class ErgonomicScoreEngineTests: XCTestCase {
             sameFingerRate:             0.06,
             highStrainRate:             0.03,
             thumbImbalanceRatio:        0.10,
+            rowReachScore:              0.00,
             handAlternationRate:        0.52,
             thumbEfficiencyCoefficient: 1.10
         )
@@ -310,17 +329,19 @@ final class ErgonomicScoreEngineTests: XCTestCase {
         //   sfbRate = 0.30  (30% — extreme same-finger usage)
         //   hsRate  = 0.15  (15% — many high-strain sequences)
         //   tiRatio = 0.40  (40% thumb imbalance)
+        //   reach   = 0.00  (ignored in this scenario)
         //   altRate = 0.10  (10% alternation — mostly same-hand)
         //   teCoeff = 0.50  (thumbs at half expected usage)
         //
         // Expected:
-        //   100 - 0.30×30 - 0.25×15 - 0.15×40 + 0.20×10 + 0.10×(0.50/2.0)×100
-        //   = 100 - 9.0 - 3.75 - 6.0 + 2.0 + 2.5
+        //   100 - 0.30×30 - 0.25×15 - 0.15×40 - 0.20×0 + 0.20×10 + 0.10×(0.50/2.0)×100
+        //   = 100 - 9.0 - 3.75 - 6.0 - 0 + 2.0 + 2.5
         //   = 85.75
         let s = engine.score(
             sameFingerRate:             0.30,
             highStrainRate:             0.15,
             thumbImbalanceRatio:        0.40,
+            rowReachScore:              0.00,
             handAlternationRate:        0.10,
             thumbEfficiencyCoefficient: 0.50
         )
@@ -328,12 +349,14 @@ final class ErgonomicScoreEngineTests: XCTestCase {
     }
 
     func testIntegration_perfectErgonomicTypist() {
-        // No SFB, no high-strain, perfectly balanced thumbs, full alternation, max thumb efficiency.
+        // No SFB, no high-strain, perfectly balanced thumbs, all keys on home row,
+        // full alternation, max thumb efficiency.
         // → score = 100 (penalties = 0, rewards push above 100 → clamped).
         let s = engine.score(
             sameFingerRate:             0,
             highStrainRate:             0,
             thumbImbalanceRatio:        0,
+            rowReachScore:              0,
             handAlternationRate:        1.0,
             thumbEfficiencyCoefficient: 2.0
         )
