@@ -1611,9 +1611,20 @@ final class L10n {
 
     var helpSessions: String {
         ja(
-            "5分以上キー入力がなかった場合にセッションの区切りとして検出します。セッション数・最長セッション時間・平均セッション時間を日別に表示します。",
-            en: "A session boundary is detected when there is no keystroke for 5 or more minutes. Shows daily session count, longest session duration, and average session duration."
+            "5分以上キー入力がなかった場合にセッションの区切りとして検出します。セッション数・最長セッション時間・平均セッション時間を日別に表示します。連続アクティブ日数 (Streak) は、少なくとも1回セッションが記録された日が何日連続しているかを示します。",
+            en: "A session boundary is detected when there is no keystroke for 5 or more minutes. Shows daily session count, longest session duration, and average session duration. The streak counter shows how many consecutive days have had at least one recorded session."
         )
+    }
+
+    // Issue #290: session streak
+    var sessionStreakTitle: String {
+        ja("連続アクティブ日数", en: "Active Day Streak")
+    }
+
+    func sessionStreakDisplay(_ n: Int) -> String {
+        n > 0
+            ? ja("🔥 \(n)日連続", en: "🔥 \(n)-day streak")
+            : ja("ストリークなし", en: "No streak yet")
     }
 
     var sessionsPerDay: String {

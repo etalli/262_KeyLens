@@ -60,6 +60,8 @@ final class ChartDataModel: ObservableObject {
     @Published var layoutEfficiency:      [LayoutEfficiencyEntry] = []
     // Issue #60: Session detection
     @Published var sessionSummaries:      [DailySessionSummary]   = []
+    // Issue #290: Consecutive active-day streak derived from sessionSummaries
+    @Published var sessionStreakDays: Int = 0
     // Issue #168: Mouse tab
     @Published var mouseDailyDistances:        [MouseDailyEntry]            = []
     @Published var mouseHourlyActivity:        [MouseHourEntry]             = []
@@ -149,6 +151,8 @@ final class ChartDataModel: ObservableObject {
             let layoutEfficiency   = store.layoutEfficiencyScores()
             // Issue #60: session detection
             let sessionSummaries   = store.allSessionSummaries()
+            // Issue #290: consecutive active-day streak
+            let sessionStreakDays   = Self.computeSessionStreak(sessionSummaries)
             // Issue #90: Training
             let trainingScores     = store.rankedBigramsForTraining(minCount: 5, topK: 10)
             // Issue #89: Trigram training targets
@@ -227,6 +231,7 @@ final class ChartDataModel: ObservableObject {
                 self.fingerIKI            = fingerIKI
                 self.layoutEfficiency     = layoutEfficiency
                 self.sessionSummaries     = sessionSummaries
+                self.sessionStreakDays    = sessionStreakDays
                 self.trainingScores       = trainingScores
                 self.trainingTrigramScores = trainingTrigramScores
                 self.fatigueCurve         = fatigueCurve
@@ -293,6 +298,27 @@ final class ChartDataModel: ObservableObject {
 
     // Compare the most recent 7 days against the 7 days before that.
     // 直近7日 vs その前7日の比較。
+    // Issue #290: count consecutive active days ending today (or yesterday if today has no sessions yet).
+    static func computeSessionStreak(_ summaries: [DailySessionSummary]) -> Int {
+        let activeDates = Set(summaries.filter { $0.sessionCount > 0 }.map { $0.date })
+        guard !activeDates.isEmpty else { return 0 }
+        let cal = Calendar.current
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        var day = Date()
+        if !activeDates.contains(fmt.string(from: day)) {
+            guard let prev = cal.date(byAdding: .day, value: -1, to: day) else { return 0 }
+            day = prev
+        }
+        var streak = 0
+        while activeDates.contains(fmt.string(from: day)) {
+            streak += 1
+            guard let prev = cal.date(byAdding: .day, value: -1, to: day) else { break }
+            day = prev
+        }
+        return streak
+    }
+
     private static func computeWeeklyDeltas(
         ergRates: [(date: String, sameFingerRate: Double, handAltRate: Double, highStrainRate: Double)],
         rawDailyTotals: [(date: String, total: Int)]

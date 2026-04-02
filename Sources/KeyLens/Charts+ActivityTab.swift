@@ -364,6 +364,20 @@ extension ChartsView {
             emptyState
         } else {
             VStack(alignment: .leading, spacing: 16) {
+                // Issue #290: consecutive active-day streak badge
+                HStack(spacing: 8) {
+                    Text(L10n.shared.sessionStreakDisplay(model.sessionStreakDays))
+                        .font(.headline)
+                    Spacer()
+                    Text(L10n.shared.sessionStreakTitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(theme.accentColor.opacity(0.10))
+                .cornerRadius(8)
+
                 // Sessions per day (bar chart)
                 Text(L10n.shared.sessionsPerDay)
                     .font(.subheadline)
