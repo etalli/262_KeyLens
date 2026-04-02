@@ -1347,10 +1347,11 @@ final class L10n {
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
-        case .streak:               return ja("ストリーク", en: "Streak")
-        case .shortcutEfficiency:   return ja("ショートカット効率", en: "Shortcut Efficiency")
-        case .mouseDistance:        return ja("マウス移動距離", en: "Mouse Distance")
-        case .slowEvents:           return ja("低速イベント数", en: "Slow Events")
+        case .streak:                     return ja("ストリーク", en: "Streak")
+        case .shortcutEfficiency:         return ja("ショートカット効率", en: "Shortcut Efficiency")
+        case .mouseDistance:              return ja("マウス移動距離", en: "Mouse Distance")
+        case .slowEvents:                 return ja("低速イベント数", en: "Slow Events")
+        case .ergonomicRecommendations:   return ja("改善提案", en: "Recommendations")
         }
     }
 
@@ -2113,6 +2114,38 @@ final class L10n {
     func layerKeyAllTimeCount(_ count: Int, pressesLabel: String) -> String {
         ja("全期間: \(count) \(pressesLabel)", en: "All-time: \(count) \(pressesLabel)")
     }
+
+    // MARK: - Menu: Ergonomic Recommendations (Issue #299)
+
+    var recommendationsSectionTitle: String {
+        ja("改善提案", en: "Recommendations")
+    }
+    var recommendationsEmpty: String {
+        ja("現在の改善提案はありません", en: "No recommendations right now")
+    }
+    func ergoRecTitle(_ key: String) -> String {
+        switch key {
+        case "ergoRec.sameFinger.title":  return ja("同指打鍵を減らす",         en: "Reduce same-finger bigrams")
+        case "ergoRec.outerColumn.title": return ja("高負荷バイグラムを避ける", en: "Avoid high-strain bigrams")
+        case "ergoRec.alternation.title": return ja("交互打鍵を増やす",         en: "Improve hand alternation")
+        case "ergoRec.rowReach.title":    return ja("ホーム行を活用する",       en: "Stay closer to the home row")
+        default: return key
+        }
+    }
+    func ergoRecDetail(_ key: String) -> String {
+        switch key {
+        case "ergoRec.sameFinger.detail":  return ja("隣接キーは別の指で打ちましょう",
+                                                     en: "Avoid pressing adjacent keys with the same finger")
+        case "ergoRec.outerColumn.detail": return ja("行をまたぐ同指連打はスコアを下げます",
+                                                     en: "Same-finger bigrams that span rows lower your score")
+        case "ergoRec.alternation.detail": return ja("左右交互に打鍵すると疲労が減ります",
+                                                     en: "Alternating hands reduces strain and improves rhythm")
+        case "ergoRec.rowReach.detail":    return ja("上下の行への移動が多めです。ホーム行寄りのキーを意識しましょう",
+                                                     en: "You reach beyond the home row often — aim for home-row keys where possible")
+        default: return key
+        }
+    }
+    func recImpact(_ pts: Int) -> String { ja("+\(pts)pt", en: "+\(pts)pt") }
 
     // MARK: - Helper
 
