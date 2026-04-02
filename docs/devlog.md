@@ -7,11 +7,15 @@ Daily summaries of development activity, generated from git history.
 ## 2026-04-03
 
 - **feat:** added `ErgonomicRecommendationEngine` — rule-based engine returning top-3 actionable suggestions (same-finger, outer-column, weak alternation, row-reach) from `ErgonomicSnapshot` (#298)
+- **feat:** added ergonomic recommendations section to stats popover with live suggestion list (#299)
 - **feat:** added `rowReachScore` field to `ErgonomicSnapshot` and `ErgonomicScoreEngine` as a 0.20-weight penalty (#293); updated L10n score formula string (#300)
 - **perf:** cache frontmost app name via `NSWorkspace` notification — removes per-keystroke IPC call from CGEventTap hot path (#295)
 - **perf:** make `KeyCountStore.increment()` async — CGEventTap thread now returns in microseconds; all heavy work dispatched to background queue (#296)
 - **perf:** rate-limit `BreakReminderManager.didType()` with a 5-second gate — reduces `DispatchSource` allocations from N/s to ~1 per 5s (#297)
+- **fix:** added "pangaea" to split keyboard detection keywords
+- **fix:** updated Japanese localization strings for overlay menu items
 - **test:** updated `ErgonomicScoreEngineTests` for new `rowReachScore` parameter; added `ErgonomicRecommendationEngineTests` (#301)
+- **chore:** removed Japanese comments from `KeyboardMonitor` (English-only policy); bumped version to v0.84
 
 ## 2026-04-02
 
