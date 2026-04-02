@@ -12,9 +12,10 @@ enum MenuWidget: String, CaseIterable, Identifiable {
     case estimatedWPM   = "estimatedWPM"
     case miniChart            = "miniChart"
     case streak               = "streak"
-    case shortcutEfficiency   = "shortcutEfficiency"
-    case mouseDistance        = "mouseDistance"
-    case slowEvents           = "slowEvents"
+    case shortcutEfficiency         = "shortcutEfficiency"
+    case mouseDistance              = "mouseDistance"
+    case slowEvents                 = "slowEvents"
+    case ergonomicRecommendations   = "ergonomicRecommendations"
 
     var id: String { rawValue }
 
@@ -44,7 +45,7 @@ final class MenuWidgetStore: ObservableObject {
     static let defaultOrder: [MenuWidget] = [
         .todayTotal, .miniChart, .estimatedWPM, .mouseDistance,
         .avgInterval, .shortcutEfficiency, .streak,
-        .recordingSince, .slowEvents
+        .recordingSince, .slowEvents, .ergonomicRecommendations
     ]
 
     private init() {}
