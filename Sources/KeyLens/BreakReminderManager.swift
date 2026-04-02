@@ -11,6 +11,7 @@ final class BreakReminderManager {
 
     private var timer: DispatchSourceTimer?
     private let queue = DispatchQueue(label: "com.keylens.breakreminder")
+    private var lastDidTypeAt: Date = .distantPast
 
     /// Whether break reminders are enabled. Persisted in UserDefaults.
     /// 休憩リマインダーが有効かどうか。UserDefaults に永続化。
@@ -43,6 +44,9 @@ final class BreakReminderManager {
     /// キーストローク・クリックごとに呼び出して、アイドルカウントダウンをリセットする。
     func didType() {
         guard isEnabled else { return }
+        let now = Date()
+        guard now.timeIntervalSince(lastDidTypeAt) > 5 else { return }
+        lastDidTypeAt = now
         resetTimer()
     }
 
