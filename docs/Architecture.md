@@ -648,7 +648,7 @@ Singleton that manages the active `ChartTheme` (blue / teal / purple / orange / 
 
 ### [MenuWidgetStore.swift](Sources/KeyLens/MenuWidgetStore.swift)
 
-Persists the user's widget selection and ordering for the `MenuView` popover. Defines the `MenuWidget` enum (recording since, today total, WPM, backspace rate, mini chart, streak, shortcut efficiency, mouse distance) and `MenuWidgetStore` singleton backed by `UserDefaults`.
+Persists the user's widget selection and ordering for the `MenuView` popover. Defines the `MenuWidget` enum (recording since, today total, WPM, backspace rate, mini chart, streak, shortcut efficiency, mouse distance, ergonomic recommendations) and `MenuWidgetStore` singleton backed by `UserDefaults`.
 
 ---
 

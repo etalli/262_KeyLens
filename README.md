@@ -38,7 +38,7 @@ The stored data is key names and counts only — your actual typed content canno
 ## Features
 
 - **Global recording** — Counts keystrokes in any app, no exceptions
-- **Menu bar statistics** — Today's count, all-time total, average keystroke interval; toggle and reorder these widgets as you like
+- **Menu bar statistics** — Today's count, all-time total, average keystroke interval, ergonomic recommendations, and more; toggle and reorder these widgets as you like
 - **Charts** — Keyboard heatmap, top keys, bigrams, apps, devices, daily totals, ergonomic learning curve, weekly delta report, and more
 - **Weekly Summary Card** — Generates a PNG of your weekly stats every Saturday; also available any time from the Data menu
 - **Keystroke Overlay** — Floating window showing recent keystrokes in real time (⌘C / ⇧A style)
