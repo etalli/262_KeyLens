@@ -228,7 +228,7 @@ final class L10n {
     }
 
     var overlayMenuItem: String {
-        ja("キーオーバーレイ", en: "Keystroke Overlay")
+        ja("オーバーレイ", en: "Overlay")
     }
 
     var overlaySettingsMenuItem: String {
@@ -240,7 +240,7 @@ final class L10n {
     }
 
     var wpmGaugeMenuItem: String {
-        ja("WPMゲージ (フローティング)", en: "WPM Gauge (floating)")
+        ja("WPM メータ", en: "WPM Meter")
     }
 
     var overlaySettingsPosition: String {
