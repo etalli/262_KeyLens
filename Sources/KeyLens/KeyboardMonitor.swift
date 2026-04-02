@@ -66,7 +66,6 @@ final class KeyboardMonitor {
     private(set) var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     /// Cached frontmost app name, updated via NSWorkspace notification instead of per-keystroke IPC.
-    /// フロントのアプリ名キャッシュ。キーストロークごとの IPC を避けるため通知で更新する。
     private var cachedAppName: String?
 
     private let store: KeyEventHandling
@@ -135,7 +134,6 @@ final class KeyboardMonitor {
         CGEvent.tapEnable(tap: tap, enable: true)
 
         // Seed the cache immediately, then keep it fresh via notification.
-        // 起動時にキャッシュを初期化し、以降は通知で更新する。
         cachedAppName = NSWorkspace.shared.frontmostApplication?.localizedName
         NotificationCenter.default.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
