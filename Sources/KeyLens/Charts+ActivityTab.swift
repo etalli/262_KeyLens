@@ -356,6 +356,15 @@ extension ChartsView {
         }
     }
 
+    // MARK: - Issue #291: Outlier threshold helper (mean + 1.5 × stddev)
+
+    private func outlierThreshold(_ values: [Double]) -> Double {
+        guard values.count > 1 else { return .infinity }
+        let mean = values.reduce(0, +) / Double(values.count)
+        let variance = values.map { ($0 - mean) * ($0 - mean) }.reduce(0, +) / Double(values.count)
+        return mean + 1.5 * variance.squareRoot()
+    }
+
     // MARK: - Issue #60: Sessions chart
 
     @ViewBuilder
@@ -382,6 +391,7 @@ extension ChartsView {
                 Text(L10n.shared.sessionsPerDay)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                let sessionCountThreshold = outlierThreshold(model.sessionSummaries.map { Double($0.sessionCount) })
                 Chart(model.sessionSummaries) { item in
                     BarMark(
                         x: .value("Date", item.date),
@@ -389,6 +399,13 @@ extension ChartsView {
                     )
                     .foregroundStyle(theme.accentColor)
                     .cornerRadius(3)
+                    .annotation(position: .top, spacing: 2) {
+                        if Double(item.sessionCount) > sessionCountThreshold {
+                            Text(L10n.shared.outlierLabel)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.orange)
+                        }
+                    }
                 }
                 .chartXAxis {
                     let stride = max(2, model.sessionSummaries.count / 5)
@@ -412,6 +429,7 @@ extension ChartsView {
                 Text(L10n.shared.longestSessionLabel)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                let longestThreshold = outlierThreshold(model.sessionSummaries.map { $0.longestMinutes })
                 Chart(model.sessionSummaries) { item in
                     BarMark(
                         x: .value("Date", item.date),
@@ -419,6 +437,13 @@ extension ChartsView {
                     )
                     .foregroundStyle(theme.accentColor.opacity(0.7))
                     .cornerRadius(3)
+                    .annotation(position: .top, spacing: 2) {
+                        if item.longestMinutes > longestThreshold {
+                            Text(L10n.shared.outlierLabel)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.orange)
+                        }
+                    }
                 }
                 .chartXAxis {
                     let stride = max(2, model.sessionSummaries.count / 5)
@@ -442,6 +467,7 @@ extension ChartsView {
                 Text(L10n.shared.avgSessionLabel)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                let avgThreshold = outlierThreshold(model.sessionSummaries.map { $0.avgMinutes })
                 Chart(model.sessionSummaries) { item in
                     BarMark(
                         x: .value("Date", item.date),
@@ -449,6 +475,13 @@ extension ChartsView {
                     )
                     .foregroundStyle(theme.accentColor.opacity(0.5))
                     .cornerRadius(3)
+                    .annotation(position: .top, spacing: 2) {
+                        if item.avgMinutes > avgThreshold {
+                            Text(L10n.shared.outlierLabel)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.orange)
+                        }
+                    }
                 }
                 .chartXAxis {
                     let stride = max(2, model.sessionSummaries.count / 5)

@@ -1627,6 +1627,11 @@ final class L10n {
             : ja("ストリークなし", en: "No streak yet")
     }
 
+    // Issue #291: outlier annotation label shown on session chart bars that exceed mean + 1.5×stddev
+    var outlierLabel: String {
+        ja("↑ ピーク", en: "↑ Peak")
+    }
+
     var sessionsPerDay: String {
         ja("日別セッション数", en: "Sessions per Day")
     }
