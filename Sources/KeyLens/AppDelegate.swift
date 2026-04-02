@@ -111,6 +111,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         MouseStore.shared.flushSync()
     }
 
+    /// Returns connected keyboard device names using the scheduled hidManager.
+    /// Always authoritative — use this instead of KeyboardDeviceInfo.connectedNames()
+    /// to avoid the stale-device race on a freshly-opened unscheduled manager.
+    /// スケジュール済み hidManager を使って接続中デバイス名を返す。未スケジュールマネージャの古いデータ問題を回避。
+    var connectedDeviceNames: [String] {
+        let devices = hidManager.map { KeyboardDeviceInfo.connectedDevices(using: $0) }
+                      ?? KeyboardDeviceInfo.connectedDevices()
+        return devices.map(\.name)
+    }
+
     private func detectHardware() {
         // Use the scheduled hidManager so its device set is already updated by the
         // IOKit callback — avoids a race where a freshly-opened manager still returns

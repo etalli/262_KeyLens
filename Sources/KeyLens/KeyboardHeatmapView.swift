@@ -537,10 +537,13 @@ struct KeyboardHeatmapView: View {
         }
         .task {
             // Poll every 2 s as a safety net for events missed before view mount.
+            // Use AppDelegate's scheduled hidManager — it is always authoritative and
+            // avoids the stale-device race that a fresh unscheduled manager can cause (#294).
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
-                let fresh = KeyboardDeviceInfo.connectedNames()
-                if fresh != deviceNames { deviceNames = fresh }
+                let fresh = (NSApp.delegate as? AppDelegate)?.connectedDeviceNames
+                            ?? KeyboardDeviceInfo.connectedNames()
+                if fresh.sorted() != deviceNames { deviceNames = fresh.sorted() }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .keyboardDevicesChanged)) { notification in
