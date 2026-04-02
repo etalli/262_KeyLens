@@ -153,30 +153,30 @@ final class LayoutComparisonTests: XCTestCase {
     // MARK: - 3. LayoutComparison delta sign convention
 
     func testDelta_ergonomicScore_positiveWhenProposedHigher() {
-        let worse  = ErgonomicSnapshot(ergonomicScore: 60, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
-        let better = ErgonomicSnapshot(ergonomicScore: 75, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
+        let worse  = ErgonomicSnapshot(ergonomicScore: 60, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
+        let better = ErgonomicSnapshot(ergonomicScore: 75, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
         let cmp    = LayoutComparison(current: worse, proposed: better, recommendedSwaps: [])
         XCTAssertGreaterThan(cmp.ergonomicScoreDelta, 0)
     }
 
     func testDelta_sameFingerRate_positiveWhenProposedLower() {
         // Delta = current.sfb - proposed.sfb; proposed lower → positive.
-        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0.10, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
-        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0.04, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
+        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0.10, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
+        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0.04, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
         let cmp      = LayoutComparison(current: current, proposed: proposed, recommendedSwaps: [])
         XCTAssertGreaterThan(cmp.sameFingerRateDelta,  0)
     }
 
     func testDelta_handAlternation_positiveWhenProposedHigher() {
-        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0.50, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
-        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0.60, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 0)
+        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0.50, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
+        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0.60, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 0)
         let cmp      = LayoutComparison(current: current, proposed: proposed, recommendedSwaps: [])
         XCTAssertGreaterThan(cmp.handAlternationDelta, 0)
     }
 
     func testDelta_travelDistance_positiveWhenProposedLower() {
-        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 1000)
-        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, estimatedTravelDistance: 850)
+        let current  = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 1000)
+        let proposed = ErgonomicSnapshot(ergonomicScore: 0, sameFingerRate: 0, highStrainRate: 0, handAlternationRate: 0, thumbImbalanceRatio: 0, thumbEfficiencyCoefficient: 0, rowReachScore: 0, estimatedTravelDistance: 850)
         let cmp      = LayoutComparison(current: current, proposed: proposed, recommendedSwaps: [])
         XCTAssertGreaterThan(cmp.travelDistanceDelta, 0)
     }
