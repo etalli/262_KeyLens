@@ -65,6 +65,9 @@ private let kHandleEventSlowThresholdMs: Double = 5.0
 final class KeyboardMonitor {
     private(set) var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    /// Cached frontmost app name, updated via NSWorkspace notification instead of per-keystroke IPC.
+    /// フロントのアプリ名キャッシュ。キーストロークごとの IPC を避けるため通知で更新する。
+    private var cachedAppName: String?
 
     private let store: KeyEventHandling
     private let breakManager: BreakReminderManaging
@@ -130,6 +133,19 @@ final class KeyboardMonitor {
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+
+        // Seed the cache immediately, then keep it fresh via notification.
+        // 起動時にキャッシュを初期化し、以降は通知で更新する。
+        cachedAppName = NSWorkspace.shared.frontmostApplication?.localizedName
+        NotificationCenter.default.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: NSWorkspace.shared,
+            queue: .main
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            self?.cachedAppName = app?.localizedName
+        }
+
         KeyLens.log("Monitoring started successfully")
         return true
     }
@@ -301,7 +317,7 @@ extension KeyboardMonitor {
         }
 
         let now = Date()
-        let appName = NSWorkspace.shared.frontmostApplication?.localizedName
+        let appName = cachedAppName
         let incrementStart = Date()
         let result = store.increment(key: name, at: now, appName: appName)
         let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
