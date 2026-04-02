@@ -37,8 +37,7 @@ private let hidUsageTable: [UInt16: UInt8] = [
 // MARK: - Dependency protocols
 
 protocol KeyEventHandling {
-    @discardableResult
-    func increment(key: String, at timestamp: Date, appName: String?) -> (count: Int, milestone: Bool)
+    func increment(key: String, at timestamp: Date, appName: String?, completion: ((_ count: Int, _ milestone: Bool) -> Void)?)
     func recordSlowEvent()
     func incrementModified(key: String)
 }
@@ -316,22 +315,12 @@ extension KeyboardMonitor {
 
         let now = Date()
         let appName = cachedAppName
-        let incrementStart = Date()
-        let result = store.increment(key: name, at: now, appName: appName)
-        let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
-        PerformanceProfiler.shared.record(metric: "store.increment", ms: elapsedMs)
-        if elapsedMs > kHandleEventSlowThresholdMs {
-            KeyLens.log("[perf] handleEvent slow: \(String(format: "%.1f", elapsedMs))ms (key: \(name))")
-            store.recordSlowEvent()
+        let captureName = name
+        store.increment(key: captureName, at: now, appName: appName) { [weak self] count, milestone in
+            guard let self, milestone else { return }
+            self.notificationManager.notify(key: captureName, count: count)
         }
         breakManager.didType()
-
-        if result.milestone {
-            // 通知はメインスレッドで発行
-            DispatchQueue.main.async {
-                self.notificationManager.notify(key: name, count: result.count)
-            }
-        }
 
         if type == .keyDown {
             let modifierKeyCodes: Set<CGKeyCode> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]

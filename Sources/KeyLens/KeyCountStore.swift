@@ -367,13 +367,17 @@ final class KeyCountStore {
 
     // MARK: - Mutation
 
-    /// Increment count by 1. Returns (newCount, isMilestone).
-    func increment(key: String, at timestamp: Date = Date(), appName: String? = nil) -> (count: Int, milestone: Bool) {
+    /// Increment count by 1. Dispatches work asynchronously; calls completion on the main thread with (newCount, isMilestone).
+    func increment(key: String, at timestamp: Date = Date(), appName: String? = nil, completion: ((_ count: Int, _ milestone: Bool) -> Void)? = nil) {
         let today = todayKey
         let hour  = Calendar.current.component(.hour, from: timestamp)
         let deviceName = LayoutRegistry.shared.currentDeviceLabel
+        let incrementStart = Date()
 
-        let count: Int = queue.sync {
+        queue.async { [weak self] in
+            guard let self else { return }
+            var count: Int = 0
+            do {
             // All-time per-key count (in-memory; persisted via scalars table)
             store.counts[key, default: 0] += 1
 
@@ -581,10 +585,20 @@ final class KeyCountStore {
 
             checkGoalNotificationLocked(todayStr: today)
 
-            return store.counts[key, default: 0]
+            count = store.counts[key, default: 0]
+            }
+            let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
+            PerformanceProfiler.shared.record(metric: "store.increment", ms: elapsedMs)
+            if elapsedMs > 5.0 {
+                KeyLens.log("[perf] store.increment slow: \(String(format: "%.1f", elapsedMs))ms (key: \(key))")
+                self.slowEventCount += 1
+            }
+            self.scheduleSave()
+            if let completion {
+                let milestone = count % KeyCountStore.milestoneInterval == 0
+                DispatchQueue.main.async { completion(count, milestone) }
+            }
         }
-        scheduleSave()
-        return (count, count % KeyCountStore.milestoneInterval == 0)
     }
 
     /// Increment a modifier+key combo count.
