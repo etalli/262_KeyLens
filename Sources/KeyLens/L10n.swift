@@ -1549,6 +1549,17 @@ final class L10n {
            en: "Total click counts for left, middle, and right mouse buttons.")
     }
 
+    // MARK: - Issue #217: Mouse Position Heatmap
+
+    var chartTitleMouseHeatmap: String {
+        ja("マウス位置ヒートマップ", en: "Mouse Position Heatmap")
+    }
+
+    var helpMouseHeatmap: String {
+        ja("画面上のマウス移動をグリッドで可視化します。赤いほど頻繁に通過した領域です。",
+           en: "Visualises where on screen your mouse travels most. Red cells indicate the most visited areas.")
+    }
+
     // MARK: - Issue #78: Weekly Activity Heatmap
 
     var chartTitleWeeklyHeatmap: String {
@@ -2052,9 +2063,10 @@ final class L10n {
     var drillPresetsSaveCurrent: String { ja("現在の設定を保存",      en: "Save current settings") }
     var drillPresetsDelete: String      { ja("削除",                en: "Delete") }
 
-    var mouseSubTabDistance: String    { ja("距離",      en: "Distance") }
-    var mouseSubTabDirection: String   { ja("方向",      en: "Direction") }
-    var mouseSubTabClicks: String      { ja("クリック",  en: "Clicks") }
+    var mouseSubTabDistance: String    { ja("距離",          en: "Distance") }
+    var mouseSubTabDirection: String   { ja("方向",          en: "Direction") }
+    var mouseSubTabClicks: String      { ja("クリック",      en: "Clicks") }
+    var mouseSubTabHeatmap: String     { ja("ヒートマップ",  en: "Heatmap") }
 
     var appsSubTabApps: String         { ja("アプリ",    en: "Apps") }
     var appsSubTabDevices: String      { ja("デバイス",  en: "Devices") }
@@ -2088,6 +2100,37 @@ final class L10n {
            en: "Drag keys to simulate swaps and preview the ergonomic score change live. Double-click a key to lock it in place.")
     }
     var optimizerSwapHistoryTitle: String { ja("スワップ履歴",   en: "Swap History") }
+
+    // MARK: - Issue #304: VoiceOver accessibility labels for optimizer
+
+    func accessibilityKeyLabel(key: String, isSelected: Bool, isLocked: Bool, originalSlot: String) -> String {
+        let isChanged = key != originalSlot
+        let stateEN: String
+        let stateJA: String
+        if isSelected {
+            stateEN = ", selected"; stateJA = "、選択中"
+        } else if isLocked {
+            stateEN = ", locked";   stateJA = "、ロック中"
+        } else if isChanged {
+            stateEN = ", swapped from \(originalSlot)"; stateJA = "、\(originalSlot)から移動"
+        } else {
+            stateEN = ""; stateJA = ""
+        }
+        return resolved == .japanese
+            ? "\(key)キー\(stateJA)"
+            : "Key \(key)\(stateEN)"
+    }
+
+    var accessibilityKeyHint: String {
+        ja("タップで選択、ダブルタップでロック切替",
+           en: "Tap to select or swap. Double-tap to toggle lock.")
+    }
+
+    func accessibilitySwapHistoryItem(index: Int, from: String, to: String) -> String {
+        resolved == .japanese
+            ? "スワップ\(index):\(from)と\(to)を交換"
+            : "Swap \(index): \(from) and \(to)"
+    }
     var optimizerScoreFormula: String     {
         ja("スコア = 100 − 0.30×同指 − 0.25×高負荷 − 0.15×親指偏り − 0.20×行到達 + 0.20×交互 + 0.10×親指効率  (0〜100 に丸め)",
            en: "score = 100 − 0.30×SFB − 0.25×HS − 0.15×TI − 0.20×Reach + 0.20×Alt + 0.10×TE  (clamped 0–100)")

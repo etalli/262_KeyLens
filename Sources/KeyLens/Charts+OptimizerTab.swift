@@ -527,6 +527,13 @@ extension ChartsView {
             }
         }
         .frame(width: 34, height: 30)
+        .accessibilityLabel(L10n.shared.accessibilityKeyLabel(
+            key: label,
+            isSelected: isSelected,
+            isLocked: isLocked,
+            originalSlot: physSlot
+        ))
+        .accessibilityHint(L10n.shared.accessibilityKeyHint)
         // Double-click to toggle lock
         .onTapGesture(count: 2) {
             optimizerState.toggleLock(physSlot)
@@ -584,6 +591,9 @@ extension ChartsView {
                             .background(Color.secondary.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
+                    .accessibilityLabel(L10n.shared.accessibilitySwapHistoryItem(
+                        index: idx + 1, from: swap.from, to: swap.to
+                    ))
                 }
             }
         }
