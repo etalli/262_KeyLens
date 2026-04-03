@@ -555,7 +555,7 @@ struct KeyboardHeatmapView: View {
                 if sorted != deviceNames { deviceNames = sorted }
             }
         }
-        .onChange(of: deviceNames) { newNames in
+        .onChange(of: deviceNames) { _, newNames in
             guard template == .auto else { return }
             let resolved = resolveTemplate(from: newNames)
             guard resolved != lastResolvedTemplate else { return }
@@ -581,7 +581,7 @@ struct KeyboardHeatmapView: View {
                 showToast(L10n.shared.heatmapAutoSwitched(layout: resolved.rawValue, device: triggerName ?? ""))
             }
         }
-        .onChange(of: counts) { _ in vm.reload() }
+        .onChange(of: counts) { vm.reload() }
     }
 
     // MARK: - Toast helpers (Issue #284)
