@@ -540,6 +540,7 @@ private final class NSMenuItemAction: NSObject {
 // MARK: - ErgonomicRecommendationsRow (Issue #299)
 
 private struct ErgonomicRecommendationsRow: View {
+    @EnvironmentObject var appDelegate: AppDelegate
     @State private var recs: [ErgonomicRecommendation] = []
 
     var body: some View {
