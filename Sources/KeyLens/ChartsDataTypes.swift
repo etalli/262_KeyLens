@@ -273,6 +273,18 @@ struct MouseKeyboardBalanceEntry: Identifiable {
     let keystrokes: Int
 }
 
+// MARK: - Issue #292: Session Rhythm Heatmap
+
+/// One cell in the 7×24 session rhythm heatmap: session count and average duration for a (weekday, hour) pair.
+/// セッションリズムヒートマップの1セル：曜日×時刻ごとのセッション数・平均時間。
+struct SessionHeatmapCell: Identifiable {
+    let id: Int                    // weekday * 24 + hour
+    let weekday: Int               // 0 = Sunday … 6 = Saturday
+    let hour: Int                  // 0–23
+    let avgCount: Double           // average session count across all matching weekday+hour slots
+    let avgDurationMinutes: Double // average session duration in minutes
+}
+
 // MARK: - Issue #78: Weekly Activity Heatmap
 
 /// One cell in the 7×24 weekly heatmap: average keystrokes and optional WPM for a (weekday, hour) pair.

@@ -81,6 +81,8 @@ final class ChartDataModel: ObservableObject {
     @Published var bigramIKIMap:               [String: Double]              = [:]
     // Issue #78: Weekly Activity Heatmap
     @Published var weeklyHeatmap:              [HeatmapCell]                 = []
+    // Issue #292: Session Rhythm Heatmap
+    @Published var sessionHeatmapCells:        [SessionHeatmapCell]          = []
     // Issue #209: Layer key efficiency
     @Published var layerEfficiency:            [LayerEfficiencyEntry]        = []
     // Issue #258: background loading state
@@ -150,9 +152,11 @@ final class ChartDataModel: ObservableObject {
             // Issue #61: layout efficiency comparison
             let layoutEfficiency   = store.layoutEfficiencyScores()
             // Issue #60: session detection
-            let sessionSummaries   = store.allSessionSummaries()
+            let sessionSummaries    = store.allSessionSummaries()
+            // Issue #292: session rhythm heatmap
+            let sessionHeatmapCells = store.sessionRhythmHeatmap()
             // Issue #290: consecutive active-day streak
-            let sessionStreakDays   = Self.computeSessionStreak(sessionSummaries)
+            let sessionStreakDays    = Self.computeSessionStreak(sessionSummaries)
             // Issue #90: Training
             let trainingScores     = store.rankedBigramsForTraining(minCount: 5, topK: 10)
             // Issue #89: Trigram training targets
@@ -230,8 +234,9 @@ final class ChartDataModel: ObservableObject {
                 self.slowBigrams          = slowBigrams
                 self.fingerIKI            = fingerIKI
                 self.layoutEfficiency     = layoutEfficiency
-                self.sessionSummaries     = sessionSummaries
-                self.sessionStreakDays    = sessionStreakDays
+                self.sessionSummaries      = sessionSummaries
+                self.sessionHeatmapCells   = sessionHeatmapCells
+                self.sessionStreakDays     = sessionStreakDays
                 self.trainingScores       = trainingScores
                 self.trainingTrigramScores = trainingTrigramScores
                 self.fatigueCurve         = fatigueCurve
