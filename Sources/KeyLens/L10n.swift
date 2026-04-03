@@ -1351,7 +1351,6 @@ final class L10n {
         case .shortcutEfficiency:         return ja("ショートカット効率", en: "Shortcut Efficiency")
         case .mouseDistance:              return ja("マウス移動距離", en: "Mouse Distance")
         case .slowEvents:                 return ja("低速イベント数", en: "Slow Events")
-        case .ergonomicRecommendations:   return ja("改善提案", en: "Recommendations")
         }
     }
 
@@ -2060,6 +2059,7 @@ final class L10n {
     var appsSubTabApps: String         { ja("アプリ",    en: "Apps") }
     var appsSubTabDevices: String      { ja("デバイス",  en: "Devices") }
 
+    var ergoSubTabRecommendations: String { ja("提案",             en: "Tips") }
     var ergoSubTabBigrams: String      { ja("バイグラム",         en: "Bigrams") }
     var ergoSubTabLayout: String       { ja("レイアウト",         en: "Layout") }
     var ergoSubTabFatigue: String      { ja("疲労",              en: "Fatigue") }

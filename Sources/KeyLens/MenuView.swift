@@ -1,6 +1,5 @@
 import AppKit
 import Charts
-import KeyLensCore
 import ServiceManagement
 import SwiftUI
 
@@ -118,8 +117,6 @@ struct MenuView: View {
                             NSWorkspace.shared.open(logDir)
                         }
                     }
-                case .ergonomicRecommendations:
-                    ErgonomicRecommendationsRow()
                 }
             }
         }
@@ -535,86 +532,6 @@ private final class NSMenuItemAction: NSObject {
     let block: () -> Void
     init(_ block: @escaping () -> Void) { self.block = block }
     @objc func invoke() { block() }
-}
-
-// MARK: - ErgonomicRecommendationsRow (Issue #299)
-
-private struct ErgonomicRecommendationsRow: View {
-    @EnvironmentObject var appDelegate: AppDelegate
-    @State private var recs: [ErgonomicRecommendation] = []
-
-    var body: some View {
-        let l = L10n.shared
-        VStack(alignment: .leading, spacing: 0) {
-            Text(l.recommendationsSectionTitle)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .padding(.top, 4)
-                .padding(.bottom, 2)
-
-            if recs.isEmpty {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle")
-                        .font(.system(size: 12))
-                        .foregroundColor(.green)
-                        .frame(width: 16)
-                    Text(l.recommendationsEmpty)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 3)
-            } else {
-                ForEach(recs, id: \.id) { rec in
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: severityIcon(rec.severity))
-                            .font(.system(size: 11))
-                            .foregroundColor(severityColor(rec.severity))
-                            .frame(width: 16)
-                            .padding(.top, 2)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(l.ergoRecTitle(rec.titleKey))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.primary)
-                            Text(l.ergoRecDetail(rec.detailKey))
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        Spacer()
-                        Text(l.recImpact(Int(rec.estimatedScoreGain.rounded())))
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.accentColor)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(Color.accentColor.opacity(0.12))
-                            .cornerRadius(4)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 3)
-                }
-            }
-        }
-        .padding(.bottom, 4)
-        .onAppear { recs = KeyCountStore.shared.topRecommendations() }
-    }
-
-    private func severityIcon(_ s: ErgonomicRecommendationSeverity) -> String {
-        switch s {
-        case .high:   return "exclamationmark.circle.fill"
-        case .medium: return "exclamationmark.circle"
-        case .low:    return "info.circle"
-        }
-    }
-
-    private func severityColor(_ s: ErgonomicRecommendationSeverity) -> Color {
-        switch s {
-        case .high:   return .red
-        case .medium: return .orange
-        case .low:    return Color.secondary
-        }
-    }
 }
 
 // MARK: - MiniDailyBarChart

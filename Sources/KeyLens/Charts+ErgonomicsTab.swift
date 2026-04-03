@@ -5,6 +5,7 @@ import KeyLensCore
 // MARK: - Ergonomics sub-tab enum (Issue #273)
 
 enum ErgoSubTab: String, CaseIterable {
+    case recommendations
     case bigrams
     case layout
     case fatigue
@@ -16,6 +17,7 @@ extension ChartsView {
     var ergonomicsTab: some View {
         VStack(spacing: 0) {
             Picker("", selection: $ergoSubTab) {
+                Text(L10n.shared.ergoSubTabRecommendations).tag(ErgoSubTab.recommendations)
                 Text(L10n.shared.ergoSubTabBigrams).tag(ErgoSubTab.bigrams)
                 Text(L10n.shared.ergoSubTabLayout).tag(ErgoSubTab.layout)
                 Text(L10n.shared.ergoSubTabFatigue).tag(ErgoSubTab.fatigue)
@@ -29,6 +31,9 @@ extension ChartsView {
             Divider()
 
             switch ergoSubTab {
+            case .recommendations:
+                ErgoRecommendationsView()
+
             case .bigrams:
                 ScrollView {
                     VStack(alignment: .leading, spacing: 40) {
@@ -762,6 +767,89 @@ extension ChartsView {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Issue #299 (moved from MenuView): Ergonomic Recommendations sub-tab
+
+private struct ErgoRecommendationsView: View {
+    @State private var recs: [ErgonomicRecommendation] = []
+
+    var body: some View {
+        let l = L10n.shared
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if recs.isEmpty {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.system(size: 20))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(l.recommendationsSectionTitle)
+                                .font(.headline)
+                            Text(l.recommendationsEmpty)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(24)
+                } else {
+                    ForEach(recs, id: \.id) { rec in
+                        recCard(rec)
+                    }
+                }
+            }
+            .padding(24)
+        }
+        .onAppear { recs = KeyCountStore.shared.topRecommendations() }
+    }
+
+    private func recCard(_ rec: ErgonomicRecommendation) -> some View {
+        let l = L10n.shared
+        return HStack(alignment: .top, spacing: 14) {
+            Image(systemName: severityIcon(rec.severity))
+                .font(.system(size: 22))
+                .foregroundColor(severityColor(rec.severity))
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(l.ergoRecTitle(rec.titleKey))
+                    .font(.headline)
+                Text(l.ergoRecDetail(rec.detailKey))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+
+            Text(l.recImpact(Int(rec.estimatedScoreGain.rounded())))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.accentColor.opacity(0.12))
+                .cornerRadius(6)
+        }
+        .padding(16)
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(10)
+    }
+
+    private func severityIcon(_ s: ErgonomicRecommendationSeverity) -> String {
+        switch s {
+        case .high:   return "exclamationmark.circle.fill"
+        case .medium: return "exclamationmark.circle"
+        case .low:    return "info.circle"
+        }
+    }
+
+    private func severityColor(_ s: ErgonomicRecommendationSeverity) -> Color {
+        switch s {
+        case .high:   return .red
+        case .medium: return .orange
+        case .low:    return .secondary
         }
     }
 }
