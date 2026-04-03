@@ -6,16 +6,19 @@ Daily summaries of development activity, generated from git history.
 
 ## 2026-04-03
 
-- **feat:** added `ErgonomicRecommendationEngine` — rule-based engine returning top-3 actionable suggestions (same-finger, outer-column, weak alternation, row-reach) from `ErgonomicSnapshot` (#298)
-- **feat:** added ergonomic recommendations section to stats popover with live suggestion list (#299)
-- **feat:** added `rowReachScore` field to `ErgonomicSnapshot` and `ErgonomicScoreEngine` as a 0.20-weight penalty (#293); updated L10n score formula string (#300)
-- **perf:** cache frontmost app name via `NSWorkspace` notification — removes per-keystroke IPC call from CGEventTap hot path (#295)
-- **perf:** make `KeyCountStore.increment()` async — CGEventTap thread now returns in microseconds; all heavy work dispatched to background queue (#296)
-- **perf:** rate-limit `BreakReminderManager.didType()` with a 5-second gate — reduces `DispatchSource` allocations from N/s to ~1 per 5s (#297)
-- **fix:** added "pangaea" to split keyboard detection keywords
-- **fix:** updated Japanese localization strings for overlay menu items
-- **test:** updated `ErgonomicScoreEngineTests` for new `rowReachScore` parameter; added `ErgonomicRecommendationEngineTests` (#301)
-- **chore:** removed Japanese comments from `KeyboardMonitor` (English-only policy); bumped version to v0.84
+- **feat:** mouse position heatmap in Charts → Mouse → Heatmap tab — 100×100 grid Canvas view with blue→red color ramp, position sampled every 5th mouseMoved event; per-screen normalization for multi-display support (#217, #306)
+- **feat:** session rhythm heatmap (7×24 day-of-week × hour) in Activity → Patterns tab (#292)
+- **feat:** ergonomic recommendations moved to dedicated Tips sub-tab in Charts → Ergonomics (was in stats popover); re-renders correctly on language switch (#299)
+- **feat:** added `ErgonomicRecommendationEngine` — rule-based engine returning top-3 actionable suggestions (#298); added `rowReachScore` penalty to score engine (#293)
+- **fix:** VoiceOver accessibility labels for optimizer keyboard grid keys (state-aware) and swap history chips; bilingual via L10n (#304)
+- **fix:** x-axis labels in Mouse vs Keyboard Balance chart were clipping to first character — reduced font size
+- **fix:** `onChange(of:perform:)` deprecated in macOS 14 — updated to two-parameter closure form in `KeyboardHeatmapView`; build now produces zero warnings
+- **fix:** session rhythm heatmap tooltip uses L10n function for correct Japanese word order
+- **perf:** cache frontmost app name via `NSWorkspace` notification — removes per-keystroke IPC call (#295)
+- **perf:** `KeyCountStore.increment()` made async — unblocks CGEventTap thread (#296)
+- **perf:** rate-limit `BreakReminderManager.didType()` with 5-second gate (#297)
+- **test:** updated ergonomic score tests for `rowReachScore`; added recommendation engine tests (#301)
+- **chore:** bumped version to v0.85
 
 ## 2026-04-02
 
