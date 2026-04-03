@@ -66,6 +66,8 @@ final class KeyboardMonitor {
     private var runLoopSource: CFRunLoopSource?
     /// Cached frontmost app name, updated via NSWorkspace notification instead of per-keystroke IPC.
     private var cachedAppName: String?
+    /// Counter for throttling heatmap position sampling (sample every 5th mouseMoved event).
+    private var mouseSampleCounter: Int = 0
 
     private let store: KeyEventHandling
     private let breakManager: BreakReminderManaging
@@ -277,12 +279,27 @@ extension KeyboardMonitor {
             return Unmanaged.passRetained(event)
         }
 
-        // Mouse movement: accumulate distance only, no keystroke recording
-        // マウス移動: 距離を蓄積するのみ、キーストローク記録には含めない
+        // Mouse movement: accumulate distance and sample position for heatmap.
+        // Position is sampled every 5th event to keep overhead minimal.
         if type == .mouseMoved {
             let dx = event.getDoubleValueField(.mouseEventDeltaX)
             let dy = event.getDoubleValueField(.mouseEventDeltaY)
             MouseStore.shared.addMovement(dx: dx, dy: dy)
+
+            mouseSampleCounter += 1
+            if mouseSampleCounter >= 5 {
+                mouseSampleCounter = 0
+                let loc = event.location
+                // Find the screen that contains the cursor and normalize within its bounds.
+                // This handles multi-display setups correctly — each screen gets its own 0–99 grid.
+                if let screen = NSScreen.screens.first(where: { $0.frame.contains(loc) }) {
+                    let frame = screen.frame
+                    let relX = loc.x - frame.minX
+                    // NSScreen uses bottom-left origin; invert Y so top=0, bottom=99
+                    let relY = frame.maxY - loc.y
+                    MouseStore.shared.addPosition(x: relX, y: relY, screenSize: frame.size)
+                }
+            }
             return Unmanaged.passRetained(event)
         }
 
