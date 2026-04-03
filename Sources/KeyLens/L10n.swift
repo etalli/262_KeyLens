@@ -1596,6 +1596,27 @@ final class L10n {
         ja("—", en: "—")
     }
 
+    // Issue #292: Session Rhythm Heatmap
+    var chartTitleSessionRhythm: String {
+        ja("セッションリズム", en: "Session Rhythm")
+    }
+    var helpSessionRhythm: String {
+        ja("曜日×時刻ごとのセッション数・平均時間を表示します。ピークタイムや習慣的な作業パターンを把握できます。",
+           en: "Shows session count and average duration broken down by day-of-week × hour. Reveals your peak times and habitual work patterns.")
+    }
+    var sessionRhythmMetricCount: String {
+        ja("セッション数", en: "Count")
+    }
+    var sessionRhythmMetricDuration: String {
+        ja("平均時間", en: "Duration")
+    }
+    var sessionRhythmTooltipCount: String {
+        ja("セッション", en: "sessions")
+    }
+    var sessionRhythmTooltipDuration: String {
+        ja("分", en: "min")
+    }
+
     var calendarLegendLow: String {
         ja("少", en: "Low")
     }

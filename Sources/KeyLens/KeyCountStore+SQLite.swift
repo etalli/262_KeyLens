@@ -444,6 +444,38 @@ extension KeyCountStore {
 
 extension KeyCountStore {
 
+    /// Returns 7×24 session rhythm heatmap cells aggregated by weekday × hour.
+    /// Uses local time via SQLite's 'localtime' modifier.
+    /// Must NOT be called on `queue` to avoid deadlock.
+    func sessionRhythmHeatmap() -> [SessionHeatmapCell] {
+        guard let db = dbQueue else { return [] }
+        let rows = (try? db.read { db in
+            try Row.fetchAll(db, sql: """
+                SELECT
+                    CAST(strftime('%w', start_time, 'unixepoch', 'localtime') AS INTEGER) AS wd,
+                    CAST(strftime('%H', start_time, 'unixepoch', 'localtime') AS INTEGER) AS hr,
+                    COUNT(*) AS cnt,
+                    AVG(end_time - start_time) / 60.0 AS avg_dur
+                FROM sessions
+                WHERE end_time > start_time AND keystroke_count > 0
+                GROUP BY wd, hr
+                """)
+        }) ?? []
+        return rows.map { row in
+            let wd:  Int    = row["wd"]
+            let hr:  Int    = row["hr"]
+            let cnt: Double = Double(row["cnt"] as Int)
+            let dur: Double = row["avg_dur"] ?? 0
+            return SessionHeatmapCell(
+                id: wd * 24 + hr,
+                weekday: wd,
+                hour: hr,
+                avgCount: cnt,
+                avgDurationMinutes: dur
+            )
+        }
+    }
+
     /// Returns per-day session summaries (count, total minutes, longest session) from SQLite.
     /// Must NOT be called on `queue` to avoid deadlock.
     func allSessionSummaries() -> [DailySessionSummary] {

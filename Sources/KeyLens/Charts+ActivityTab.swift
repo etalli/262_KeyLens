@@ -42,6 +42,9 @@ extension ChartsView {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 40) {
                         chartSection(L10n.shared.chartTitleWeeklyHeatmap, helpText: L10n.shared.helpWeeklyHeatmap) { weeklyHeatmapChart }
+                        chartSection(L10n.shared.chartTitleSessionRhythm, helpText: L10n.shared.helpSessionRhythm) {
+                            SessionWeeklyHeatmapView(cells: model.sessionHeatmapCells)
+                        }
                         chartSection(L10n.shared.chartTitleHourlyDistribution, helpText: L10n.shared.helpHourlyDistribution) { hourlyDistributionChart }
                     }
                     .padding(24)
@@ -501,6 +504,137 @@ extension ChartsView {
                 .chartYAxisLabel(L10n.shared.axisLabelMinutes, alignment: .trailing)
                 .frame(height: 140)
             }
+        }
+    }
+}
+
+// MARK: - Issue #292: SessionWeeklyHeatmapView (7 rows × 24 cols, session count / avg duration)
+
+/// Interactive 7-row (Mon–Sun) × 24-column (0–23h) heatmap for session rhythm.
+/// Metric toggle: Session Count / Avg Duration.
+struct SessionWeeklyHeatmapView: View {
+    let cells: [SessionHeatmapCell]
+
+    @State private var metric: SessionHeatmapMetric = .count
+    @State private var hoveredCell: SessionHeatmapCell? = nil
+
+    enum SessionHeatmapMetric { case count, duration }
+
+    private let cellW:  CGFloat = 22
+    private let cellH:  CGFloat = 18
+    private let labelW: CGFloat = 30
+    private let headerH: CGFloat = 20
+
+    private var lookup: [Int: SessionHeatmapCell] {
+        Dictionary(uniqueKeysWithValues: cells.map { ($0.weekday * 24 + $0.hour, $0) })
+    }
+
+    private var maxValue: Double {
+        switch metric {
+        case .count:    return cells.map(\.avgCount).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+        case .duration: return cells.map(\.avgDurationMinutes).max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+        }
+    }
+
+    var body: some View {
+        if cells.isEmpty {
+            Text(L10n.shared.noDataYet)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Picker("", selection: $metric) {
+                    Text(L10n.shared.sessionRhythmMetricCount).tag(SessionHeatmapMetric.count)
+                    Text(L10n.shared.sessionRhythmMetricDuration).tag(SessionHeatmapMetric.duration)
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 200)
+
+                grid
+                tooltipLine
+                legend
+            }
+        }
+    }
+
+    private var weekdayDisplayOrder: [Int] { [1, 2, 3, 4, 5, 6, 0] }
+
+    private var grid: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                Spacer().frame(width: labelW)
+                ForEach(0..<24, id: \.self) { h in
+                    Text(h % 4 == 0 ? String(format: "%02d", h) : "")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.secondary)
+                        .frame(width: cellW, height: headerH, alignment: .leading)
+                }
+            }
+            ForEach(weekdayDisplayOrder, id: \.self) { wd in
+                weekdayRow(wd: wd)
+            }
+        }
+    }
+
+    private func weekdayRow(wd: Int) -> some View {
+        let abbrs = L10n.shared.weekdayAbbrs
+        let label = wd < abbrs.count ? abbrs[wd] : ""
+        return HStack(spacing: 0) {
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: labelW, height: cellH, alignment: .trailing)
+                .padding(.trailing, 4)
+            ForEach(0..<24, id: \.self) { h in
+                let cell = lookup[wd * 24 + h]
+                let value: Double = {
+                    guard let c = cell else { return 0 }
+                    switch metric {
+                    case .count:    return c.avgCount
+                    case .duration: return c.avgDurationMinutes
+                    }
+                }()
+                let intensity = maxValue > 0 ? value / maxValue : 0
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.teal.opacity(0.06 + intensity * 0.88))
+                    .frame(width: cellW - 2, height: cellH - 2)
+                    .padding(1)
+                    .onHover { isHovered in hoveredCell = isHovered ? cell : nil }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tooltipLine: some View {
+        let l = L10n.shared
+        if let cell = hoveredCell {
+            let abbrs  = l.weekdayAbbrs
+            let dayName = cell.weekday < abbrs.count ? abbrs[cell.weekday] : ""
+            let hourStr = String(format: "%02d:00", cell.hour)
+            let countPart = "\(Int(cell.avgCount.rounded())) \(l.sessionRhythmTooltipCount)"
+            let durPart   = "  ·  \(String(format: "%.0f", cell.avgDurationMinutes)) \(l.sessionRhythmTooltipDuration)"
+            Text("\(dayName) \(hourStr)  ·  \(countPart)\(durPart)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else {
+            Text(" ").font(.caption)
+        }
+    }
+
+    private var legend: some View {
+        HStack(spacing: 4) {
+            Text(L10n.shared.calendarLegendLow)
+                .font(.system(size: 8))
+                .foregroundStyle(.secondary)
+            ForEach([0.1, 0.3, 0.5, 0.7, 1.0], id: \.self) { i in
+                Rectangle()
+                    .fill(Color.teal.opacity(0.06 + i * 0.88))
+                    .frame(width: 10, height: 10)
+                    .cornerRadius(2)
+            }
+            Text(L10n.shared.calendarLegendHigh)
+                .font(.system(size: 8))
+                .foregroundStyle(.secondary)
         }
     }
 }
