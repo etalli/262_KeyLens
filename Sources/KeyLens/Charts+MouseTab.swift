@@ -290,8 +290,10 @@ extension ChartsView {
                             let parts = s.split(separator: "-")
                             if parts.count == 3 {
                                 Text("\(parts[1])/\(parts[2])")
+                                    .font(.system(size: 9))
                             } else {
                                 Text(s)
+                                    .font(.system(size: 9))
                             }
                         }
                     }
