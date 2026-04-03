@@ -285,6 +285,17 @@ struct SessionHeatmapCell: Identifiable {
     let avgDurationMinutes: Double // average session duration in minutes
 }
 
+// MARK: - Issue #217: Mouse Position Heatmap
+
+/// One cell in the 100×100 mouse position heatmap.
+/// マウス位置ヒートマップの1セル（100×100グリッド）。
+struct MouseGridCell: Identifiable {
+    let id: Int    // gridX * 100 + gridY
+    let gridX: Int // 0–99 (left → right)
+    let gridY: Int // 0–99 (top → bottom)
+    let hits: Int
+}
+
 // MARK: - Issue #78: Weekly Activity Heatmap
 
 /// One cell in the 7×24 weekly heatmap: average keystrokes and optional WPM for a (weekday, hour) pair.

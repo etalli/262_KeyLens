@@ -5,6 +5,7 @@ import Charts
 
 enum MouseSubTab: String, CaseIterable {
     case distance
+    case heatmap
     case direction
     case clicks
 }
@@ -16,6 +17,7 @@ extension ChartsView {
         return VStack(spacing: 0) {
             Picker("", selection: $mouseSubTab) {
                 Text(l.mouseSubTabDistance).tag(MouseSubTab.distance)
+                Text(l.mouseSubTabHeatmap).tag(MouseSubTab.heatmap)
                 Text(l.mouseSubTabDirection).tag(MouseSubTab.direction)
                 Text(l.mouseSubTabClicks).tag(MouseSubTab.clicks)
             }
@@ -36,6 +38,14 @@ extension ChartsView {
                         chartSection(l.chartTitleMouseHourly, helpText: l.helpMouseHourly) {
                             mouseHourlyChart
                         }
+                    }
+                    .padding(24)
+                }
+
+            case .heatmap:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        mouseHeatmapSection
                     }
                     .padding(24)
                 }

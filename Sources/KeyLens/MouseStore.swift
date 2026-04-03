@@ -23,6 +23,9 @@ final class MouseStore {
     private var pendingDyPos: Double = 0   // downward sum
     private var pendingDyNeg: Double = 0   // upward sum (positive value)
 
+    // Grid accumulator for heatmap — key: gridX * 100 + gridY → hit count
+    private var pendingGrid: [Int: Int] = [:]
+
     private var flushTimer: DispatchSourceTimer?
 
     private static let dayFormatter: DateFormatter = {
@@ -70,6 +73,14 @@ final class MouseStore {
                     t.primaryKey(["date", "hour"])
                 }
             }
+            migrator.registerMigration("v2_heatmap") { db in
+                try db.create(table: "mouse_grid", ifNotExists: true) { t in
+                    t.column("grid_x", .integer).notNull()
+                    t.column("grid_y", .integer).notNull()
+                    t.column("hits", .integer).notNull().defaults(to: 0)
+                    t.primaryKey(["grid_x", "grid_y"])
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db
@@ -94,6 +105,18 @@ final class MouseStore {
         }
     }
 
+    /// Accumulate a cursor position sample for the heatmap grid.
+    /// Hot path: normalises to 0–99 grid, no disk I/O.
+    func addPosition(x: CGFloat, y: CGFloat, screenSize: CGSize) {
+        guard screenSize.width > 0, screenSize.height > 0 else { return }
+        let gx = min(99, max(0, Int(x / screenSize.width  * 100)))
+        let gy = min(99, max(0, Int(y / screenSize.height * 100)))
+        let key = gx * 100 + gy
+        queue.async { [self] in
+            pendingGrid[key, default: 0] += 1
+        }
+    }
+
     // MARK: - Flush
 
     private func startFlushTimer() {
@@ -107,38 +130,52 @@ final class MouseStore {
     /// Flush pending data to SQLite. Must be called on `queue`.
     /// 保留中のデータを SQLite へフラッシュする。`queue` 上で呼ぶこと。
     private func flushLocked() {
-        guard pendingDistance > 0, let db = dbQueue else { return }
+        guard let db = dbQueue else { return }
 
         let dist  = pendingDistance
         let dxPos = pendingDxPos
         let dxNeg = pendingDxNeg
         let dyPos = pendingDyPos
         let dyNeg = pendingDyNeg
+        let grid  = pendingGrid
         pendingDistance = 0; pendingDxPos = 0; pendingDxNeg = 0
-        pendingDyPos    = 0; pendingDyNeg = 0
+        pendingDyPos    = 0; pendingDyNeg = 0; pendingGrid = [:]
 
         let dateStr = Self.dayFormatter.string(from: Date())
         let hour    = Calendar.current.component(.hour, from: Date())
 
         do {
             try db.write { db in
-                try db.execute(sql: """
-                    INSERT INTO mouse_daily (date, distance_pts, dx_pos, dx_neg, dy_pos, dy_neg)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(date) DO UPDATE SET
-                        distance_pts = distance_pts + excluded.distance_pts,
-                        dx_pos       = dx_pos       + excluded.dx_pos,
-                        dx_neg       = dx_neg       + excluded.dx_neg,
-                        dy_pos       = dy_pos       + excluded.dy_pos,
-                        dy_neg       = dy_neg       + excluded.dy_neg
-                    """, arguments: [dateStr, dist, dxPos, dxNeg, dyPos, dyNeg])
+                if dist > 0 {
+                    try db.execute(sql: """
+                        INSERT INTO mouse_daily (date, distance_pts, dx_pos, dx_neg, dy_pos, dy_neg)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(date) DO UPDATE SET
+                            distance_pts = distance_pts + excluded.distance_pts,
+                            dx_pos       = dx_pos       + excluded.dx_pos,
+                            dx_neg       = dx_neg       + excluded.dx_neg,
+                            dy_pos       = dy_pos       + excluded.dy_pos,
+                            dy_neg       = dy_neg       + excluded.dy_neg
+                        """, arguments: [dateStr, dist, dxPos, dxNeg, dyPos, dyNeg])
 
-                try db.execute(sql: """
-                    INSERT INTO mouse_hourly (date, hour, distance_pts)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(date, hour) DO UPDATE SET
-                        distance_pts = distance_pts + excluded.distance_pts
-                    """, arguments: [dateStr, hour, dist])
+                    try db.execute(sql: """
+                        INSERT INTO mouse_hourly (date, hour, distance_pts)
+                        VALUES (?, ?, ?)
+                        ON CONFLICT(date, hour) DO UPDATE SET
+                            distance_pts = distance_pts + excluded.distance_pts
+                        """, arguments: [dateStr, hour, dist])
+                }
+
+                for (key, hits) in grid {
+                    let gx = key / 100
+                    let gy = key % 100
+                    try db.execute(sql: """
+                        INSERT INTO mouse_grid (grid_x, grid_y, hits)
+                        VALUES (?, ?, ?)
+                        ON CONFLICT(grid_x, grid_y) DO UPDATE SET
+                            hits = hits + excluded.hits
+                        """, arguments: [gx, gy, hits])
+                }
             }
         } catch {
             KeyLens.log("MouseStore: flush error: \(error)")
@@ -219,6 +256,19 @@ final class MouseStore {
                 dyPos: $0["dy_pos"] as Double? ?? 0,
                 dyNeg: $0["dy_neg"] as Double? ?? 0
             )}
+        }
+    }
+
+    /// All grid cells with at least one hit, for the heatmap.
+    func heatmapGrid() -> [(gridX: Int, gridY: Int, hits: Int)] {
+        queue.sync {
+            guard let db = dbQueue else { return [] }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: "SELECT grid_x, grid_y, hits FROM mouse_grid")
+            }) ?? []
+            return rows.map { (gridX: $0["grid_x"] as Int? ?? 0,
+                               gridY: $0["grid_y"] as Int? ?? 0,
+                               hits:  $0["hits"]   as Int? ?? 0) }
         }
     }
 

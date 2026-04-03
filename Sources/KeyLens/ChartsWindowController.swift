@@ -83,6 +83,8 @@ final class ChartDataModel: ObservableObject {
     @Published var weeklyHeatmap:              [HeatmapCell]                 = []
     // Issue #292: Session Rhythm Heatmap
     @Published var sessionHeatmapCells:        [SessionHeatmapCell]          = []
+    // Issue #217: Mouse Position Heatmap
+    @Published var heatmapGrid:                [MouseGridCell]               = []
     // Issue #209: Layer key efficiency
     @Published var layerEfficiency:            [LayerEfficiencyEntry]        = []
     // Issue #258: background loading state
@@ -190,6 +192,8 @@ final class ChartDataModel: ObservableObject {
                                          right: $0.dxPos, left: $0.dxNeg,
                                          down: $0.dyPos,  up:   $0.dyNeg)
             }
+            // Issue #217: Mouse position heatmap
+            let heatmapGrid = ms.heatmapGrid().map { MouseGridCell(id: $0.gridX * 100 + $0.gridY, gridX: $0.gridX, gridY: $0.gridY, hits: $0.hits) }
             let keystrokesByDate = Dictionary(uniqueKeysWithValues: rawDailyTotals.map { ($0.date, $0.total) })
             let mouseKeyboardBalance = ms.dailyDistances().compactMap { entry -> MouseKeyboardBalanceEntry? in
                 guard let keys = keystrokesByDate[entry.date], entry.distancePts > 0 || keys > 0 else { return nil }
@@ -248,6 +252,7 @@ final class ChartDataModel: ObservableObject {
                 self.mouseDirectionEntries      = mouseDirectionEntries
                 self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
                 self.mouseKeyboardBalance       = mouseKeyboardBalance
+                self.heatmapGrid                = heatmapGrid
                 self.isLoading                  = false
                 PerformanceProfiler.shared.record(
                     metric: "charts.reload.publish",
