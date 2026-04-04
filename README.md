@@ -20,7 +20,7 @@ The stored data is key names and counts only — your actual typed content canno
   <tr>
     <td><img src="docs/images/menu.png" width="300"/></td>
     <td align="center"><i>Menu Bar</i></td>
-    <td><img src="docs/images/Heatmap.png" width="500"/></td>
+    <td><img src="docs/images/Heatmap.png" width="450"/></td>
     <td align="center"><i>Heatmap</i></td>
   </tr>
 </table>
@@ -74,7 +74,7 @@ rather than switching to Colemak blindly and hoping for the best.
 
 ## How to Use
 
-See [docs/HOWTOUSE.md](docs/HOWTOUSE.md) for the full usage guide — menu bar items, Charts window tabs, AI Analysis, and the Keystroke Overlay.
+See [HOWTOUSE](docs/HOWTOUSE.md) for the full usage guide — menu bar items, Charts window tabs, AI Analysis, and the Keystroke Overlay.
 
 ---
 
@@ -85,6 +85,6 @@ KeyLens records only key names (e.g. `Space`, `e`) and mouse button names with p
 ---
 
 For internal design details, see [Architecture](docs/Architecture.md).
-See [docs/HowToBuild.md](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
+See [HowToBuild](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
 Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).
