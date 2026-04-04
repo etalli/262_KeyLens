@@ -10,6 +10,7 @@ struct ChartsView: View {
 
     @AppStorage("selectedChartTab") var selectedTab: ChartTab = .summary
     @AppStorage("frequentChartsSortDescending") var sortDescending: Bool = true
+    @AppStorage("advancedMode") var advancedMode: Bool = false
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State var copiedSection: String? = nil
@@ -116,17 +117,21 @@ struct ChartsView: View {
                 .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
                 .tag(ChartTab.ergonomics)
 
-            trainingTab
-                .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }
-                .tag(ChartTab.training)
+            if advancedMode {
+                trainingTab
+                    .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }
+                    .tag(ChartTab.training)
+            }
 
             comparisonTab
                 .tabItem { Label(ChartTab.comparison.rawValue, systemImage: ChartTab.comparison.icon) }
                 .tag(ChartTab.comparison)
 
-            inspectorTab
-                .tabItem { Label(L10n.shared.tabInspector, systemImage: ChartTab.inspector.icon) }
-                .tag(ChartTab.inspector)
+            if advancedMode {
+                inspectorTab
+                    .tabItem { Label(L10n.shared.tabInspector, systemImage: ChartTab.inspector.icon) }
+                    .tag(ChartTab.inspector)
+            }
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

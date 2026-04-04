@@ -17,7 +17,9 @@ extension ChartsView {
         return VStack(spacing: 0) {
             Picker("", selection: $mouseSubTab) {
                 Text(l.mouseSubTabDistance).tag(MouseSubTab.distance)
-                Text(l.mouseSubTabHeatmap).tag(MouseSubTab.heatmap)
+                if advancedMode {
+                    Text(l.mouseSubTabHeatmap).tag(MouseSubTab.heatmap)
+                }
                 Text(l.mouseSubTabDirection).tag(MouseSubTab.direction)
                 Text(l.mouseSubTabClicks).tag(MouseSubTab.clicks)
             }
@@ -43,11 +45,15 @@ extension ChartsView {
                 }
 
             case .heatmap:
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 40) {
-                        mouseHeatmapSection
+                if advancedMode {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 40) {
+                            mouseHeatmapSection
+                        }
+                        .padding(24)
                     }
-                    .padding(24)
+                } else {
+                    emptyState
                 }
 
             case .direction:

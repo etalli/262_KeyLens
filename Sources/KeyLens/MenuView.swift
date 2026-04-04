@@ -463,6 +463,14 @@ private struct SettingsMenuRow: View {
 
         menu.addItem(.separator())
 
+        // Advanced Mode toggle (#307)
+        let isAdvanced = UserDefaults.standard.bool(forKey: "advancedMode")
+        add(l.advancedModeMenuTitle, to: menu, checked: isAdvanced) {
+            UserDefaults.standard.set(!isAdvanced, forKey: "advancedMode")
+        }
+
+        menu.addItem(.separator())
+
         // Appearance submenu
         let currentAppearance = ThemeStore.shared.appearance
         submenu(l.appearanceMenuTitle) { sub in

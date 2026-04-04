@@ -39,8 +39,10 @@ extension ChartsView {
                     VStack(alignment: .leading, spacing: 40) {
                         chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
                         chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
-                        chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
-                            BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
+                        if advancedMode {
+                            chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
+                                BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
+                            }
                         }
                         chartSection(L10n.shared.slowBigramsTitle, helpText: L10n.shared.helpSlowBigrams) { slowBigramChart }
                     }

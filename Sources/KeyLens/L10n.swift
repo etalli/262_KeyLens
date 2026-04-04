@@ -2211,6 +2211,12 @@ final class L10n {
     }
     func recImpact(_ pts: Int) -> String { ja("+\(pts)pt", en: "+\(pts)pt") }
 
+    // MARK: - Advanced Mode (#307)
+
+    var advancedModeMenuTitle: String { ja("高度なモード", en: "Advanced Mode") }
+    var advancedModeOn: String { ja("高度なモード: オン", en: "Advanced Mode: On") }
+    var advancedModeOff: String { ja("高度なモード: オフ", en: "Advanced Mode: Off") }
+
     // MARK: - Helper
 
     private func ja(_ japanese: String, en english: String) -> String {
