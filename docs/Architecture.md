@@ -32,7 +32,7 @@ graph TD
     V -->|widget config| MW[MenuWidgetStore]
     J -->|reads counts| E
     J -->|theme| TS[ThemeStore]
-    J --> L[ChartsView tabs / KeyboardHeatmapView / ActivityCalendarView]
+    J --> L[ChartsView (4 tabs) / KeyboardHeatmapView / ActivityCalendarView]
     M[AIPromptStore] -->|currentPrompt| B
     M -->|reads language| H
 ```
@@ -87,6 +87,7 @@ graph TD
 │   │   ├── Charts+LiveTab.swift
 │   │   ├── Charts+MouseTab.swift
 │   │   ├── Charts+TrainingTab.swift
+│   │   ├── Charts+TypingTab.swift
 │   │   ├── Charts+ComparisonTab.swift
 │   │   ├── ActivityCalendarView.swift
 │   │   ├── BigramHeatmapView.swift
@@ -389,21 +390,22 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
-`ChartsView` is organised into 10 tabs, each implemented as a `ChartsView` extension in its own file:
+`ChartsView` is organised into 4 top-level tabs, each implemented as a `ChartsView` extension in its own file:
 
-| Tab file | Contents |
-|----------|----------|
-| `Charts+SummaryTab.swift` | Activity Calendar heatmap, Weekly Delta Report |
-| `Charts+KeyboardTab.swift` | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
-| `Charts+ErgonomicsTab.swift` | Top 20 Bigrams, Finger IKI, Bigram IKI Heatmap, Ergonomic Learning Curve, ergonomic score tables |
-| `Charts+ActivityTab.swift` | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
-| `Charts+AppsTab.swift` | Per-app keystroke bars (all-time and today) + ergonomic score table |
-| `Charts+ShortcutsTab.swift` | ⌘ Keyboard Shortcuts, All Keyboard Combos |
-| `Charts+LayerEfficiency.swift` | Layer key usage analysis for QMK/ZMK keyboards |
-| `Charts+LiveTab.swift` | Analog speedometer, recent IKI bar chart, manual WPM measurement, Key Event Inspector |
-| `Charts+MouseTab.swift` | Daily mouse distance, hourly mouse activity, mouse/keyboard balance |
-| `Charts+TrainingTab.swift` | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
-| `Charts+ComparisonTab.swift` | Side-by-side period comparison: two custom date ranges, preset buttons, stats table with delta column |
+| Tab file | Top-level tab | Contents |
+|----------|---------------|----------|
+| `Charts+SummaryTab.swift` | Summary | Activity Calendar heatmap, Weekly Delta Report |
+| `Charts+TypingTab.swift` | Typing | Sub-tab router: Live, Activity, Keyboard, Shortcuts, Apps, Devices |
+| `Charts+LiveTab.swift` | Typing › Live | Recent IKI bar chart, manual WPM measurement, AI Intelligence |
+| `Charts+ActivityTab.swift` | Typing › Activity | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
+| `Charts+KeyboardTab.swift` | Typing › Keyboard | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
+| `Charts+ShortcutsTab.swift` | Typing › Shortcuts | ⌘ Keyboard Shortcuts, All Keyboard Combos |
+| `Charts+AppsTab.swift` | Typing › Apps / Devices | Per-app and per-device keystroke bars + ergonomic score tables |
+| `Charts+MouseTab.swift` | Mouse | Mouse clicks, direction, daily distance (+ position heatmap in Advanced Mode) |
+| `Charts+ErgonomicsTab.swift` | Ergonomics | Tips, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs; Training + Inspector in Advanced Mode |
+| `Charts+ComparisonTab.swift` | Ergonomics › Compare | Side-by-side period comparison: two custom date ranges, stats table with delta column |
+| `Charts+TrainingTab.swift` | Ergonomics › Training (Advanced) | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
+| `Charts+LayerEfficiency.swift` | Ergonomics › Layout | Layer key usage analysis for QMK/ZMK keyboards |
 
 Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
 

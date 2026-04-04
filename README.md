@@ -39,7 +39,7 @@ The stored data is key names and counts only — your actual typed content canno
 
 - **Global recording** — Counts keystrokes in any app, no exceptions
 - **Menu bar statistics** — Today's count, all-time total, average keystroke interval, ergonomic recommendations, and more; toggle and reorder these widgets as you like
-- **Charts** — Keyboard heatmap, top keys, bigrams, apps, devices, daily totals, ergonomic learning curve, weekly delta report, and more
+- **Charts** — 4-tab analytics window: Summary, Typing (Live, Activity, Keyboard, Shortcuts, Apps, Devices), Mouse, and Ergonomics (Tips, Bigrams, Layout, Fatigue, Optimizer, Compare)
 - **Weekly Summary Card** — Generates a PNG of your weekly stats every Saturday; also available any time from the Data menu
 - **Keystroke Overlay** — Floating window showing recent keystrokes in real time (⌘C / ⇧A style)
 
@@ -79,40 +79,12 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Show All** | Opens a ranked table of every key and mouse button |
 | **Charts** | Opens the full analytics window |
 | **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
-| **WPM Gauge (floating)** | Toggles a floating analog WPM speedometer panel, independently of the keystroke overlay |
-| **Settings…** | Customize menu display, language, notifications, reset, export CSV, export weekly summary card (PNG), export Year in Review card (PNG), backup/restore data, open log folder |
+| **WPM Gauge (floating)** | Toggles a floating analog WPM speedometer panel; right-click to set size (Small / Medium / Large) |
+| **Settings…** | Customize menu display, language, notifications, Advanced Mode toggle, reset, export CSV, export weekly summary card (PNG), export Year in Review card (PNG), backup/restore data, open log folder |
 
 ### Charts window
 
-Open via **Charts** in the menu. Sections (scroll down):
-
-#### Ergonomics tab
-| Section | What it shows |
-|---------|---------------|
-| **Keyboard Heatmap** | Key layout colored by frequency or strain; supports ANSI / Ortho / JIS / Custom (KLE import) |
-| **Top 20 Keys** | Most-pressed keys by type |
-| **Top 20 Bigrams** | Most frequent key pairs with hand alternation stats |
-| **Bigram IKI Heatmap** | N×N matrix of average inter-key interval per key pair; green = fast, red = slow |
-| **Ergonomic Learning Curve** | Same-finger and high-strain rates over time |
-| **Today's Fatigue Curve** | Hourly WPM and ergonomic rates for today |
-| **Weekly Delta Report** | Last 7 days vs prior 7 days with trend arrows |
-| **Key Categories** | Key-type distribution chart |
-| **Keyboard Shortcuts** | Top modifier+key combinations |
-| **Apps** | Keystroke counts and ergonomic scores per application |
-| **Devices** | Keystroke counts and ergonomic scores per device |
-
-#### Activity tab
-| Section | What it shows |
-|---------|---------------|
-| **Live IKI** | Recent inter-keystroke intervals, updated live |
-| **Key Event Inspector** | Real-time key event details (keycode, location, modifiers, held keys) |
-| **IKI Distribution** | Histogram of your typing rhythm |
-| **Daily Totals** | Per-day keystroke counts |
-| **Typing Speed** | Daily average WPM over time |
-| **Backspace Rate** | Daily correction rate over time |
-| **Hourly Distribution** | Keystroke count by hour of day |
-| **Monthly Totals** | Keystroke count per calendar month |
-| **Weekly Activity Heatmap** | Keystroke density by day of week and hour |
+Open via **Charts** in the menu. Four top-level tabs:
 
 #### Summary tab
 | Section | What it shows |
@@ -122,27 +94,41 @@ Open via **Charts** in the menu. Sections (scroll down):
 | **Typing Profile** | Inferred typing style and fatigue risk level |
 | **Mouse vs Keyboard Balance** | Daily ratio of mouse vs keyboard usage |
 
-#### Training tab
-| Section | What it shows |
-|---------|---------------|
-| **Practice Drills** | Typing drills based on your slowest bigrams and trigrams |
-| **Training History** | Past drill results with accuracy and WPM |
-| **Training Targets** | Top bigrams ranked by training priority |
-| **Trigram Training Targets** | Top 3-key sequences ranked by latency |
+#### Typing tab
+Sub-tabs: Live · Activity · Keyboard · Shortcuts · Apps · Devices
 
-#### Compare tab
-| Section | What it shows |
+| Sub-tab | What it shows |
 |---------|---------------|
-| **Period Comparison** | Side-by-side stats for two custom date ranges |
+| **Live** | Recent IKI bar chart, manual WPM measurement, typing intelligence |
+| **Activity** | Daily WPM, daily totals, IKI distribution, hourly distribution, weekly heatmap |
+| **Keyboard** | Keyboard heatmap (frequency / strain), top 20 keys, key categories |
+| **Shortcuts** | Top ⌘ keyboard shortcuts, all keyboard combos |
+| **Apps** | Keystroke counts and ergonomic scores per application |
+| **Devices** | Keystroke counts and ergonomic scores per device |
 
 #### Mouse tab
-| Section | What it shows |
+Sub-tabs: Clicks · Direction · Distance · (Heatmap in Advanced Mode)
+
+| Sub-tab | What it shows |
 |---------|---------------|
-| **Daily Distance** | Mouse travel distance per day |
-| **Hourly Distribution** | Mouse activity by hour of day |
-| **Direction Breakdown** | Proportion of movement in each direction |
-| **Daily Direction Table** | Per-day directional mouse movement |
-| **Mouse Click Count** | Left, middle, and right button click counts |
+| **Clicks** | Left, middle, and right button click counts |
+| **Direction** | Proportion and per-day breakdown of mouse movement direction |
+| **Distance** | Daily mouse travel distance and hourly activity |
+| **Heatmap** | Mouse position heatmap (Advanced Mode only) |
+
+#### Ergonomics tab
+Sub-tabs: Tips · Bigrams · Layout · Fatigue · Optimizer · Compare · (Training · Inspector in Advanced Mode)
+
+| Sub-tab | What it shows |
+|---------|---------------|
+| **Tips** | Personalised ergonomic recommendations |
+| **Bigrams** | Top bigrams, finger IKI, slow bigrams, bigram IKI heatmap (Advanced Mode) |
+| **Layout** | Layout efficiency, layer efficiency, layout comparison |
+| **Fatigue** | Hourly fatigue curve, ergonomic learning curve |
+| **Optimizer** | Key swap simulator for layout improvement |
+| **Compare** | Side-by-side stats for two custom date ranges |
+| **Training** | Bigram typing drills and history (Advanced Mode only) |
+| **Inspector** | Real-time key event details — keycode, modifiers, HID codes (Advanced Mode only) |
 
 ### AI Analysis
 
