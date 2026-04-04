@@ -84,12 +84,7 @@ KeyLens records only key names (e.g. `Space`, `e`) and mouse button names with p
 
 ---
 
-## Build from Source
-
-See [docs/HowToBuild.md](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
-
----
-
 For internal design details, see [Architecture](docs/Architecture.md).
+See [docs/HowToBuild.md](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
 Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).
