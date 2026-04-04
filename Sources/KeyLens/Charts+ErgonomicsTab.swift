@@ -10,6 +10,7 @@ enum ErgoSubTab: String, CaseIterable {
     case layout
     case fatigue
     case optimizer
+    case comparison
 }
 
 extension ChartsView {
@@ -22,6 +23,7 @@ extension ChartsView {
                 Text(L10n.shared.ergoSubTabLayout).tag(ErgoSubTab.layout)
                 Text(L10n.shared.ergoSubTabFatigue).tag(ErgoSubTab.fatigue)
                 Text(L10n.shared.ergoSubTabOptimizer).tag(ErgoSubTab.optimizer)
+                Text(L10n.shared.ergoSubTabComparison).tag(ErgoSubTab.comparison)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 24)
@@ -72,6 +74,9 @@ extension ChartsView {
 
             case .optimizer:
                 optimizerTab
+
+            case .comparison:
+                comparisonTab
             }
         }
     }

@@ -123,10 +123,6 @@ struct ChartsView: View {
                     .tag(ChartTab.training)
             }
 
-            comparisonTab
-                .tabItem { Label(ChartTab.comparison.rawValue, systemImage: ChartTab.comparison.icon) }
-                .tag(ChartTab.comparison)
-
             if advancedMode {
                 inspectorTab
                     .tabItem { Label(L10n.shared.tabInspector, systemImage: ChartTab.inspector.icon) }
