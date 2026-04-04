@@ -19,9 +19,9 @@ KeyLens は、あなたのタイピングの癖をローカルで分析し、あ
 
 <table>
   <tr>
-    <td><img src="../images/menu_v048.png" width="300"/></td>
+    <td><img src="images/menu.png" width="300"/></td>
     <td align="center"><i>メニューバー</i></td>
-    <td><img src="../images/Heatmap.png" width="500"/></td>
+    <td><img src="images/Heatmap.png" width="500"/></td>
     <td align="center"><i>ヒートマップ</i></td>
   </tr>
 </table>
@@ -149,8 +149,8 @@ KeyLens は、あなたのタイピングの癖をローカルで分析し、あ
 
 <table>
   <tr>
-    <td><img src="../images/keystroke_overlay_settings.png" width="280"/></td>
-    <td><img src="../images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
+    <td><img src="images/keystroke_overlay_settings.png" width="280"/></td>
+    <td><img src="images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
   </tr>
   <tr>
     <td align="center">設定</td>
