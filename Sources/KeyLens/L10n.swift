@@ -893,6 +893,22 @@ final class L10n {
         ja("速度計を非表示", en: "Hide Speedometer")
     }
 
+    var speedometerSizeMenuTitle: String {
+        ja("サイズ", en: "Size")
+    }
+
+    var speedometerSizeSmall: String {
+        ja("小", en: "Small")
+    }
+
+    var speedometerSizeMedium: String {
+        ja("中", en: "Medium")
+    }
+
+    var speedometerSizeLarge: String {
+        ja("大", en: "Large")
+    }
+
     // MARK: - Manual WPM Measurement (Issue #150)
 
     var wpmMeasureTitle: String {

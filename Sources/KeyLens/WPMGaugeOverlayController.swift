@@ -1,11 +1,49 @@
 import AppKit
 import SwiftUI
 
+// MARK: - SpeedometerSize
+
+enum SpeedometerSize: String, CaseIterable {
+    case small
+    case medium
+    case large
+
+    static let defaultsKey = "speedometerSize"
+
+    /// Scale factor applied to SpeedometerView (native ~280 px tall).
+    var scale: CGFloat {
+        switch self {
+        case .small:  return 0.62
+        case .medium: return 0.85
+        case .large:  return 1.10
+        }
+    }
+
+    /// Frame size for the overlay panel at this scale.
+    var frameSize: CGSize {
+        let base = CGSize(width: 162, height: 178)
+        let ratio = scale / 0.62
+        return CGSize(width: (base.width * ratio).rounded(), height: (base.height * ratio).rounded())
+    }
+
+    var displayName: String {
+        let l = L10n.shared
+        switch self {
+        case .small:  return l.speedometerSizeSmall
+        case .medium: return l.speedometerSizeMedium
+        case .large:  return l.speedometerSizeLarge
+        }
+    }
+}
+
 // MARK: - WPMGaugeOverlayView
 
 /// Compact floating speedometer — arc gauge + WPM number, scaled to fit a small panel.
 private struct WPMGaugeOverlayView: View {
     @ObservedObject private var themeStore = ThemeStore.shared
+    @AppStorage(SpeedometerSize.defaultsKey) private var sizeRaw: String = SpeedometerSize.small.rawValue
+
+    private var size: SpeedometerSize { SpeedometerSize(rawValue: sizeRaw) ?? .small }
 
     /// Resolve the effective color scheme, honoring the user's app appearance setting.
     private var resolvedScheme: ColorScheme {
@@ -19,12 +57,13 @@ private struct WPMGaugeOverlayView: View {
     }
 
     var body: some View {
+        let fs = size.frameSize
         SpeedometerView()
             .colorScheme(resolvedScheme)
-            .scaleEffect(0.62)
+            .scaleEffect(size.scale)
             // SpeedometerView is ~280 px tall total (canvas 200 + number ~50 + peak ~20 + spacing).
-            // At 0.62 scale that is ~174 px; add 8 px padding margin.
-            .frame(width: 162, height: 178)
+            // Frame is scaled proportionally from the small baseline (162 × 178).
+            .frame(width: fs.width, height: fs.height)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(resolvedScheme == .dark
@@ -40,14 +79,33 @@ private struct WPMGaugeOverlayView: View {
 /// Custom NSPanel subclass that shows a context menu on right-click.
 private final class WPMGaugePanel: NSPanel {
     override func rightMouseDown(with event: NSEvent) {
+        let l = L10n.shared
         let menu = NSMenu()
-        let item = NSMenuItem(
-            title: L10n.shared.hideSpeedometer,
+
+        // Size submenu
+        let currentSize = SpeedometerSize(rawValue: UserDefaults.standard.string(forKey: SpeedometerSize.defaultsKey) ?? "") ?? .small
+        let sizeSubmenu = NSMenu()
+        for option in SpeedometerSize.allCases {
+            let sizeItem = NSMenuItem(title: option.displayName, action: #selector(WPMGaugeOverlayController.setSizeFromMenu(_:)), keyEquivalent: "")
+            sizeItem.target = WPMGaugeOverlayController.shared
+            sizeItem.representedObject = option.rawValue
+            sizeItem.state = option == currentSize ? .on : .off
+            sizeSubmenu.addItem(sizeItem)
+        }
+        let sizeMenuItem = NSMenuItem(title: l.speedometerSizeMenuTitle, action: nil, keyEquivalent: "")
+        sizeMenuItem.submenu = sizeSubmenu
+        menu.addItem(sizeMenuItem)
+
+        menu.addItem(.separator())
+
+        let hideItem = NSMenuItem(
+            title: l.hideSpeedometer,
             action: #selector(WPMGaugeOverlayController.hideFromMenu),
             keyEquivalent: ""
         )
-        item.target = WPMGaugeOverlayController.shared
-        menu.addItem(item)
+        hideItem.target = WPMGaugeOverlayController.shared
+        menu.addItem(hideItem)
+
         NSMenu.popUpContextMenu(menu, with: event, for: contentView ?? self.contentView!)
     }
 }
@@ -114,6 +172,18 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
         isEnabled = false
     }
 
+    @objc func setSizeFromMenu(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String else { return }
+        UserDefaults.standard.set(raw, forKey: SpeedometerSize.defaultsKey)
+        // Resize the panel to match the new size.
+        let size = SpeedometerSize(rawValue: raw) ?? .small
+        let fs = size.frameSize
+        let panelSize = NSSize(width: fs.width + 8, height: fs.height + 8)
+        var frame = panel.frame
+        frame.size = panelSize
+        panel.setFrame(frame, display: true)
+    }
+
     // MARK: - Positioning
 
     @objc private func repositionPanel() {
@@ -124,9 +194,9 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
     private func placePanel() {
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let f = screen.visibleFrame
-        panel.contentView?.layoutSubtreeIfNeeded()
-        let s = panel.contentView?.fittingSize ?? NSSize(width: 170, height: 186)
-        let size = NSSize(width: max(s.width, 170), height: max(s.height, 186))
+        let sizeOption = SpeedometerSize(rawValue: UserDefaults.standard.string(forKey: SpeedometerSize.defaultsKey) ?? "") ?? .small
+        let fs = sizeOption.frameSize
+        let size = NSSize(width: fs.width + 8, height: fs.height + 8)
 
         // Restore saved drag position, or default to bottom-right corner.
         let defaults = UserDefaults.standard
