@@ -46,7 +46,7 @@ mkdir -p "$APP/Contents/Resources"
 
 cp "$BUILD_BIN" "$APP/Contents/MacOS/KeyLens"
 cp Resources/Info.plist "$APP/Contents/"
-cp images/AppIcon.png  "$APP/Contents/Resources/AppIcon.png"
+cp docs/images/AppIcon.png  "$APP/Contents/Resources/AppIcon.png"
 
 echo "$APP created"
 

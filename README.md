@@ -24,7 +24,7 @@ The stored data is key names and counts only — your actual typed content canno
   <tr>
     <td><img src="docs/images/menu.png" width="300"/></td>
     <td align="center"><i>Menu Bar</i></td>
-    <td><img src="images/Heatmap.png" width="500"/></td>
+    <td><img src="docs/images/Heatmap.png" width="500"/></td>
     <td align="center"><i>Heatmap</i></td>
   </tr>
 </table>
@@ -154,8 +154,8 @@ Export your keystroke data (Settings… > Data > Export CSV) and paste it into a
 
 <table>
   <tr>
-    <td><img src="images/keystroke_overlay_settings.png" width="280"/></td>
-    <td><img src="images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
+    <td><img src="docs/images/keystroke_overlay_settings.png" width="280"/></td>
+    <td><img src="docs/images/KeyStrokeOverlay-screenshot.png" width="400"/></td>
   </tr>
   <tr>
     <td align="center">Setting</td>
