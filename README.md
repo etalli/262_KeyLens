@@ -68,8 +68,6 @@ rather than switching to Colemak blindly and hoping for the best.
    - Click **Open System Settings** → **Privacy & Security > Accessibility** → enable **KeyLens**.
 5. Switch to any app — the keyboard icon appears in your menu bar and monitoring starts.
 
-> **Note:** The app uses an ad-hoc signature. This manual override is required only once.
-
 ---
 
 ## How to Use
