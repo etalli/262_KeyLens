@@ -4,6 +4,16 @@ Daily summaries of development activity, generated from git history.
 
 ---
 
+## 2026-04-04
+
+- **feat:** restructured Charts into 4 top-level tabs (Summary, Typing, Mouse, Ergonomics); Comparison moved into Ergonomics as a sub-tab (#310, #311)
+- **feat:** Advanced Mode toggle to hide niche features for new users — Training, Inspector, Mouse Heatmap gated behind it (#307)
+- **feat:** user-adjustable size (Small / Medium / Large) for Speedometer floating overlay (#309)
+- **feat:** removed Typing Speedometer from Live tab; now only available as a floating overlay (#308)
+- **refactor:** improved code structure readability; reorganized docs/images directory
+- **docs:** updated README, Architecture.md, README.ja.md, and DataLogic.md for chart restructure and accurate penalty formula
+- **chore:** bumped version to v0.86; removed Development.ja.md and stale release artifact
+
 ## 2026-04-03
 
 - **feat:** mouse position heatmap in Charts → Mouse → Heatmap tab — 100×100 grid Canvas view with blue→red color ramp, position sampled every 5th mouseMoved event; per-screen normalization for multi-display support (#217, #306)
