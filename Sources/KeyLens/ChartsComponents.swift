@@ -30,36 +30,19 @@ struct SectionHeader: View {
 // MARK: - ChartTab
 
 enum ChartTab: String, CaseIterable, Identifiable {
-    // Overview
     case summary     = "Summary"
-    case live        = "Live"
-    case activity    = "Activity"
-    // Input
-    case keyboard    = "Keyboard"
+    case typing      = "Typing"
     case mouse       = "Mouse"
-    // Analysis
-    case shortcuts   = "Shortcuts"
-    case apps        = "Apps"
-    // Health
     case ergonomics  = "Ergonomics"
-    case training    = "Training"
-    // Tools
-    case inspector   = "Inspector"
 
     var id: String { rawValue }
 
     var icon: String {
         switch self {
         case .summary:    return "info.circle"
-        case .live:       return "waveform"
-        case .activity:   return "chart.line.uptrend.xyaxis"
-        case .keyboard:   return "square.grid.3x3"
-        case .ergonomics: return "figure.walk"
-        case .shortcuts:  return "command"
-        case .apps:       return "app.badge"
+        case .typing:     return "keyboard"
         case .mouse:      return "cursorarrow.motionlines"
-        case .training:   return "figure.run"
-        case .inspector:  return "keyboard"
+        case .ergonomics: return "figure.walk"
         }
     }
 }

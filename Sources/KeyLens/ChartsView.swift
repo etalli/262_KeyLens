@@ -11,6 +11,8 @@ struct ChartsView: View {
     @AppStorage("selectedChartTab") var selectedTab: ChartTab = .summary
     @AppStorage("frequentChartsSortDescending") var sortDescending: Bool = true
     @AppStorage("advancedMode") var advancedMode: Bool = false
+    /// Active sub-tab within the Typing tab (#311).
+    @State var typingSubTab: TypingSubTab = .live
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State var copiedSection: String? = nil
@@ -89,45 +91,17 @@ struct ChartsView: View {
                 .tabItem { Label(ChartTab.summary.rawValue, systemImage: ChartTab.summary.icon) }
                 .tag(ChartTab.summary)
 
-            liveTab
-                .tabItem { Label(ChartTab.live.rawValue, systemImage: ChartTab.live.icon) }
-                .tag(ChartTab.live)
-
-            activityTab
-                .tabItem { Label(ChartTab.activity.rawValue, systemImage: ChartTab.activity.icon) }
-                .tag(ChartTab.activity)
-
-            keyboardTab
-                .tabItem { Label(ChartTab.keyboard.rawValue, systemImage: ChartTab.keyboard.icon) }
-                .tag(ChartTab.keyboard)
+            typingTab
+                .tabItem { Label(ChartTab.typing.rawValue, systemImage: ChartTab.typing.icon) }
+                .tag(ChartTab.typing)
 
             mouseTab
                 .tabItem { Label(ChartTab.mouse.rawValue, systemImage: ChartTab.mouse.icon) }
                 .tag(ChartTab.mouse)
 
-            shortcutsTab
-                .tabItem { Label(ChartTab.shortcuts.rawValue, systemImage: ChartTab.shortcuts.icon) }
-                .tag(ChartTab.shortcuts)
-
-            appsTab
-                .tabItem { Label(ChartTab.apps.rawValue, systemImage: ChartTab.apps.icon) }
-                .tag(ChartTab.apps)
-
             ergonomicsTab
                 .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
                 .tag(ChartTab.ergonomics)
-
-            if advancedMode {
-                trainingTab
-                    .tabItem { Label(ChartTab.training.rawValue, systemImage: ChartTab.training.icon) }
-                    .tag(ChartTab.training)
-            }
-
-            if advancedMode {
-                inspectorTab
-                    .tabItem { Label(L10n.shared.tabInspector, systemImage: ChartTab.inspector.icon) }
-                    .tag(ChartTab.inspector)
-            }
         }
         .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)

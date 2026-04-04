@@ -2087,6 +2087,15 @@ final class L10n {
     var appsSubTabApps: String         { ja("アプリ",    en: "Apps") }
     var appsSubTabDevices: String      { ja("デバイス",  en: "Devices") }
 
+    // MARK: - Typing tab sub-tabs (#311)
+
+    var typingSubTabLive: String       { ja("ライブ",        en: "Live") }
+    var typingSubTabActivity: String   { ja("アクティビティ", en: "Activity") }
+    var typingSubTabKeyboard: String   { ja("キーボード",     en: "Keyboard") }
+    var typingSubTabShortcuts: String  { ja("ショートカット", en: "Shortcuts") }
+    var typingSubTabApps: String       { ja("アプリ",         en: "Apps") }
+    var typingSubTabDevices: String    { ja("デバイス",       en: "Devices") }
+
     var ergoSubTabRecommendations: String { ja("提案",             en: "Tips") }
     var ergoSubTabBigrams: String      { ja("バイグラム",         en: "Bigrams") }
     var ergoSubTabLayout: String       { ja("レイアウト",         en: "Layout") }

@@ -11,48 +11,33 @@ enum AppsSubTab: String, CaseIterable {
 
 extension ChartsView {
 
-    var appsTab: some View {
-        VStack(spacing: 0) {
-            Picker("", selection: $appsSubTab) {
-                Text(L10n.shared.appsSubTabApps).tag(AppsSubTab.apps)
-                Text(L10n.shared.appsSubTabDevices).tag(AppsSubTab.devices)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            Divider()
-
-            switch appsSubTab {
-            case .apps:
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 40) {
-                        chartSection(L10n.shared.appsAllTime, helpText: L10n.shared.helpApps, showSort: true) { topAppsChart }
-                        chartSection(L10n.shared.appsToday, helpText: L10n.shared.helpAppsToday, showSort: true) { todayTopAppsChart }
-                        if !model.appErgScores.isEmpty {
-                            chartSection(L10n.shared.appErgScoreSection, helpText: L10n.shared.helpAppErgScore) {
-                                appErgScoreTable
-                            }
-                        }
+    var appsTabAppsContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.appsAllTime, helpText: L10n.shared.helpApps, showSort: true) { topAppsChart }
+                chartSection(L10n.shared.appsToday, helpText: L10n.shared.helpAppsToday, showSort: true) { todayTopAppsChart }
+                if !model.appErgScores.isEmpty {
+                    chartSection(L10n.shared.appErgScoreSection, helpText: L10n.shared.helpAppErgScore) {
+                        appErgScoreTable
                     }
-                    .padding(24)
-                }
-
-            case .devices:
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 40) {
-                        chartSection(L10n.shared.devicesAllTime, helpText: L10n.shared.helpDevices, showSort: true) { topDevicesChart }
-                        chartSection(L10n.shared.devicesToday, helpText: L10n.shared.helpDevicesToday, showSort: true) { todayTopDevicesChart }
-                        if !model.deviceErgScores.isEmpty {
-                            chartSection(L10n.shared.deviceErgScoreSection, helpText: L10n.shared.helpDeviceErgScore) {
-                                deviceErgScoreTable
-                            }
-                        }
-                    }
-                    .padding(24)
                 }
             }
+            .padding(24)
+        }
+    }
+
+    var appsTabDevicesContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.devicesAllTime, helpText: L10n.shared.helpDevices, showSort: true) { topDevicesChart }
+                chartSection(L10n.shared.devicesToday, helpText: L10n.shared.helpDevicesToday, showSort: true) { todayTopDevicesChart }
+                if !model.deviceErgScores.isEmpty {
+                    chartSection(L10n.shared.deviceErgScoreSection, helpText: L10n.shared.helpDeviceErgScore) {
+                        deviceErgScoreTable
+                    }
+                }
+            }
+            .padding(24)
         }
     }
 
