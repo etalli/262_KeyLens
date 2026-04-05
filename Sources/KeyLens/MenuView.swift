@@ -64,7 +64,7 @@ struct MenuView: View {
             ForEach(widgets) { widget in
                 switch widget {
                 case .recordingSince:
-                    infoRow(l.recordingSince(store.startedAt))
+                    infoRow(l.recordingSince(store.startedAt), icon: "calendar")
                 case .todayTotal:
                     infoRow(String(format: l.todayFormat, store.todayCount.formatted()))
                 case .avgInterval:
