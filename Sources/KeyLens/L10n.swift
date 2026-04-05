@@ -1367,7 +1367,7 @@ final class L10n {
     func widgetDisplayName(_ widget: MenuWidget) -> String {
         switch widget {
         case .recordingSince: return ja("記録開始日", en: "Recording Since")
-        case .todayTotal:     return ja("本日 / 合計", en: "Today / Total")
+        case .todayTotal:     return ja("本日", en: "Today")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
