@@ -353,32 +353,36 @@ private struct DataMenuRow: View {
         let menu = NSMenu()
         var held: [NSMenuItemAction] = []
 
-        func add(_ title: String, _ block: @escaping () -> Void) {
+        func add(_ title: String, icon: String? = nil, _ block: @escaping () -> Void) {
             let a = NSMenuItemAction(block)
             held.append(a)
             let item = NSMenuItem(title: title, action: #selector(NSMenuItemAction.invoke), keyEquivalent: "")
             item.target = a
+            if let icon {
+                item.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)
+            }
             menu.addItem(item)
         }
 
-        add(l.showAllMenuItem)         { appDelegate.showAllStats() }
+        add(l.showAllMenuItem, icon: "list.bullet.rectangle") { appDelegate.showAllStats() }
         menu.addItem(.separator())
-        add(l.exportCSVMenuItem)       { appDelegate.exportCSV() }
-        add(l.exportSQLiteMenuItem)    { appDelegate.exportSQLite() }
-        add(l.exportSummaryCardMenuItem) { appDelegate.exportWeeklySummaryCard() }
-        add(l.exportYearInReviewMenuItem) { appDelegate.exportYearInReviewCard() }
-        add(l.exportDailyNoteMenuItem)  { appDelegate.exportDailyNote() }
-        add(l.changeDailyNoteFolderMenuItem) { appDelegate.changeDailyNoteFolder() }
-        add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem) {
+        add(l.exportCSVMenuItem, icon: "tablecells")           { appDelegate.exportCSV() }
+        add(l.exportSQLiteMenuItem, icon: "cylinder")          { appDelegate.exportSQLite() }
+        add(l.exportSummaryCardMenuItem, icon: "doc.richtext") { appDelegate.exportWeeklySummaryCard() }
+        add(l.exportYearInReviewMenuItem, icon: "calendar.badge.clock") { appDelegate.exportYearInReviewCard() }
+        add(l.exportDailyNoteMenuItem, icon: "note.text")      { appDelegate.exportDailyNote() }
+        add(l.changeDailyNoteFolderMenuItem, icon: "folder.badge.gear") { appDelegate.changeDailyNoteFolder() }
+        add(appDelegate.copyConfirmed ? "\(l.copyDataMenuItem) - \(l.copiedConfirmation)" : l.copyDataMenuItem,
+            icon: "doc.on.clipboard") {
             appDelegate.copyDataToClipboard()
         }
-        add(l.editPromptMenuItem)      { appDelegate.editAIPrompt() }
+        add(l.editPromptMenuItem, icon: "text.bubble")         { appDelegate.editAIPrompt() }
         menu.addItem(.separator())
-        add(l.openSaveFolder)          { appDelegate.openSaveDir() }
-        add(l.backupMenuItem)          { appDelegate.backupData() }
-        add(l.restoreMenuItem)         { appDelegate.restoreData() }
+        add(l.openSaveFolder, icon: "folder")                  { appDelegate.openSaveDir() }
+        add(l.backupMenuItem, icon: "arrow.up.doc")            { appDelegate.backupData() }
+        add(l.restoreMenuItem, icon: "arrow.down.doc")         { appDelegate.restoreData() }
         menu.addItem(.separator())
-        add(l.resetMenuItem)           { appDelegate.resetCounts() }
+        add(l.resetMenuItem, icon: "trash")                    { appDelegate.resetCounts() }
 
         guard let event = NSApp.currentEvent else { return }
         withExtendedLifetime(held) {
