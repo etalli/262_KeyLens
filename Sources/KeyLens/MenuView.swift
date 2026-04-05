@@ -89,9 +89,9 @@ struct MenuView: View {
                     }
                 case .shortcutEfficiency:
                     if let pct = KeyCountStore.shared.shortcutEfficiencyToday() {
-                        infoRow(l.shortcutEfficiencyDisplay(pct), icon: "command")
+                        infoRow(l.shortcutEfficiencyDisplay(pct))
                     } else {
-                        infoRow(l.shortcutEfficiencyNoData, icon: "command")
+                        infoRow(l.shortcutEfficiencyNoData)
                     }
                 case .mouseDistance:
                     if let pts = MouseStore.shared.distanceToday() {
