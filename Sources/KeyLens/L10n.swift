@@ -240,7 +240,7 @@ final class L10n {
     }
 
     var wpmGaugeMenuItem: String {
-        ja("WPM メータ", en: "WPM Meter")
+        ja("WPM 速度計", en: "WPM SpeedoMeter")
     }
 
     var overlaySettingsPosition: String {
@@ -1426,8 +1426,8 @@ final class L10n {
     func streakCompact(streak: Int, today: Int, goal: Int) -> String {
         let pct = goal > 0 ? min(100, today * 100 / goal) : 0
         let streakPart = streak > 0
-            ? ja("🔥 \(streak)日", en: "🔥 \(streak)d")
-            : ja("🔥 0日", en: "🔥 0d")
+            ? ja("🔥 \(streak)日", en: "🔥 \(streak)-day")
+            : ja("🔥 0日", en: "🔥 0-day")
         let goalPart = ja("\(today.formatted())/\(goal.formatted()) (\(pct)%)",
                           en: "\(today.formatted())/\(goal.formatted()) (\(pct)%)")
         return "\(streakPart)  \(goalPart)"
