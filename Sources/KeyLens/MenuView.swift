@@ -423,51 +423,53 @@ private struct SettingsMenuRow: View {
         let menu = NSMenu()
         var held: [NSMenuItemAction] = []
 
-        func add(_ title: String, to target: NSMenu, checked: Bool = false, _ block: @escaping () -> Void) {
+        func add(_ title: String, to target: NSMenu, icon: String? = nil, checked: Bool = false, _ block: @escaping () -> Void) {
             let a = NSMenuItemAction(block)
             held.append(a)
             let item = NSMenuItem(title: title, action: #selector(NSMenuItemAction.invoke), keyEquivalent: "")
             item.target = a
             item.state = checked ? .on : .off
+            if let icon { item.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil) }
             target.addItem(item)
         }
 
-        func submenu(_ title: String, _ build: (NSMenu) -> Void) {
+        func submenu(_ title: String, icon: String? = nil, _ build: (NSMenu) -> Void) {
             let sub = NSMenu()
             build(sub)
             let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            if let icon { item.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil) }
             item.submenu = sub
             menu.addItem(item)
         }
 
         // Overlay toggle
         let isOverlay = KeystrokeOverlayController.shared.isEnabled
-        add(l.overlayMenuItem, to: menu, checked: isOverlay) {
+        add(l.overlayMenuItem, to: menu, icon: "rectangle.inset.filled", checked: isOverlay) {
             appDelegate.toggleOverlay()
         }
 
         // WPM Meter toggle
         let isWPM = WPMGaugeOverlayController.shared.isEnabled
-        add(l.wpmGaugeMenuItem, to: menu, checked: isWPM) {
+        add(l.wpmGaugeMenuItem, to: menu, icon: "speedometer", checked: isWPM) {
             appDelegate.toggleWPMGauge()
         }
 
         menu.addItem(.separator())
 
         // Customize Menu
-        add(l.customizeMenuMenuItem, to: menu) {
+        add(l.customizeMenuMenuItem, to: menu, icon: "slider.horizontal.3") {
             appDelegate.showMenuCustomize()
         }
 
         // Layer Key Mapping (Issue #209)
-        add(l.layerMappingMenuTitle, to: menu) {
+        add(l.layerMappingMenuTitle, to: menu, icon: "keyboard") {
             appDelegate.showLayerMappingSettings()
         }
 
         menu.addItem(.separator())
 
         // Launch at Login
-        add(l.launchAtLogin, to: menu, checked: SMAppService.mainApp.status == .enabled) {
+        add(l.launchAtLogin, to: menu, icon: "power", checked: SMAppService.mainApp.status == .enabled) {
             appDelegate.toggleLaunchAtLogin()
         }
 
@@ -475,7 +477,7 @@ private struct SettingsMenuRow: View {
 
         // Advanced Mode toggle (#307)
         let isAdvanced = UserDefaults.standard.bool(forKey: "advancedMode")
-        add(l.advancedModeMenuTitle, to: menu, checked: isAdvanced) {
+        add(l.advancedModeMenuTitle, to: menu, icon: "wrench.and.screwdriver", checked: isAdvanced) {
             UserDefaults.standard.set(!isAdvanced, forKey: "advancedMode")
         }
 
@@ -483,7 +485,7 @@ private struct SettingsMenuRow: View {
 
         // Appearance submenu
         let currentAppearance = ThemeStore.shared.appearance
-        submenu(l.appearanceMenuTitle) { sub in
+        submenu(l.appearanceMenuTitle, icon: "paintbrush") { sub in
             for option in AppAppearance.allCases {
                 add(option.displayName, to: sub, checked: currentAppearance == option) {
                     ThemeStore.shared.appearance = option
@@ -493,7 +495,7 @@ private struct SettingsMenuRow: View {
 
         // Language submenu
         let currentLang = l.language
-        submenu(l.languageMenuTitle) { sub in
+        submenu(l.languageMenuTitle, icon: "globe") { sub in
             for lang in Language.allCases {
                 add(lang.displayName, to: sub, checked: currentLang == lang) {
                     appDelegate.changeLanguage(to: lang)
@@ -503,7 +505,7 @@ private struct SettingsMenuRow: View {
 
         // Notify Every submenu
         let currentInterval = KeyCountStore.milestoneInterval
-        submenu(l.notificationIntervalMenuTitle) { sub in
+        submenu(l.notificationIntervalMenuTitle, icon: "bell") { sub in
             for interval in [100, 500, 1000, 5000, 10000] {
                 add(l.notificationIntervalLabel(interval), to: sub, checked: currentInterval == interval) {
                     appDelegate.setMilestoneInterval(interval)
@@ -513,7 +515,7 @@ private struct SettingsMenuRow: View {
 
         // Break Reminder submenu
         let brm = BreakReminderManager.shared
-        submenu(l.breakReminderMenuTitle) { sub in
+        submenu(l.breakReminderMenuTitle, icon: "cup.and.saucer") { sub in
             add(l.breakReminderOff, to: sub, checked: !brm.isEnabled) {
                 brm.isEnabled = false
             }
@@ -528,7 +530,7 @@ private struct SettingsMenuRow: View {
 
         // Daily Keystroke Goal submenu
         let ks = KeyCountStore.shared
-        submenu(l.dailyGoalMenuTitle) { sub in
+        submenu(l.dailyGoalMenuTitle, icon: "target") { sub in
             add(l.dailyGoalOff, to: sub, checked: ks.dailyGoal == 0) { ks.dailyGoal = 0 }
             for count in [1000, 3000, 5000, 10000] {
                 add(l.dailyGoalLabel(count), to: sub, checked: ks.dailyGoal == count) {
