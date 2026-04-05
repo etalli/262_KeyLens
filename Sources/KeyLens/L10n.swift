@@ -1821,6 +1821,8 @@ final class L10n {
     var axisLabelPercent: String  { ja("%", en: "%") }
     var axisLabelSessions: String { ja("セッション数", en: "Sessions") }
     var axisLabelMinutes: String  { ja("分", en: "min") }
+    var axisLabelDate: String     { ja("日付", en: "Date") }
+    var axisLabelHourOfDay: String { ja("時間帯", en: "Hour of Day") }
 
     // MARK: - Chart Theme
 

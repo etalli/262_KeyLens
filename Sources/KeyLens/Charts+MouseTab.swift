@@ -115,6 +115,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartXAxisLabel(L10n.shared.axisLabelDate)
             .frame(height: 200)
         }
     }
@@ -156,6 +157,7 @@ extension ChartsView {
                     }
                 }
             }
+            .chartXAxisLabel(L10n.shared.axisLabelHourOfDay)
             .frame(height: 180)
         }
     }
