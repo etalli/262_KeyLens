@@ -1369,7 +1369,7 @@ final class L10n {
         case .recordingSince: return ja("記録開始日", en: "Recording Since")
         case .todayTotal:     return ja("本日", en: "Today")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
-        case .estimatedWPM:   return ja("推定WPM", en: "Estimated WPM")
+        case .estimatedWPM:   return ja("WPM", en: "WPM")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
         case .streak:                     return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:         return ja("ショートカット効率", en: "Shortcut Efficiency")
@@ -1420,6 +1420,17 @@ final class L10n {
         let pct = goal > 0 ? min(100, today * 100 / goal) : 0
         return ja("今日: \(today.formatted()) / \(goal.formatted()) (\(pct)%)",
                   en: "Today: \(today.formatted()) / \(goal.formatted()) (\(pct)%)")
+    }
+
+    /// Compact single-line streak + goal progress for the menu.
+    func streakCompact(streak: Int, today: Int, goal: Int) -> String {
+        let pct = goal > 0 ? min(100, today * 100 / goal) : 0
+        let streakPart = streak > 0
+            ? ja("🔥 \(streak)日", en: "🔥 \(streak)d")
+            : ja("🔥 0日", en: "🔥 0d")
+        let goalPart = ja("\(today.formatted())/\(goal.formatted()) (\(pct)%)",
+                          en: "\(today.formatted())/\(goal.formatted()) (\(pct)%)")
+        return "\(streakPart)  \(goalPart)"
     }
 
     var goalReachedTitle: String {
