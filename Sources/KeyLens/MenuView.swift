@@ -69,7 +69,7 @@ struct MenuView: View {
                     infoRow(String(format: l.todayFormat, store.todayCount.formatted()))
                 case .avgInterval:
                     if let avgMs = store.averageIntervalMs {
-                        infoRow(String(format: l.avgIntervalFormat, avgMs))
+                        infoRow(String(format: l.avgIntervalFormat, avgMs), icon: "timer")
                     }
                 case .estimatedWPM:
                     if let wpm = store.estimatedWPM {
@@ -89,9 +89,9 @@ struct MenuView: View {
                     }
                 case .shortcutEfficiency:
                     if let pct = KeyCountStore.shared.shortcutEfficiencyToday() {
-                        infoRow(l.shortcutEfficiencyDisplay(pct))
+                        infoRow(l.shortcutEfficiencyDisplay(pct), icon: "command")
                     } else {
-                        infoRow(l.shortcutEfficiencyNoData)
+                        infoRow(l.shortcutEfficiencyNoData, icon: "command")
                     }
                 case .mouseDistance:
                     if let pts = MouseStore.shared.distanceToday() {
