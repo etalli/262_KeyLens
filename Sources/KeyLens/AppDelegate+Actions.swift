@@ -18,6 +18,12 @@ extension AppDelegate {
         ChartsWindowController.shared.showWindow()
     }
 
+    func showMouseDistanceChart() {
+        UserDefaults.standard.set(ChartTab.mouse.rawValue, forKey: "selectedChartTab")
+        UserDefaults.standard.set(MouseSubTab.distance.rawValue, forKey: "selectedMouseSubTab")
+        ChartsWindowController.shared.showWindow()
+    }
+
     func toggleOverlay() {
         KeystrokeOverlayController.shared.isEnabled.toggle()
         objectWillChange.send()

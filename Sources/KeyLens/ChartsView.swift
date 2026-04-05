@@ -31,7 +31,7 @@ struct ChartsView: View {
     /// Active sub-tab within the Training tab (Issue #276).
     @State var trainingSubTab: TrainingSubTab = .drill
     /// Active sub-tab within the Mouse tab (Issue #275).
-    @State var mouseSubTab: MouseSubTab = .distance
+    @AppStorage("selectedMouseSubTab") var mouseSubTab: MouseSubTab = .distance
     /// Active sub-tab within the Apps tab (Issue #274).
     @State var appsSubTab: AppsSubTab = .apps
     /// Active sub-tab within the Ergonomics tab (Issue #273).

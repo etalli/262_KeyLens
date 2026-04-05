@@ -96,9 +96,13 @@ struct MenuView: View {
                     }
                 case .mouseDistance:
                     if let pts = MouseStore.shared.distanceToday() {
-                        infoRow(l.mouseDistanceDisplay(pts))
+                        menuRow(l.mouseDistanceDisplay(pts)) {
+                            appDelegate.showMouseDistanceChart()
+                        }
                     } else {
-                        infoRow(l.mouseDistanceNoData)
+                        menuRow(l.mouseDistanceNoData) {
+                            appDelegate.showMouseDistanceChart()
+                        }
                     }
                 case .slowEvents:
                     let count = KeyCountStore.shared.slowEventCount
