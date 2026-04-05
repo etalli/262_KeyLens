@@ -382,6 +382,14 @@ final class L10n {
         ja("総打鍵数", en: "Total Keystrokes")
     }
 
+    var allTimeTotalLabel: String {
+        ja("全期間の打鍵数", en: "All-Time Total")
+    }
+
+    var allTimeTodayLabel: String {
+        ja("本日", en: "Today")
+    }
+
     var weeklySummaryCardTopKeys: String {
         ja("よく使うキー TOP 5", en: "Top 5 Keys")
     }

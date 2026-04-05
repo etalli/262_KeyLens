@@ -66,16 +66,7 @@ struct MenuView: View {
                 case .recordingSince:
                     infoRow(l.recordingSince(store.startedAt))
                 case .todayTotal:
-                    HStack {
-                        Text(String(format: l.todayFormat, store.todayCount.formatted()))
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(String(format: l.totalFormat, store.totalCount.formatted()))
-                            .foregroundColor(.primary)
-                    }
-                    .font(.system(size: 13))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 4)
+                    infoRow(String(format: l.todayFormat, store.todayCount.formatted()))
                 case .avgInterval:
                     if let avgMs = store.averageIntervalMs {
                         infoRow(String(format: l.avgIntervalFormat, avgMs))

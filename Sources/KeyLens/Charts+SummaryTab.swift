@@ -6,6 +6,7 @@ extension ChartsView {
     var summaryTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
+                allTimeTotalSection
                 chartSection(L10n.shared.weeklySummaryCardTitle) {
                     VStack(alignment: .leading, spacing: 12) {
                         WeeklySummaryCardView(data: .current(), embedded: true)
@@ -19,6 +20,32 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
             }
             .padding(24)
         }
+    }
+
+    @ViewBuilder
+    var allTimeTotalSection: some View {
+        let l = L10n.shared
+        let store = KeyCountStore.shared
+        HStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(l.allTimeTotalLabel)
+                    .font(.caption).foregroundStyle(.secondary)
+                Text(store.totalCount.formatted())
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(theme.accentColor)
+            }
+            Divider().frame(height: 40)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(l.allTimeTodayLabel)
+                    .font(.caption).foregroundStyle(.secondary)
+                Text(store.todayCount.formatted())
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+        }
+        .padding(20)
+        .background(theme.accentColor.opacity(0.08))
+        .cornerRadius(14)
     }
 
     @ViewBuilder
