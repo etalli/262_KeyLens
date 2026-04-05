@@ -39,7 +39,7 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
                 Text(l.allTimeTodayLabel)
                     .font(.caption).foregroundStyle(.secondary)
                 Text(store.todayCount.formatted())
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
             }
         }
