@@ -13,6 +13,11 @@ extension AppDelegate {
         ChartsWindowController.shared.showWindow()
     }
 
+    func showCharts(tab: ChartTab) {
+        UserDefaults.standard.set(tab.rawValue, forKey: "selectedChartTab")
+        ChartsWindowController.shared.showWindow()
+    }
+
     func toggleOverlay() {
         KeystrokeOverlayController.shared.isEnabled.toggle()
         objectWillChange.send()
