@@ -126,10 +126,6 @@ struct MenuView: View {
 
     private var settingsSection: some View {
         return VStack(alignment: .leading, spacing: 0) {
-            // オーバーレイ（トグル + 設定ギア 1行）
-            OverlayRow()
-            WPMGaugeRow()
-            Divider().padding(.horizontal, 14).padding(.vertical, 2)
             // データ操作サブメニュー
             DataMenuRow()
             Divider().padding(.horizontal, 14).padding(.vertical, 2)
@@ -433,6 +429,20 @@ private struct SettingsMenuRow: View {
             item.submenu = sub
             menu.addItem(item)
         }
+
+        // Overlay toggle
+        let isOverlay = KeystrokeOverlayController.shared.isEnabled
+        add(l.overlayMenuItem, to: menu, checked: isOverlay) {
+            appDelegate.toggleOverlay()
+        }
+
+        // WPM Meter toggle
+        let isWPM = WPMGaugeOverlayController.shared.isEnabled
+        add(l.wpmGaugeMenuItem, to: menu, checked: isWPM) {
+            appDelegate.toggleWPMGauge()
+        }
+
+        menu.addItem(.separator())
 
         // Customize Menu
         add(l.customizeMenuMenuItem, to: menu) {
