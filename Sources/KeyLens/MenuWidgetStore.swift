@@ -74,7 +74,7 @@ final class MenuWidgetStore: ObservableObject {
     /// The out-of-box enabled state for a widget (used by isEnabled and Reset).
     static func defaultEnabled(_ widget: MenuWidget) -> Bool {
         switch widget {
-        case .slowEvents, .streak, .shortcutEfficiency, .avgInterval:
+        case .slowEvents, .streak, .shortcutEfficiency, .avgInterval, .recordingSince:
             return false
         default:
             return true
