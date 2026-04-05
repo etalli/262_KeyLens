@@ -24,6 +24,7 @@ DerivedData/
 CLAUDE.md
 Release/
 .claude/
+.agents/
 test_output.txt
 KeyLens-backup-*.json
 
