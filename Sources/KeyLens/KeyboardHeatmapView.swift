@@ -462,6 +462,11 @@ struct KeyboardHeatmapView: View {
                             .disabled(kleURLInput.trimmingCharacters(in: .whitespaces).isEmpty)
                         }
                     }
+                    if !kleCustomLayoutURL.isEmpty, !kleCustomLayoutFileName.isEmpty {
+                        Text("⌨ \(kleCustomLayoutFileName)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 // Mode toggle + connected keyboard names + KLE caption
                 HStack {
