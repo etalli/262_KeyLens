@@ -641,7 +641,7 @@ struct KeyboardHeatmapView: View {
     @MainActor
     private func loadKLEFromURL() async {
         let urlString = kleURLInput.trimmingCharacters(in: .whitespaces)
-        guard !urlString.isEmpty, let url = URL(string: urlString) else {
+        guard !urlString.isEmpty else {
             importErrorMessage = L10n.shared.kleURLLoadError
             showImportError = true
             return
@@ -649,16 +649,49 @@ struct KeyboardHeatmapView: View {
         kleURLLoading = true
         defer { kleURLLoading = false }
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let rows = try KLEParser.parse(data)
+            let (kleData, fileName) = try await fetchKLEData(from: urlString)
+            let rows = try KLEParser.parse(kleData)
             let encoded = try JSONEncoder().encode(rows)
             kleCustomLayoutJSON = String(data: encoded, encoding: .utf8) ?? ""
-            kleCustomLayoutFileName = url.lastPathComponent
+            kleCustomLayoutFileName = fileName
             kleCustomLayoutURL = urlString
         } catch {
             importErrorMessage = "\(L10n.shared.kleURLLoadError)\n\(error.localizedDescription)"
             showImportError = true
         }
+    }
+
+    /// Fetches raw KLE JSON data from either a KLE page URL or a direct URL.
+    /// KLE page URLs (keyboard-layout-editor.com/#/gists/ID) are resolved via the GitHub Gist API.
+    private func fetchKLEData(from urlString: String) async throws -> (Data, String) {
+        // Detect KLE page URL and extract gist ID
+        if urlString.contains("keyboard-layout-editor.com"),
+           let range = urlString.range(of: "#/gists/") {
+            let gistID = String(urlString[range.upperBound...])
+                .components(separatedBy: CharacterSet(charactersIn: "/?#")).first ?? ""
+            guard !gistID.isEmpty,
+                  let apiURL = URL(string: "https://api.github.com/gists/\(gistID)") else {
+                throw URLError(.badURL)
+            }
+            var request = URLRequest(url: apiURL)
+            request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+            let (apiData, _) = try await URLSession.shared.data(for: request)
+            // Parse Gist API response: take content of the first file
+            guard let json = try JSONSerialization.jsonObject(with: apiData) as? [String: Any],
+                  let files = json["files"] as? [String: Any],
+                  let firstFile = files.values.first as? [String: Any],
+                  let content = firstFile["content"] as? String,
+                  let fileName = firstFile["filename"] as? String else {
+                throw URLError(.cannotParseResponse)
+            }
+            let kleData = Data(content.utf8)
+            return (kleData, fileName)
+        }
+
+        // Direct URL: fetch as-is
+        guard let url = URL(string: urlString) else { throw URLError(.badURL) }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return (data, url.lastPathComponent)
     }
 
 }
