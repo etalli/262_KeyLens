@@ -469,10 +469,24 @@ struct KeyboardHeatmapView: View {
                             .disabled(kleURLInput.trimmingCharacters(in: .whitespaces).isEmpty)
                         }
                     }
-                    if !kleCustomLayoutURL.isEmpty, !kleCustomLayoutFileName.isEmpty {
-                        Text("⌨ \(kleCustomLayoutFileName)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    // Status: connected keyboard vs loaded layout
+                    HStack(spacing: 16) {
+                        HStack(spacing: 4) {
+                            Text(L10n.shared.kleStatusConnected)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(deviceNames.first ?? "—")
+                                .font(.caption.bold())
+                                .foregroundStyle(deviceNames.isEmpty ? .secondary : .primary)
+                        }
+                        HStack(spacing: 4) {
+                            Text(L10n.shared.kleStatusLayout)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(kleCustomLayoutFileName.isEmpty ? "—" : kleCustomLayoutFileName)
+                                .font(.caption.bold())
+                                .foregroundStyle(kleCustomLayoutFileName.isEmpty ? .secondary : .primary)
+                        }
                     }
                 }
                 // Mode toggle + connected keyboard names + KLE caption
