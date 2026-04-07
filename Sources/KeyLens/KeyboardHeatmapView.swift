@@ -685,7 +685,10 @@ struct KeyboardHeatmapView: View {
                 throw URLError(.cannotParseResponse)
             }
             let kleData = Data(content.utf8)
-            return (kleData, fileName)
+            let keyboardName = (json["description"] as? String)?.trimmingCharacters(in: .whitespaces).isEmpty == false
+                ? json["description"] as! String
+                : fileName
+            return (kleData, keyboardName)
         }
 
         // Direct URL: fetch as-is
