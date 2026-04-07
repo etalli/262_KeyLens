@@ -700,6 +700,25 @@ final class L10n {
         ja("例: corne, my keyboard", en: "e.g. corne, my keyboard")
     }
 
+    // MARK: - Issue #317: URL-based KLE import
+
+    var kleURLPlaceholder: String {
+        ja("例: https://raw.githubusercontent.com/…/layout.json",
+           en: "e.g. https://raw.githubusercontent.com/…/layout.json")
+    }
+
+    var kleURLLoadButton: String {
+        ja("読み込む", en: "Load")
+    }
+
+    var kleURLReloadButton: String {
+        ja("再読み込み", en: "Reload")
+    }
+
+    var kleURLLoadError: String {
+        ja("URLからのKLE読み込みに失敗しました。", en: "Failed to load KLE from URL.")
+    }
+
     func autoMatchedCustom(_ name: String) -> String {
         ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
     }

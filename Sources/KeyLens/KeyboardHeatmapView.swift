@@ -68,6 +68,9 @@ struct KeyboardHeatmapView: View {
     @AppStorage("kleCustomLayoutJSON") private var kleCustomLayoutJSON: String = ""
     @AppStorage("kleCustomKeywords") private var kleCustomKeywords: String = ""
     @AppStorage("kleCustomLayoutFileName") private var kleCustomLayoutFileName: String = ""
+    @AppStorage("kleCustomLayoutURL") private var kleCustomLayoutURL: String = ""
+    @State private var kleURLInput: String = ""
+    @State private var kleURLLoading: Bool = false
     @ObservedObject private var theme = ThemeStore.shared
     @Environment(\.colorScheme) private var colorScheme
 
@@ -441,6 +444,24 @@ struct KeyboardHeatmapView: View {
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 220)
                     }
+                    // URL-based KLE import
+                    HStack(spacing: 6) {
+                        TextField(L10n.shared.kleURLPlaceholder, text: $kleURLInput)
+                            .font(.caption)
+                            .textFieldStyle(.roundedBorder)
+                            .onAppear { kleURLInput = kleCustomLayoutURL }
+                        if kleURLLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Button(kleCustomLayoutURL.isEmpty ? L10n.shared.kleURLLoadButton : L10n.shared.kleURLReloadButton) {
+                                Task { await loadKLEFromURL() }
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .disabled(kleURLInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    }
                 }
                 // Mode toggle + connected keyboard names + KLE caption
                 HStack {
@@ -613,6 +634,29 @@ struct KeyboardHeatmapView: View {
             kleCustomLayoutFileName = url.lastPathComponent
         } catch {
             importErrorMessage = error.localizedDescription
+            showImportError = true
+        }
+    }
+
+    @MainActor
+    private func loadKLEFromURL() async {
+        let urlString = kleURLInput.trimmingCharacters(in: .whitespaces)
+        guard !urlString.isEmpty, let url = URL(string: urlString) else {
+            importErrorMessage = L10n.shared.kleURLLoadError
+            showImportError = true
+            return
+        }
+        kleURLLoading = true
+        defer { kleURLLoading = false }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let rows = try KLEParser.parse(data)
+            let encoded = try JSONEncoder().encode(rows)
+            kleCustomLayoutJSON = String(data: encoded, encoding: .utf8) ?? ""
+            kleCustomLayoutFileName = url.lastPathComponent
+            kleCustomLayoutURL = urlString
+        } catch {
+            importErrorMessage = "\(L10n.shared.kleURLLoadError)\n\(error.localizedDescription)"
             showImportError = true
         }
     }
