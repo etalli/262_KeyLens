@@ -660,6 +660,9 @@ struct KeyboardHeatmapView: View {
             kleCustomLayoutJSON = String(data: encoded, encoding: .utf8) ?? ""
             kleCustomLayoutFileName = fileName
             kleCustomLayoutURL = urlString
+            if kleCustomKeywords.trimmingCharacters(in: .whitespaces).isEmpty {
+                kleCustomKeywords = fileName
+            }
         } catch {
             importErrorMessage = "\(L10n.shared.kleURLLoadError)\n\(error.localizedDescription)"
             showImportError = true
