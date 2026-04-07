@@ -702,6 +702,10 @@ final class L10n {
 
     // MARK: - Issue #317: URL-based KLE import
 
+    var kleUseConnectedKeyboard: String {
+        ja("接続中のキーボードを使用", en: "Use connected keyboard")
+    }
+
     var kleURLPlaceholder: String {
         ja("例: https://raw.githubusercontent.com/…/layout.json",
            en: "e.g. https://raw.githubusercontent.com/…/layout.json")

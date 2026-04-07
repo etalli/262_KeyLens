@@ -443,6 +443,13 @@ struct KeyboardHeatmapView: View {
                             .font(.caption)
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 220)
+                        if let connectedName = deviceNames.first {
+                            Button(L10n.shared.kleUseConnectedKeyboard) {
+                                kleCustomKeywords = connectedName
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
                     }
                     // URL-based KLE import
                     HStack(spacing: 6) {
