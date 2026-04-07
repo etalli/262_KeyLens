@@ -1,30 +1,35 @@
 import Foundation
 import GRDB
+import KeyLensCore
 
 // MARK: - Export
 // Methods for exporting keystroke data to CSV and SQLite formats.
 
 extension KeyCountStore {
 
-    /// Summary CSV (rank, key, total) — all-time cumulative counts.
+    /// Summary CSV (rank, key, total, finger, hand) — all-time cumulative counts.
     func exportSummaryCSV() -> String {
-        queue.sync {
-            var lines = ["rank,key,total"]
+        let layout = LayoutRegistry.shared
+        return queue.sync {
+            var lines = ["rank,key,total,finger,hand"]
             for (i, (key, total)) in store.counts.sorted(by: { $0.value > $1.value }).enumerated() {
                 let escaped = key.contains(",") ? "\"\(key)\"" : key
-                lines.append("\(i + 1),\(escaped),\(total)")
+                let finger = layout.current.finger(for: key)?.rawValue ?? ""
+                let hand   = layout.hand(for: key)?.rawValue ?? ""
+                lines.append("\(i + 1),\(escaped),\(total),\(finger),\(hand)")
             }
             return lines.joined(separator: "\n")
         }
     }
 
-    /// Daily CSV (date, key, count) — per-day breakdown sorted by date and count.
+    /// Daily CSV (date, key, count, finger, hand) — per-day breakdown sorted by date and count.
     func exportDailyCSV() -> String {
         // Flush pending data first so the export is complete.
         flushSync()
+        let layout = LayoutRegistry.shared
         return queue.sync {
-            guard let db = dbQueue else { return "date,key,count\n" }
-            var lines = ["date,key,count"]
+            guard let db = dbQueue else { return "date,key,count,finger,hand\n" }
+            var lines = ["date,key,count,finger,hand"]
             let rows = (try? db.read { db in
                 try Row.fetchAll(db, sql: """
                     SELECT date, key, count FROM daily_keys ORDER BY date, count DESC
@@ -33,7 +38,9 @@ extension KeyCountStore {
             for row in rows {
                 let key: String = row["key"]
                 let escaped = key.contains(",") ? "\"\(key)\"" : key
-                lines.append("\(row["date"] as String),\(escaped),\(row["count"] as Int)")
+                let finger = layout.current.finger(for: key)?.rawValue ?? ""
+                let hand   = layout.hand(for: key)?.rawValue ?? ""
+                lines.append("\(row["date"] as String),\(escaped),\(row["count"] as Int),\(finger),\(hand)")
             }
             return lines.joined(separator: "\n")
         }

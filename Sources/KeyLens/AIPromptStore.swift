@@ -1,4 +1,5 @@
 import Foundation
+import KeyLensCore
 
 /// AI プロンプトの永続化と取得を管理するシングルトン
 final class AIPromptStore {
@@ -72,12 +73,44 @@ Output:
         "aiPrompt_\(lang.rawValue)"
     }
 
+    /// Builds a layout context block describing the active keyboard's key→finger/hand mapping.
+    /// Used as a preamble so the AI receives accurate ergonomic context for custom split keyboards.
+    private func layoutPreamble() -> String {
+        let registry = LayoutRegistry.shared
+        let layout = registry.current
+
+        // Collect all key names known to the active layout via ANSILayout as a baseline,
+        // then resolve each through the registry (respects splitConfig overrides).
+        let keyNames = ANSILayout.handTable.keys.sorted()
+
+        var thumbKeys: [String] = []
+        var rows: [String] = []
+
+        for name in keyNames {
+            guard let finger = layout.finger(for: name),
+                  let hand   = registry.hand(for: name) else { continue }
+            rows.append("  \(name): \(hand.rawValue) \(finger.rawValue)")
+            if finger == .thumb { thumbKeys.append(name) }
+        }
+
+        var block = "## Active keyboard layout: \(registry.currentDeviceLabel)\n"
+        block += "Key → finger assignments:\n"
+        block += rows.joined(separator: "\n")
+        if !thumbKeys.isEmpty {
+            block += "\n\nThumb-assigned keys: \(thumbKeys.joined(separator: ", "))"
+        }
+        block += "\n\n---\n\n"
+        return block
+    }
+
     /// 現在の言語に対応するプロンプトを返す（カスタム保存済みがあればそれを優先）
+    /// A layout preamble is always prepended so the AI uses the correct finger assignments.
     var currentPrompt: String {
         let lang = L10n.shared.resolved
-        return UserDefaults.standard.string(forKey: Self.key(for: lang))
+        let base = UserDefaults.standard.string(forKey: Self.key(for: lang))
             ?? Self.defaults[lang]
             ?? Self.defaults[.english]!
+        return layoutPreamble() + base
     }
 
     /// 現在の言語に対応するプロンプトを保存する
