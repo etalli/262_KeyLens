@@ -596,7 +596,7 @@ extension ChartsView {
                             .font(.system(.callout, design: .monospaced))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.accentColor.opacity(0.15))
+                            .background(theme.accentColor.opacity(0.15))
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                         Text("→ \(slotLabel) \(L10n.shared.thumbSuggestionsHeader.lowercased())")
                             .font(.callout)
@@ -781,6 +781,7 @@ extension ChartsView {
 // MARK: - Issue #299 (moved from MenuView): Ergonomic Recommendations sub-tab
 
 private struct ErgoRecommendationsView: View {
+    @ObservedObject private var theme = ThemeStore.shared
     @State private var recs: [ErgonomicRecommendation] = []
 
     var body: some View {
@@ -833,10 +834,10 @@ private struct ErgoRecommendationsView: View {
 
             Text(l.recImpact(Int(rec.estimatedScoreGain.rounded())))
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.accentColor)
+                .foregroundColor(theme.accentColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color.accentColor.opacity(0.12))
+                .background(theme.accentColor.opacity(0.12))
                 .cornerRadius(6)
         }
         .padding(16)

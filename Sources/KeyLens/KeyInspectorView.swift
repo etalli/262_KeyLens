@@ -99,6 +99,7 @@ final class KeyInspectorViewModel: ObservableObject {
 
 struct KeyInspectorView: View {
     @StateObject private var vm = KeyInspectorViewModel()
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -178,7 +179,7 @@ struct KeyInspectorView: View {
                             .font(.system(.callout, design: .monospaced))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(Color.accentColor.opacity(0.15))
+                            .background(theme.accentColor.opacity(0.15))
                             .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                 }
@@ -213,12 +214,12 @@ struct KeyInspectorView: View {
         Text(symbol)
             .font(.system(size: 17, weight: active ? .semibold : .regular))
             .frame(width: 32, height: 28)
-            .background(active ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.1))
+            .background(active ? theme.accentColor.opacity(0.25) : Color.secondary.opacity(0.1))
             .foregroundStyle(active ? Color.primary : Color.secondary)
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
-                    .stroke(active ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 1)
+                    .stroke(active ? theme.accentColor.opacity(0.5) : Color.clear, lineWidth: 1)
             )
             .animation(.easeInOut(duration: 0.1), value: active)
     }

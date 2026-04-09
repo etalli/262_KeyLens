@@ -166,7 +166,7 @@ extension ChartsView {
                     x: .value("Count", item.count),
                     y: .value("App", item.app)
                 )
-                .foregroundStyle(Color.accentColor.gradient)
+                .foregroundStyle(theme.accentColor.gradient)
                 .cornerRadius(3)
                 .annotation(position: .trailing, spacing: 4) {
                     Text(item.count.formatted())

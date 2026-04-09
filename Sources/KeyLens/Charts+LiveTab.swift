@@ -202,7 +202,7 @@ extension ChartsView {
                 }
                 .buttonStyle(.plain)
                 .font(.footnote)
-                .foregroundStyle(isRecordingHotkey ? .orange : .accentColor)
+                .foregroundStyle(isRecordingHotkey ? Color.orange : theme.accentColor)
                 .disabled(isRecordingHotkey)
             }
         }

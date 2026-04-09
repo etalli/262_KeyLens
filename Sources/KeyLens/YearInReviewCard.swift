@@ -8,6 +8,7 @@ struct AnnualSummaryCardView: View {
     let data: AnnualSummaryData
     /// When true, renders without card background/border — for embedding inside existing windows.
     var embedded: Bool = false
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
@@ -44,7 +45,7 @@ struct AnnualSummaryCardView: View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: "calendar")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.accentColor)
+                .foregroundColor(theme.accentColor)
             Text(L10n.shared.yearInReviewTitle)
                 .font(.system(size: 20, weight: .bold))
             Text(data.year)
@@ -87,7 +88,7 @@ struct AnnualSummaryCardView: View {
         VStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(.accentColor)
+                .foregroundColor(theme.accentColor)
             Text(value)
                 .font(.system(size: 17, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.6)
@@ -113,7 +114,7 @@ struct AnnualSummaryCardView: View {
                     VStack(spacing: 3) {
                         let barHeight = max(4, CGFloat(entry.total) / CGFloat(maxTotal) * 80)
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.accentColor.opacity(0.75))
+                            .fill(theme.accentColor.opacity(0.75))
                             .frame(height: barHeight)
                         Text(entry.shortLabel)
                             .font(.system(size: 8))
@@ -139,7 +140,7 @@ struct AnnualSummaryCardView: View {
                         Text(entry.key)
                             .font(.system(size: 15, weight: .bold, design: .monospaced))
                             .frame(width: 36, height: 36)
-                            .background(Color.accentColor.opacity(0.12))
+                            .background(theme.accentColor.opacity(0.12))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                         Text(entry.count.formatted())
                             .font(.system(size: 10))

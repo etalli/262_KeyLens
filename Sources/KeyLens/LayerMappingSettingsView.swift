@@ -276,6 +276,7 @@ private struct KeyMappingsPanel: View {
 private struct KeyMappingRow: View {
     let mapping: LayerKeyMapping
     @ObservedObject private var store = LayerMappingStore.shared
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         HStack {
@@ -288,7 +289,7 @@ private struct KeyMappingRow: View {
                 .font(.caption)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.accentColor.opacity(0.15))
+                .background(theme.accentColor.opacity(0.15))
                 .cornerRadius(4)
             Text("+")
                 .foregroundStyle(.secondary)

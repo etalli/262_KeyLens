@@ -8,6 +8,7 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @ObservedObject private var widgetStore = MenuWidgetStore.shared
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -204,6 +205,7 @@ struct MenuView: View {
 private struct OverlayRow: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @State private var isHovered = false
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         let l = L10n.shared
@@ -254,7 +256,7 @@ private struct OverlayRow: View {
             // チェックマーク（最右端・固定位置・他の toggleRow と揃える）
             Image(systemName: "checkmark")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(isEnabled ? .accentColor : .clear)
+                .foregroundColor(isEnabled ? theme.accentColor : .clear)
                 .padding(.trailing, 14)
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
@@ -276,6 +278,7 @@ private struct OverlayRow: View {
 private struct WPMGaugeRow: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @State private var isHovered = false
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         let isEnabled = WPMGaugeOverlayController.shared.isEnabled
@@ -304,7 +307,7 @@ private struct WPMGaugeRow: View {
 
             Image(systemName: "checkmark")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(isEnabled ? .accentColor : .clear)
+                .foregroundColor(isEnabled ? theme.accentColor : .clear)
                 .padding(.trailing, 14)
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
@@ -493,6 +496,16 @@ private struct SettingsMenuRow: View {
             }
         }
 
+        // Chart Theme submenu
+        let currentTheme = ThemeStore.shared.current
+        submenu(l.chartThemeMenuTitle, icon: "swatchpalette") { sub in
+            for option in ChartTheme.allCases {
+                add(option.displayName, to: sub, checked: currentTheme == option) {
+                    ThemeStore.shared.current = option
+                }
+            }
+        }
+
         // Language submenu
         let currentLang = l.language
         submenu(l.languageMenuTitle, icon: "globe") { sub in
@@ -564,6 +577,7 @@ private struct DayBar: Identifiable {
 }
 
 private struct MiniDailyBarChart: View {
+    @ObservedObject private var theme = ThemeStore.shared
     @State private var days: [DayBar] = []
 
     var body: some View {
@@ -578,7 +592,7 @@ private struct MiniDailyBarChart: View {
                     x: .value("Day", day.label),
                     y: .value("Count", day.count)
                 )
-                .foregroundStyle(day.isToday ? Color.accentColor : Color.blue.opacity(0.5))
+                .foregroundStyle(day.isToday ? theme.accentColor : theme.accentColor.opacity(0.35))
                 .cornerRadius(2)
             }
             .chartXAxis {

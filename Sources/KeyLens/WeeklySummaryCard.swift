@@ -8,6 +8,7 @@ struct WeeklySummaryCardView: View {
     let data: WeeklySummaryData
     /// When true, renders without card background/border — for embedding inside existing windows.
     var embedded: Bool = false
+    @ObservedObject private var theme = ThemeStore.shared
 
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
@@ -78,7 +79,7 @@ struct WeeklySummaryCardView: View {
         VStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(.accentColor)
+                .foregroundColor(theme.accentColor)
             Text(value)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
             Text(label)

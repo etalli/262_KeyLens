@@ -770,6 +770,7 @@ private struct InteractivePracticeView: View {
     let beforeIKI: [String: Double]
     let onNewSession: () -> Void
     let onSessionComplete: (TrainingCompletionResult) -> Void
+    @ObservedObject private var theme = ThemeStore.shared
 
     // results[i] = true/false for each character typed in the current drill.
     // results.count is always equal to the current cursor position.
@@ -834,7 +835,7 @@ private struct InteractivePracticeView: View {
                 Text(target)
                     .font(.footnote.bold())
                     .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.12))
+                    .background(theme.accentColor.opacity(0.12))
                     .clipShape(Capsule())
             }
             Text("—")
