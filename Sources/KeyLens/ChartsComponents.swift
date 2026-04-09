@@ -46,3 +46,4 @@ enum ChartTab: String, CaseIterable, Identifiable {
         }
     }
 }
+

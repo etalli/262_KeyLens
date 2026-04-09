@@ -9,7 +9,7 @@ extension ChartsView {
                 allTimeTotalSection
                 chartSection(L10n.shared.weeklySummaryCardTitle) {
                     VStack(alignment: .leading, spacing: 12) {
-                        WeeklySummaryCardView(data: .current(), embedded: true)
+                        WeeklySummaryCardView(data: model.weeklySummaryData, embedded: true)
                     }
                 }
                 chartSection(L10n.shared.chartTitleActivityCalendar, helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
@@ -25,12 +25,11 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
     @ViewBuilder
     var allTimeTotalSection: some View {
         let l = L10n.shared
-        let store = KeyCountStore.shared
         HStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(l.allTimeTotalLabel)
                     .font(.caption).foregroundStyle(.secondary)
-                Text(store.totalCount.formatted())
+                Text(model.totalCount.formatted())
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(theme.accentColor)
             }
@@ -38,7 +37,7 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
             VStack(alignment: .leading, spacing: 4) {
                 Text(l.allTimeTodayLabel)
                     .font(.caption).foregroundStyle(.secondary)
-                Text(store.todayCount.formatted())
+                Text(model.todayCount.formatted())
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
             }
@@ -51,10 +50,9 @@ chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.h
     @ViewBuilder
     var intelligenceGroup: some View {
         let l = L10n.shared
-        let store = KeyCountStore.shared
-        let style = store.currentTypingStyle
-        let fatigue = store.currentFatigueLevel
-        let rhythm = store.currentTypingRhythm
+        let style = model.typingStyle
+        let fatigue = model.fatigueLevel
+        let rhythm = model.typingRhythm
 
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 24) {

@@ -115,7 +115,7 @@ struct ChartsView: View {
 
             Divider()
 
-            // Only the active tab is constructed — no eager evaluation of inactive tabs.
+            // Only the active tab's view tree is constructed on each switch.
             Group {
                 if selectedTab == .summary    { summaryTab }
                 if selectedTab == .typing     { typingTab }

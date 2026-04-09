@@ -103,6 +103,11 @@ struct WeeklySummaryData {
     let goalIsSet: Bool
     let ergonomicScore: Double
 
+    /// Empty placeholder used before reload() completes.
+    static let empty = WeeklySummaryData(weekRange: "", totalKeystrokes: 0,
+                                          estimatedWPM: nil, streak: 0,
+                                          goalIsSet: false, ergonomicScore: 0)
+
     /// Build from current KeyCountStore state, using the last 7 days as the week window.
     static func current() -> WeeklySummaryData {
         let store = KeyCountStore.shared

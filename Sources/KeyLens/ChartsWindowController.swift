@@ -90,6 +90,15 @@ final class ChartDataModel: ObservableObject {
     // Issue #258: background loading state
     @Published var isLoading: Bool = false
 
+    // Summary tab scalars — computed on background thread during reload() to avoid main-thread DB calls in view bodies.
+    @Published var totalCount:       Int          = 0
+    @Published var todayCount:       Int          = 0
+    @Published var typingStyle:      TypingStyle  = .prose
+    @Published var fatigueLevel:     FatigueLevel = .low
+    @Published var typingRhythm:     TypingRhythm = .balanced
+    @Published var ergonomicScore:   Double       = 0
+    @Published var weeklySummaryData: WeeklySummaryData = .empty
+
     /// Loads all chart data on a background queue and publishes results to the main thread.
     /// Previously all queries ran synchronously on the main thread, causing stutter on window open.
     /// LayoutComparison is excluded — it is deferred to the Layout sub-tab's onAppear (Issue #280).
@@ -177,6 +186,15 @@ final class ChartDataModel: ObservableObject {
             // Issue #209: Layer key efficiency
             let layerEfficiency    = store.layerEfficiency()
 
+            // Summary tab scalars (moved from view bodies to avoid main-thread DB calls)
+            let totalCount       = store.totalCount
+            let todayCount       = store.todayCount
+            let typingStyle      = store.currentTypingStyle
+            let fatigueLevel     = store.currentFatigueLevel
+            let typingRhythm     = store.currentTypingRhythm
+            let ergonomicScore   = store.currentErgonomicScore
+            let weeklySummaryData = WeeklySummaryData.current()
+
             // --- Mouse data ---
             let mouseDailyDistances    = ms.dailyDistances().map(MouseDailyEntry.init)
             let mouseHourlyActivity    = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
@@ -253,6 +271,13 @@ final class ChartDataModel: ObservableObject {
                 self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
                 self.mouseKeyboardBalance       = mouseKeyboardBalance
                 self.heatmapGrid                = heatmapGrid
+                self.totalCount                 = totalCount
+                self.todayCount                 = todayCount
+                self.typingStyle                = typingStyle
+                self.fatigueLevel               = fatigueLevel
+                self.typingRhythm               = typingRhythm
+                self.ergonomicScore             = ergonomicScore
+                self.weeklySummaryData          = weeklySummaryData
                 self.isLoading                  = false
                 PerformanceProfiler.shared.record(
                     metric: "charts.reload.publish",
