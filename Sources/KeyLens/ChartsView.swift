@@ -86,24 +86,43 @@ struct ChartsView: View {
     let ikichartShowKeyLabels = false
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            summaryTab
-                .tabItem { Label(ChartTab.summary.rawValue, systemImage: ChartTab.summary.icon) }
-                .tag(ChartTab.summary)
+        VStack(spacing: 0) {
+            // Custom tab bar — only the selected tab's view tree is built below.
+            HStack(spacing: 0) {
+                ForEach(ChartTab.allCases) { tab in
+                    Button {
+                        selectedTab = tab
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 14))
+                            Text(tab.rawValue)
+                                .font(.system(size: 11))
+                        }
+                        .foregroundStyle(selectedTab == tab ? Color.accentColor : Color.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(
+                            selectedTab == tab
+                                ? Color.accentColor.opacity(0.08)
+                                : Color.clear
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .background(Color(NSColor.windowBackgroundColor))
 
-            typingTab
-                .tabItem { Label(ChartTab.typing.rawValue, systemImage: ChartTab.typing.icon) }
-                .tag(ChartTab.typing)
+            Divider()
 
-            mouseTab
-                .tabItem { Label(ChartTab.mouse.rawValue, systemImage: ChartTab.mouse.icon) }
-                .tag(ChartTab.mouse)
-
-            ergonomicsTab
-                .tabItem { Label(ChartTab.ergonomics.rawValue, systemImage: ChartTab.ergonomics.icon) }
-                .tag(ChartTab.ergonomics)
+            // Only the active tab is constructed — no eager evaluation of inactive tabs.
+            Group {
+                if selectedTab == .summary    { summaryTab }
+                if selectedTab == .typing     { typingTab }
+                if selectedTab == .mouse      { mouseTab }
+                if selectedTab == .ergonomics { ergonomicsTab }
+            }
         }
-        .padding(.top, 8)
         .frame(minWidth: 680, minHeight: 480)
         .background(Color(NSColor.windowBackgroundColor))
         .overlay(alignment: .topLeading) {
