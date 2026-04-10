@@ -34,7 +34,7 @@ extension ChartsView {
 
             switch ergoSubTab {
             case .recommendations:
-                ErgoRecommendationsView()
+                ErgoRecommendationsView(recs: model.ergoRecommendations)
 
             case .bigrams:
                 ScrollView {
@@ -781,8 +781,8 @@ extension ChartsView {
 // MARK: - Issue #299 (moved from MenuView): Ergonomic Recommendations sub-tab
 
 private struct ErgoRecommendationsView: View {
+    let recs: [ErgonomicRecommendation]
     @ObservedObject private var theme = ThemeStore.shared
-    @State private var recs: [ErgonomicRecommendation] = []
 
     var body: some View {
         let l = L10n.shared
@@ -810,7 +810,6 @@ private struct ErgoRecommendationsView: View {
             }
             .padding(24)
         }
-        .onAppear { recs = KeyCountStore.shared.topRecommendations() }
     }
 
     private func recCard(_ rec: ErgonomicRecommendation) -> some View {

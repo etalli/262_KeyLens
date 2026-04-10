@@ -98,6 +98,7 @@ final class ChartDataModel: ObservableObject {
     @Published var typingRhythm:     TypingRhythm = .balanced
     @Published var ergonomicScore:   Double       = 0
     @Published var weeklySummaryData: WeeklySummaryData = .empty
+    @Published var ergoRecommendations: [ErgonomicRecommendation] = []
 
     /// Loads all chart data on a background queue and publishes results to the main thread.
     /// Previously all queries ran synchronously on the main thread, causing stutter on window open.
@@ -194,6 +195,7 @@ final class ChartDataModel: ObservableObject {
             let typingRhythm     = store.currentTypingRhythm
             let ergonomicScore   = store.currentErgonomicScore
             let weeklySummaryData = WeeklySummaryData.current()
+            let ergoRecommendations = store.topRecommendations()
 
             // --- Mouse data ---
             let mouseDailyDistances    = ms.dailyDistances().map(MouseDailyEntry.init)
@@ -278,6 +280,7 @@ final class ChartDataModel: ObservableObject {
                 self.typingRhythm               = typingRhythm
                 self.ergonomicScore             = ergonomicScore
                 self.weeklySummaryData          = weeklySummaryData
+                self.ergoRecommendations        = ergoRecommendations
                 self.isLoading                  = false
                 PerformanceProfiler.shared.record(
                     metric: "charts.reload.publish",
