@@ -731,6 +731,36 @@ final class L10n {
         ja("URLからのKLE読み込みに失敗しました。", en: "Failed to load KLE from URL.")
     }
 
+    // MARK: - Issue #318: Multiple KLE profiles
+
+    var kleProfileLabel: String {
+        ja("プロファイル:", en: "Profile:")
+    }
+
+    var kleProfileAdd: String {
+        ja("プロファイルを追加", en: "Add profile")
+    }
+
+    var kleProfileRename: String {
+        ja("プロファイル名を変更", en: "Rename profile")
+    }
+
+    var kleProfileRenameConfirm: String {
+        ja("変更", en: "Rename")
+    }
+
+    var kleProfileDelete: String {
+        ja("プロファイルを削除", en: "Delete profile")
+    }
+
+    var kleProfileNewName: String {
+        ja("新しいプロファイル", en: "New Profile")
+    }
+
+    var kleProfileNamePlaceholder: String {
+        ja("プロファイル名", en: "Profile name")
+    }
+
     func autoMatchedCustom(_ name: String) -> String {
         ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
     }
