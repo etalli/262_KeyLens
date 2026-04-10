@@ -250,8 +250,10 @@ Singleton that manages the **About** panel. Wraps an `NSPanel` hosting an `About
 SwiftUI view that renders the `MenuBarExtra` popup panel. Reads live data from `KeyCountStore.shared` on each render. Uses `@EnvironmentObject var appDelegate` to dispatch actions. Key subcomponents:
 
 - **`OverlayRow`** — toggle + hover gear button + fixed-position checkmark in one row
+- **`WPMGaugeRow`** — toggle for the WPM gauge overlay with checkmark
 - **`DataMenuRow`** — NSMenu popup for CSV export, AI prompt editing, open log folder
-- **`SettingsMenuRow`** — NSMenu popup for Launch at Login, Language, Notify Every, Reset
+- **`SettingsMenuRow`** — NSMenu popup containing: Appearance (system/light/dark), Chart Theme (blue/teal/purple/orange/green/pink), Language, Notify Every, Break Reminder, Daily Goal
+- **`MiniDailyBarChart`** — 7-day keystroke bar chart widget; bar color uses `theme.accentColor`
 - **`HoverRowStyle`** — shared `ButtonStyle` with hover highlight
 
 ---
@@ -390,11 +392,15 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 
 `ChartsWindowController` wraps `ChartsView` (SwiftUI + Swift Charts) in an `NSHostingController`. `ChartDataModel` is an `ObservableObject` that pulls data from `KeyCountStore` on demand via `reload()`.
 
+**Tab rendering:** `ChartsView` uses a **custom tab bar** (`HStack` of `Button`s) plus `if selectedTab == .X` guards instead of SwiftUI's `TabView`. This ensures only the active tab's view tree is constructed on each switch — inactive tabs are never evaluated. The full padded area of each tab button is hit-testable via `.contentShape(Rectangle())`.
+
+**Background data loading:** `ChartDataModel.reload()` runs all SQLite queries on a background `DispatchQueue` and publishes results to the main thread in one batch. This includes summary-tab scalars (`totalCount`, `todayCount`, `typingStyle`, `fatigueLevel`, `typingRhythm`, `ergonomicScore`, `weeklySummaryData`) and ergonomic recommendations (`ergoRecommendations`) — none of these are computed inside view bodies.
+
 `ChartsView` is organised into 4 top-level tabs, each implemented as a `ChartsView` extension in its own file:
 
 | Tab file | Top-level tab | Contents |
 |----------|---------------|----------|
-| `Charts+SummaryTab.swift` | Summary | Activity Calendar heatmap, Weekly Delta Report |
+| `Charts+SummaryTab.swift` | Summary | Activity Calendar heatmap, Weekly Delta Report, typing intelligence cards |
 | `Charts+TypingTab.swift` | Typing | Sub-tab router: Live, Activity, Keyboard, Shortcuts, Apps, Devices |
 | `Charts+LiveTab.swift` | Typing › Live | Recent IKI bar chart, manual WPM measurement, AI Intelligence |
 | `Charts+ActivityTab.swift` | Typing › Activity | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
@@ -402,14 +408,15 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+ShortcutsTab.swift` | Typing › Shortcuts | ⌘ Keyboard Shortcuts, All Keyboard Combos |
 | `Charts+AppsTab.swift` | Typing › Apps / Devices | Per-app and per-device keystroke bars + ergonomic score tables |
 | `Charts+MouseTab.swift` | Mouse | Mouse clicks, direction, daily distance (+ position heatmap in Advanced Mode) |
-| `Charts+ErgonomicsTab.swift` | Ergonomics | Tips, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs; Training + Inspector in Advanced Mode |
+| `Charts+MouseHeatmap.swift` | Mouse › Heatmap | Mouse position heatmap with log-scale normalization and inline color legend (blue=Low → red=High) |
+| `Charts+ErgonomicsTab.swift` | Ergonomics | Recommendations, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs |
 | `Charts+ComparisonTab.swift` | Ergonomics › Compare | Side-by-side period comparison: two custom date ranges, stats table with delta column |
 | `Charts+TrainingTab.swift` | Ergonomics › Training (Advanced) | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 | `Charts+LayerEfficiency.swift` | Ergonomics › Layout | Layer key usage analysis for QMK/ZMK keyboards |
 
 Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
 
-`ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`.
+`ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`. All data fields are populated on a background thread; view bodies must not call `KeyCountStore` directly.
 
 ---
 
@@ -467,7 +474,7 @@ Parses [keyboard-layout-editor](http://www.keyboard-layout-editor.com/) JSON int
 
 ### [WeeklySummaryCard.swift](Sources/KeyLens/WeeklySummaryCard.swift)
 
-`WeeklySummaryCardView` renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone.
+`WeeklySummaryCardView` renders a one-week typing summary (keystrokes, WPM, ergonomic score, top keys). Rendered off-screen via SwiftUI `ImageRenderer` and saved as PNG for sharing. Can be embedded inline or rendered standalone. `WeeklySummaryData.current()` performs SQLite queries and must be called on a background thread; `WeeklySummaryData.empty` is a zero-value placeholder used before `reload()` completes.
 
 ---
 
@@ -644,7 +651,9 @@ SQLite-backed singleton (using GRDB) that persists mouse movement metrics. Accum
 
 ### [ThemeStore.swift](Sources/KeyLens/ThemeStore.swift)
 
-Singleton that manages the active `ChartTheme` (blue / teal / purple / orange / green / pink). Theme selection is persisted in `UserDefaults` and published via `@Published` so `ChartsView` reacts instantly on change.
+Singleton that manages the active `ChartTheme` (blue / teal / purple / orange / green / pink) and `AppAppearance` (system / light / dark). Both are persisted in `UserDefaults` and published via `@Published`.
+
+`ChartTheme` is switchable via the **Chart Theme** submenu in the menu bar (alongside the Appearance submenu). All chart views and UI components use `theme.accentColor` rather than `Color.accentColor` (the system accent) so they respond to theme changes. `heatmapBaseHue` provides the hue value for the keyboard heatmap gradient per theme.
 
 ---
 
