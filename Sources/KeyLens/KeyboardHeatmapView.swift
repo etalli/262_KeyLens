@@ -722,6 +722,8 @@ struct KeyboardHeatmapView: View {
         if let profile = selectedProfile {
             profileDetailControls(profile: profile)
         }
+
+        profileSummaryTable
     }
 
     @ViewBuilder private func profileDetailControls(profile: KLEProfile) -> some View {
@@ -783,6 +785,60 @@ struct KeyboardHeatmapView: View {
                     .font(.caption.bold())
                     .foregroundStyle(profile.fileName.isEmpty ? .secondary : .primary)
             }
+        }
+    }
+
+    // MARK: - Profile summary table (Issue #323)
+
+    @ViewBuilder private var profileSummaryTable: some View {
+        let profiles = kleProfiles
+        if profiles.count > 1 {
+            VStack(spacing: 0) {
+                // Header row
+                HStack(spacing: 0) {
+                    Text(L10n.shared.kleTableColProfile)
+                        .frame(width: 130, alignment: .leading)
+                    Text(L10n.shared.kleTableColKeywords)
+                        .frame(width: 150, alignment: .leading)
+                    Text(L10n.shared.kleTableColFile)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(NSColor.windowBackgroundColor))
+
+                Divider()
+
+                ForEach(profiles) { p in
+                    let isSelected = p.id.uuidString == kleSelectedProfileIDString
+                    HStack(spacing: 0) {
+                        Text(p.name.isEmpty ? "—" : p.name)
+                            .frame(width: 130, alignment: .leading)
+                            .lineLimit(1)
+                        Text(p.keywords.isEmpty ? "—" : p.keywords)
+                            .frame(width: 150, alignment: .leading)
+                            .lineLimit(1)
+                        Text(p.fileName.isEmpty ? "—" : p.fileName)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .lineLimit(1)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        kleSelectedProfileIDString = p.id.uuidString
+                        kleURLInput = p.url
+                    }
+                }
+            }
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(NSColor.separatorColor), lineWidth: 1))
         }
     }
 

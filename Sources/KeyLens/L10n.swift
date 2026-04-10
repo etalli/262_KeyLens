@@ -761,6 +761,20 @@ final class L10n {
         ja("プロファイル名", en: "Profile name")
     }
 
+    // MARK: - Issue #323: Profile summary table column headers
+
+    var kleTableColProfile: String {
+        ja("プロファイル", en: "Profile")
+    }
+
+    var kleTableColKeywords: String {
+        ja("キーワード", en: "Keywords")
+    }
+
+    var kleTableColFile: String {
+        ja("レイアウトファイル", en: "Layout file")
+    }
+
     func autoMatchedCustom(_ name: String) -> String {
         ja("↳ カスタムがマッチ — \"\(name)\"", en: "↳ Custom matched — \"\(name)\"")
     }
