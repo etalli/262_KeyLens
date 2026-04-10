@@ -107,6 +107,7 @@ struct ChartsView: View {
                                 ? Color.accentColor.opacity(0.08)
                                 : Color.clear
                         )
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
