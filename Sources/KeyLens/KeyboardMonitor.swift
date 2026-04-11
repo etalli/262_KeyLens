@@ -266,7 +266,8 @@ extension KeyboardMonitor {
         let handlerStartedAt = CFAbsoluteTimeGetCurrent()
         // タイムアウトで無効化された場合は即座に再有効化
         if type == .tapDisabledByTimeout {
-            KeyLens.log("CGEventTap disabled by timeout — re-enabling")
+            KeyLens.log("⚠️ CGEventTap disabled by timeout — re-enabling (possible blocking work in tap callback)")
+            store.recordSlowEvent()
             if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
             return nil
         }
@@ -375,6 +376,10 @@ extension KeyboardMonitor {
             }
         }
         let handlerMs = (CFAbsoluteTimeGetCurrent() - handlerStartedAt) * 1000
+        if handlerMs > kHandleEventSlowThresholdMs {
+            KeyLens.log("⚠️ handleEvent took \(String(format: "%.1f", handlerMs))ms — exceeds \(kHandleEventSlowThresholdMs)ms threshold")
+            store.recordSlowEvent()
+        }
         PerformanceProfiler.shared.record(metric: "event.handle.total", ms: handlerMs)
         return Unmanaged.passRetained(event)
     }

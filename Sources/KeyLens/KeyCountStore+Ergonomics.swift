@@ -16,7 +16,8 @@ extension KeyCountStore {
     }
 
     func rollingWPM(windowSeconds: Double = 5.0) -> Double {
-        queue.sync { makeQuery().rollingWPM(windowSeconds: windowSeconds) }
+        assert(!Thread.isMainThread, "rollingWPM() must not be called from the main thread — use DispatchQueue.global().async to avoid stalling the CGEventTap")
+        return queue.sync { makeQuery().rollingWPM(windowSeconds: windowSeconds) }
     }
 
     var backspaceRate: Double? {
