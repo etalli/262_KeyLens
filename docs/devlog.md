@@ -4,6 +4,13 @@ Daily summaries of development activity, generated from git history.
 
 ---
 
+## 2026-04-11
+
+- **fix:** resolved critical keystroke latency bug where characters appeared doubled — CGEventTap notifications were posted synchronously, and `rollingWPM()` called `queue.sync` from the main thread, stalling the tap callback and triggering macOS event replay (#324)
+- **fix:** wired up existing slow-event detection infrastructure — `.tapDisabledByTimeout` and `handleEvent` exceeding 5 ms now increment the Slow Events counter and write to app.log; added `assert(!Thread.isMainThread)` guard in `rollingWPM()` to catch future regressions at dev time
+- **feat:** multiple custom KLE layout profiles per keyboard — each device can have its own set of profiles; registered profiles shown as a summary table in settings (#318, #323)
+- **chore:** released v0.92; cleaned up 13 stale remote branches
+
 ## 2026-04-04
 
 - **feat:** restructured Charts into 4 top-level tabs (Summary, Typing, Mouse, Ergonomics); Comparison moved into Ergonomics as a sub-tab (#310, #311)
