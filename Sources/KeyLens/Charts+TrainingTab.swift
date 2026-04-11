@@ -55,17 +55,11 @@ extension ChartsView {
 
     var trainingTab: some View {
         VStack(spacing: 0) {
-            Picker("", selection: $trainingSubTab) {
+            SubTabPicker(selection: $trainingSubTab) {
                 Text(L10n.shared.trainingSubTabDrill).tag(TrainingSubTab.drill)
                 Text(L10n.shared.trainingSubTabProgress).tag(TrainingSubTab.progress)
                 Text(L10n.shared.trainingSubTabTargets).tag(TrainingSubTab.targets)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            Divider()
 
             switch trainingSubTab {
             case .drill:

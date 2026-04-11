@@ -1,5 +1,28 @@
 import SwiftUI
 
+// MARK: - SubTabPicker
+
+/// Segmented picker + divider used at the top of each Charts sub-tab.
+/// Encapsulates the repeated Picker + padding + Divider boilerplate.
+struct SubTabPicker<SelectionValue: Hashable, Content: View>: View {
+    @Binding var selection: SelectionValue
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("", selection: $selection) {
+                content()
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Divider()
+        }
+    }
+}
+
 // MARK: - SectionHeader
 
 /// Section title with an optional hover-triggered help popover.

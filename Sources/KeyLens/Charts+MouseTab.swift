@@ -15,7 +15,7 @@ extension ChartsView {
     var mouseTab: some View {
         let l = L10n.shared
         return VStack(spacing: 0) {
-            Picker("", selection: $mouseSubTab) {
+            SubTabPicker(selection: $mouseSubTab) {
                 Text(l.mouseSubTabClicks).tag(MouseSubTab.clicks)
                 Text(l.mouseSubTabDirection).tag(MouseSubTab.direction)
                 Text(l.mouseSubTabDistance).tag(MouseSubTab.distance)
@@ -23,12 +23,6 @@ extension ChartsView {
                     Text(l.mouseSubTabHeatmap).tag(MouseSubTab.heatmap)
                 }
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            Divider()
 
             switch mouseSubTab {
             case .distance:

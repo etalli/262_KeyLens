@@ -14,18 +14,11 @@ extension ChartsView {
 
     var activityTab: some View {
         VStack(spacing: 0) {
-            // Sub-tab picker
-            Picker("", selection: $activitySubTab) {
+            SubTabPicker(selection: $activitySubTab) {
                 Text(L10n.shared.activitySubTabSpeed).tag(ActivitySubTab.speed)
                 Text(L10n.shared.activitySubTabPatterns).tag(ActivitySubTab.patterns)
                 Text(L10n.shared.activitySubTabVolume).tag(ActivitySubTab.volume)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            Divider()
 
             switch activitySubTab {
             case .speed:

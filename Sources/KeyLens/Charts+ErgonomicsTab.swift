@@ -17,7 +17,7 @@ extension ChartsView {
 
     var ergonomicsTab: some View {
         VStack(spacing: 0) {
-            Picker("", selection: $ergoSubTab) {
+            SubTabPicker(selection: $ergoSubTab) {
                 Text(L10n.shared.ergoSubTabRecommendations).tag(ErgoSubTab.recommendations)
                 Text(L10n.shared.ergoSubTabBigrams).tag(ErgoSubTab.bigrams)
                 Text(L10n.shared.ergoSubTabLayout).tag(ErgoSubTab.layout)
@@ -25,12 +25,6 @@ extension ChartsView {
                 Text(L10n.shared.ergoSubTabOptimizer).tag(ErgoSubTab.optimizer)
                 Text(L10n.shared.ergoSubTabComparison).tag(ErgoSubTab.comparison)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            Divider()
 
             switch ergoSubTab {
             case .recommendations:
