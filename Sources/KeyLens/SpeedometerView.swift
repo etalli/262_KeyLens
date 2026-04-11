@@ -33,15 +33,21 @@ private final class SpeedometerViewModel: ObservableObject {
         decayTimer = Timer.scheduledTimer(withTimeInterval: AppConfiguration.liveRefreshIntervalSecs, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        // Spring timer: runs at 60 Hz to smoothly chase targetWPM.
-        springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
-            self?.springTick()
-        }
+        // Spring timer starts dormant; wakes on first keystroke via restartSpringTimerIfNeeded().
         // queue: nil — handler runs on the posting thread (main); onKeystroke dispatches off-main.
         observer = NotificationCenter.default.addObserver(
             forName: .keystrokeInput, object: nil, queue: nil
         ) { [weak self] _ in
             self?.onKeystroke()
+        }
+    }
+
+    /// Starts the 60 Hz spring timer only if it is not already running.
+    /// Call this whenever targetWPM changes so the needle animates to the new value.
+    private func restartSpringTimerIfNeeded() {
+        guard springTimer == nil else { return }
+        springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
+            self?.springTick()
         }
     }
 
@@ -60,6 +66,7 @@ private final class SpeedometerViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self?.lastKeystrokeDate = now
                 self?.targetWPM = wpm
+                self?.restartSpringTimerIfNeeded()
             }
         }
     }
@@ -67,16 +74,28 @@ private final class SpeedometerViewModel: ObservableObject {
     /// Slow decay applied to targetWPM when the user stops typing.
     private func tick() {
         guard Date().timeIntervalSince(lastKeystrokeDate) > AppConfiguration.speedometerKeystrokeCooldownSecs else { return }
-        targetWPM = max(0, targetWPM * Self.decayFactor)
+        let newTarget = max(0, targetWPM * Self.decayFactor)
+        guard newTarget != targetWPM else { return }
+        targetWPM = newTarget
+        restartSpringTimerIfNeeded()
     }
 
     /// Spring-damper step: displayWPM chases targetWPM with inertia and slight overshoot.
+    /// Stops the timer once the animation has settled to avoid burning CPU at idle.
     private func springTick() {
         let dt = Self.springDt
         // Symplectic Euler: update velocity first, then position (more stable than explicit Euler).
         velocity += (targetWPM - displayWPM) * Self.springK * dt - velocity * Self.damping * dt
         displayWPM = max(0, displayWPM + velocity * dt)
         if displayWPM > peakWPM { peakWPM = displayWPM }
+
+        // Stop the 60 Hz timer once the needle has come to rest.
+        if abs(targetWPM - displayWPM) < 0.1 && abs(velocity) < 0.1 {
+            displayWPM = targetWPM
+            velocity = 0
+            springTimer?.invalidate()
+            springTimer = nil
+        }
     }
 }
 
