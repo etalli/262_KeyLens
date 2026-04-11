@@ -58,6 +58,8 @@ private final class SpeedometerViewModel: ObservableObject {
     }
 
     private func onKeystroke() {
+        // Skip all work when the floating gauge is hidden — no need to animate an invisible view.
+        guard WPMGaugeOverlayController.shared.isEnabled else { return }
         // Dispatch off-main: rollingWPM() calls queue.sync on KeyCountStore's serial queue,
         // which would stall the main thread if called directly.
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
@@ -83,6 +85,14 @@ private final class SpeedometerViewModel: ObservableObject {
     /// Spring-damper step: displayWPM chases targetWPM with inertia and slight overshoot.
     /// Stops the timer once the animation has settled to avoid burning CPU at idle.
     private func springTick() {
+        // If the gauge was disabled while the timer was already running, stop immediately.
+        guard WPMGaugeOverlayController.shared.isEnabled else {
+            targetWPM = 0; displayWPM = 0; velocity = 0
+            springTimer?.invalidate()
+            springTimer = nil
+            return
+        }
+
         let dt = Self.springDt
         // Symplectic Euler: update velocity first, then position (more stable than explicit Euler).
         velocity += (targetWPM - displayWPM) * Self.springK * dt - velocity * Self.damping * dt
