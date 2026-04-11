@@ -11,7 +11,7 @@ English | [日本語](docs/README.ja.md)
 
 KeyLens is a macOS menu bar app that tracks your keystrokes locally and recommends ergonomic layout changes based on your actual usage.
 
-The stored data is key names and counts only — your actual typed content cannot be reconstructed from it.
+KeyLens stores only key names and counts — never the actual characters you type. Passwords and sensitive input are completely safe.
 
 
 [**Document**](https://etalli.github.io/262_KeyLens/landing-page/) — screenshots and layout optimization walkthrough
