@@ -266,16 +266,19 @@ extension KeyboardMonitor {
         let handlerStartedAt = CFAbsoluteTimeGetCurrent()
         // タイムアウトで無効化された場合は即座に再有効化
         if type == .tapDisabledByTimeout {
-            KeyLens.log("CGEventTap disabled by timeout — re-enabling")
+            KeyLens.log("⚠️ CGEventTap disabled by timeout — re-enabling (possible blocking work in tap callback)")
+            store.recordSlowEvent()
             if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
             return nil
         }
 
         // keyUp: notify inspector so it can remove the key from the held-keys list.
-        // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
+        // Posted asynchronously so the tap callback returns before observers run.
         if type == .keyUp {
             let code = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
-            NotificationCenter.default.post(name: .keystrokeReleased, object: code)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .keystrokeReleased, object: code)
+            }
             return Unmanaged.passRetained(event)
         }
 
@@ -367,10 +370,16 @@ extension KeyboardMonitor {
                 rawFlags: event.flags.rawValue,
                 hidUsage: hidUsageTable[code].map { (page: 0x07, usage: $0) }
             )
-            // Posted directly from the CGEvent thread — observers that need main must dispatch themselves.
-            NotificationCenter.default.post(name: .keystrokeInput, object: evt)
+            // Posted asynchronously so the tap callback returns before observers run.
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .keystrokeInput, object: evt)
+            }
         }
         let handlerMs = (CFAbsoluteTimeGetCurrent() - handlerStartedAt) * 1000
+        if handlerMs > kHandleEventSlowThresholdMs {
+            KeyLens.log("⚠️ handleEvent took \(String(format: "%.1f", handlerMs))ms — exceeds \(kHandleEventSlowThresholdMs)ms threshold")
+            store.recordSlowEvent()
+        }
         PerformanceProfiler.shared.record(metric: "event.handle.total", ms: handlerMs)
         return Unmanaged.passRetained(event)
     }

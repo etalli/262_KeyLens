@@ -37,7 +37,7 @@ private final class SpeedometerViewModel: ObservableObject {
         springTimer = Timer.scheduledTimer(withTimeInterval: Self.springDt, repeats: true) { [weak self] _ in
             self?.springTick()
         }
-        // queue: nil — runs on the CGEvent posting thread, avoiding queue.sync on main.
+        // queue: nil — handler runs on the posting thread (main); onKeystroke dispatches off-main.
         observer = NotificationCenter.default.addObserver(
             forName: .keystrokeInput, object: nil, queue: nil
         ) { [weak self] _ in
@@ -52,12 +52,15 @@ private final class SpeedometerViewModel: ObservableObject {
     }
 
     private func onKeystroke() {
-        // Compute rolling WPM off-main, then dispatch only the property writes to main.
-        let wpm = KeyCountStore.shared.rollingWPM()
-        let now = Date()
-        DispatchQueue.main.async { [weak self] in
-            self?.lastKeystrokeDate = now
-            self?.targetWPM = wpm
+        // Dispatch off-main: rollingWPM() calls queue.sync on KeyCountStore's serial queue,
+        // which would stall the main thread if called directly.
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            let wpm = KeyCountStore.shared.rollingWPM()
+            let now = Date()
+            DispatchQueue.main.async {
+                self?.lastKeystrokeDate = now
+                self?.targetWPM = wpm
+            }
         }
     }
 
