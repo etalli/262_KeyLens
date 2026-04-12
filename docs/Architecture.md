@@ -889,3 +889,8 @@ swift --version
 ```
 
 The CI workflow pins Xcode and verifies `xcode-select -p` before running `swift test`.
+
+
+## Security
+
+KeyLens records only key names (e.g. `Space`, `e`) and mouse button names with press counts. It does **not** record typed text, sequences, passwords, clipboard content, or cursor position. All data is stored in a local SQLite database (`keylens.db`) — no network transmission occurs. Event monitoring uses a `.listenOnly` tap, which is read-only and cannot inject or modify keystrokes.

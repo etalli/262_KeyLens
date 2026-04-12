@@ -18,10 +18,8 @@ KeyLens stores only key names and counts — never the actual characters you typ
 
 <table>
   <tr>
-    <td><img src="docs/images/menu.png" width="300"/></td>
-    <td align="center"><i>Menu Bar</i></td>
-    <td><img src="docs/images/Keyboard Heatmap.png" width="450"/></td>
-    <td align="center"><i>Heatmap</i></td>
+    <td align="center"><img src="docs/images/menu.png" width="300"/><br><i>Menu Bar</i></td>
+    <td align="center"><img src="docs/images/Keyboard Heatmap.png" width="450"/><br><i>Heatmap</i></td>
   </tr>
 </table>
 
@@ -43,13 +41,13 @@ rather than switching to Colemak blindly and hoping for the best.
 
 ---
 
-## Features
+## What KeyLens Can Do
 
-- **Global recording** — Counts keystrokes in any app, no exceptions
-- **Menu bar statistics** — Today's count, all-time total, average keystroke interval, ergonomic recommendations, and more; toggle and reorder these widgets as you like
-- **Charts** — 4-tab analytics window: Summary, Typing (Live, Activity, Keyboard, Shortcuts, Apps, Devices), Mouse, and Ergonomics (Tips, Bigrams, Layout, Fatigue, Optimizer, Compare)
-- **Weekly Summary Card** — Generates a PNG of your weekly stats every Saturday; also available any time from the Data menu
-- **Keystroke Overlay** — Floating window showing recent keystrokes in real time (⌘C / ⇧A style)
+- **Find where your strain actually comes from** — See which fingers are overloaded, which key pairs cause same-finger strain, and how your workload is distributed across your hands.
+- **Simulate layout changes before you commit** — Compare how Colemak, Dvorak, or a custom layout would change your travel distance and finger load, based on your real typing data.
+- **Track how your typing evolves** — Monitor your WPM, keystroke rhythm, and fatigue curve over days and weeks to see if your habits are improving.
+- **See your typing broken down by app** — Know which apps drive the most keystrokes and strain, so you can focus ergonomic changes where they matter most.
+- **Watch your keystrokes in real time** — A floating overlay shows what you just typed, useful for learning new layouts or shortcuts.
 
 ---
 
@@ -72,17 +70,11 @@ rather than switching to Colemak blindly and hoping for the best.
 
 ## How to Use
 
-See [HOWTOUSE](docs/HOWTOUSE.md) for the full usage guide — menu bar items, Charts window tabs, AI Analysis, and the Keystroke Overlay.
+See [HowToUse](docs/HowToUse.md) for the full usage guide — menu bar items, Charts window tabs, AI Analysis, and the Keystroke Overlay.
 
 ---
 
-## Security
-
-KeyLens records only key names (e.g. `Space`, `e`) and mouse button names with press counts. It does **not** record typed text, sequences, passwords, clipboard content, or cursor position. All data is stored in a local SQLite database (`keylens.db`) — no network transmission occurs. Event monitoring uses a `.listenOnly` tap, which is read-only and cannot inject or modify keystrokes.
-
----
-
-For internal design details, see [Architecture](docs/Architecture.md).
+For internal design details (including security model), see [Architecture](docs/Architecture.md).
 See [HowToBuild](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
 For the development roadmap, see [Roadmap](docs/Roadmap.md).
 Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).
