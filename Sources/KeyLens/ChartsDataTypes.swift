@@ -49,6 +49,13 @@ struct ModifierFingerEntry: Identifiable {
     let count: Int
 }
 
+// Issue #335: same-hand shortcut strain entry
+struct ShortcutStrainEntry: Identifiable {
+    let id: String      // combo string e.g. "⌃a"
+    let combo: String
+    let count: Int
+}
+
 struct BigramEntry: Identifiable {
     let id: String
     let pair: String

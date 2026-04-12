@@ -10,6 +10,7 @@ extension ChartsView {
                 chartSection(L10n.shared.modifierFingerTitle, helpText: L10n.shared.modifierFingerHelp) { modifierFingerChart }
                 chartSection(L10n.shared.chartTitleCmdShortcuts, helpText: L10n.shared.helpShortcuts, showSort: true) { shortcutsChart }
                 chartSection(L10n.shared.chartTitleAllCombos, helpText: L10n.shared.helpAllCombos, showSort: true) { allCombosChart }
+                chartSection(L10n.shared.shortcutStrainTitle, helpText: L10n.shared.shortcutStrainHelp) { shortcutStrainChart }
             }
             .padding(24)
         }
@@ -185,5 +186,61 @@ extension ChartsView {
 
     private func fingerLabel(for displayLabel: String, in data: [ModifierFingerEntry]) -> String {
         data.first(where: { $0.displayLabel == displayLabel })?.fingerLabel ?? ""
+    }
+
+    // MARK: - Shortcut Strain (Issue #335)
+
+    @ViewBuilder
+    var shortcutStrainChart: some View {
+        let l        = L10n.shared
+        let entries  = model.shortcutStrainEntries
+        let total    = model.shortcutStrainTotalPresses
+
+        if total == 0 {
+            Text(l.shortcutStrainNoData)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else if entries.isEmpty {
+            let pct = 0
+            let same = 0
+            VStack(alignment: .leading, spacing: 6) {
+                Text(l.shortcutStrainRate(pct: pct, sameCount: same, totalCount: total))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text(l.shortcutStrainNoData)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            let samePressesl = entries.map(\.count).reduce(0, +)
+            let pct = Int((Double(samePressesl) / Double(total) * 100).rounded())
+            let display = Array(entries.prefix(20))
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(l.shortcutStrainRate(pct: pct, sameCount: samePressesl, totalCount: total))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                let keyOrder = display.map(\.combo)
+                Chart(display) { item in
+                    BarMark(
+                        x: .value("Count", item.count),
+                        y: .value("Combo", item.combo)
+                    )
+                    .foregroundStyle(Color.red.opacity(0.75))
+                    .cornerRadius(3)
+                    .annotation(position: .trailing, spacing: 4) {
+                        Text(item.count.formatted())
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .chartYScale(domain: keyOrder)
+                .chartLegend(.hidden)
+                .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
+                .frame(height: CGFloat(display.count * 26 + 24))
+            }
+        }
     }
 }

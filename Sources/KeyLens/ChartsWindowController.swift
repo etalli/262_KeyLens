@@ -89,6 +89,9 @@ final class ChartDataModel: ObservableObject {
     @Published var heatmapGrid:                [MouseGridCell]               = []
     // Issue #209: Layer key efficiency
     @Published var layerEfficiency:            [LayerEfficiencyEntry]        = []
+    // Issue #335: same-finger shortcut strain
+    @Published var shortcutStrainEntries:      [ShortcutStrainEntry]         = []
+    @Published var shortcutStrainTotalPresses: Int                           = 0
     // Issue #258: background loading state
     @Published var isLoading: Bool = false
 
@@ -190,6 +193,8 @@ final class ChartDataModel: ObservableObject {
             let layerEfficiency    = store.layerEfficiency()
             // Issue #334: modifier key finger breakdown
             let modifierFingerData = store.modifierFingerBreakdown()
+            // Issue #335: same-finger shortcut strain
+            let shortcutStrain = store.shortcutStrain()
 
             // Summary tab scalars (moved from view bodies to avoid main-thread DB calls)
             let totalCount       = store.totalCount
@@ -271,7 +276,9 @@ final class ChartDataModel: ObservableObject {
                 self.fatigueCurve         = fatigueCurve
                 self.trainingHistory      = trainingHistory
                 self.bigramIKIMap         = bigramIKIMap
-                self.layerEfficiency      = layerEfficiency
+                self.layerEfficiency           = layerEfficiency
+                self.shortcutStrainEntries     = shortcutStrain.entries
+                self.shortcutStrainTotalPresses = shortcutStrain.totalPresses
                 self.mouseDailyDistances        = mouseDailyDistances
                 self.mouseHourlyActivity        = mouseHourlyActivity
                 self.mouseDirectionEntries      = mouseDirectionEntries

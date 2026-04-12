@@ -142,6 +142,12 @@ extension KeyCountStore {
         let q = queue.sync { makeQuery() }
         return q.modifierFingerBreakdown()
     }
+
+    // Issue #335: same-finger shortcut strain
+    func shortcutStrain() -> (entries: [ShortcutStrainEntry], totalPresses: Int) {
+        let q = queue.sync { makeQuery() }
+        return q.shortcutStrainEntries()
+    }
 }
 
 // MARK: - Issue #299: Ergonomic Recommendations

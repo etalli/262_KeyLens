@@ -2396,6 +2396,26 @@ final class L10n {
     }
     func recImpact(_ pts: Int) -> String { ja("+\(pts)pt", en: "+\(pts)pt") }
 
+    // MARK: - Shortcut Strain Analysis (Issue #335)
+
+    var shortcutStrainTitle: String {
+        ja("ショートカット負荷分析", en: "Shortcut Strain")
+    }
+
+    var shortcutStrainHelp: String {
+        ja("モディファイアキーとベースキーが同じ手にある場合、片手でストレッチが必要になり負荷が高まります。頻度の高いコンボほど影響が大きくなります。",
+           en: "A shortcut is strained when the modifier and base key are on the same hand, forcing a one-handed stretch. Higher-frequency combos have greater impact.")
+    }
+
+    var shortcutStrainNoData: String {
+        ja("片手ショートカットは検出されませんでした", en: "No same-hand shortcuts detected")
+    }
+
+    func shortcutStrainRate(pct: Int, sameCount: Int, totalCount: Int) -> String {
+        ja("同手率 \(pct)%（\(sameCount) / \(totalCount) 押下）",
+           en: "Same-hand rate: \(pct)% (\(sameCount) of \(totalCount) presses)")
+    }
+
     // MARK: - Advanced Mode (#307)
 
     var advancedModeMenuTitle: String { ja("高度なモード", en: "Advanced Mode") }
