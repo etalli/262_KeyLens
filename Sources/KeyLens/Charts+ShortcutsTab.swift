@@ -152,7 +152,7 @@ extension ChartsView {
                     }
                 }
                 .chartLegend(.hidden)
-                .frame(height: CGFloat(data.count * 36 + 24))
+                .frame(height: CGFloat(data.count * 26 + 24))
 
                 // Summary line: thumb % vs pinky %
                 let total     = data.map(\.count).reduce(0, +)
