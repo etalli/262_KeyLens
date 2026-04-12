@@ -470,9 +470,9 @@ final class KeyCountStore {
 
             let layout = LayoutRegistry.shared
             if let prev = lastKeyName,
-               let prevFinger = layout.current.finger(for: prevPhysical ?? prev),
+               let prevFinger = layout.finger(for: prevPhysical ?? prev),
                let prevHand   = layout.hand(for: prevPhysical ?? prev),
-               let curFinger  = layout.current.finger(for: physicalKey),
+               let curFinger  = layout.finger(for: physicalKey),
                let curHand    = layout.hand(for: physicalKey) {
 
                 store.ergonomics.totalBigramCount += 1
@@ -567,9 +567,9 @@ final class KeyCountStore {
                 // Issue #236: accumulate per-layer ergonomic deltas using the physical base key.
                 // prevPhysical was captured before lastKeyName/lastPhysicalKeyName were updated.
                 if let prevPhys = prevPhysical,
-                   let pFinger = layout.current.finger(for: prevPhys),
+                   let pFinger = layout.finger(for: prevPhys),
                    let pHand   = layout.hand(for: prevPhys),
-                   let cFinger = layout.current.finger(for: physicalKey),
+                   let cFinger = layout.finger(for: physicalKey),
                    let cHand   = layout.hand(for: physicalKey) {
                     let sf = (pFinger == cFinger && pHand == cHand)
                     let ha = (pHand != cHand)

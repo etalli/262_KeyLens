@@ -160,8 +160,8 @@ public struct ErgonomicSnapshot: Equatable {
 
             totalPairs += count
 
-            guard let f1 = layout.current.finger(for: k1),
-                  let f2 = layout.current.finger(for: k2) else { continue }
+            guard let f1 = layout.finger(for: k1),
+                  let f2 = layout.finger(for: k2) else { continue }
 
             let h1 = layout.hand(for: k1)
             let h2 = layout.hand(for: k2)

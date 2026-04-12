@@ -14,23 +14,29 @@ public struct ErgonomicProfile: Equatable {
     
     /// Optional hand mapping overrides (for split keyboards).
     public let splitConfig: SplitKeyboardConfig?
-    
+
+    /// Optional finger overrides for thumb cluster keys on DIY keyboards.
+    public let thumbConfig: ThumbClusterConfig?
+
     public init(
         name: String,
         layout: any KeyboardLayout = ANSILayout(),
         fingerWeights: FingerLoadWeight = .default,
-        splitConfig: SplitKeyboardConfig? = nil
+        splitConfig: SplitKeyboardConfig? = nil,
+        thumbConfig: ThumbClusterConfig? = nil
     ) {
         self.name = name
         self.layout = layout
         self.fingerWeights = fingerWeights
         self.splitConfig = splitConfig
+        self.thumbConfig = thumbConfig
     }
-    
+
     public static func == (lhs: ErgonomicProfile, rhs: ErgonomicProfile) -> Bool {
         return lhs.name == rhs.name &&
                lhs.fingerWeights == rhs.fingerWeights &&
                lhs.splitConfig == rhs.splitConfig &&
+               lhs.thumbConfig == rhs.thumbConfig &&
                lhs.layout.name == rhs.layout.name
     }
 }

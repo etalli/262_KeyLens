@@ -72,7 +72,7 @@ public struct ThumbEfficiencyCalculator: Equatable {
 
         for (key, count) in counts {
             totalCount += count
-            if layout.current.finger(for: key) == .thumb {
+            if layout.finger(for: key) == .thumb {
                 thumbCount += count
             }
         }

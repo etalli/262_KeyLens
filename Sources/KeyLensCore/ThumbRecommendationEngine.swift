@@ -135,7 +135,7 @@ public struct ThumbRecommendationEngine {
         var leftThumbCount  = 0
         var rightThumbCount = 0
         for (key, count) in counts {
-            guard layout.current.finger(for: key) == .thumb else { continue }
+            guard layout.finger(for: key) == .thumb else { continue }
             switch layout.hand(for: key) {
             case .left:  leftThumbCount  += count
             case .right: rightThumbCount += count
@@ -158,7 +158,7 @@ public struct ThumbRecommendationEngine {
         let candidates: [Candidate] = counts.compactMap { key, count -> Candidate? in
             guard count > 0 else { return nil }
             guard !constraints.fixedKeys.contains(key) else { return nil }
-            guard let finger = layout.current.finger(for: key) else { return nil }
+            guard let finger = layout.finger(for: key) else { return nil }
             guard finger != .thumb else { return nil }  // already a thumb key
 
             let w = fingerWeights.weight(for: finger)
