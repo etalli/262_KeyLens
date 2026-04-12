@@ -21,13 +21,13 @@ extension ChartsView {
         if model.shortcuts.isEmpty {
             emptyState
         } else {
-            let keyOrder = model.shortcuts.map(\.key)
+            let keyOrder = model.shortcuts.map { KeyCodeName.display(for: $0.key) }
             let domain = sortDescending ? Array(keyOrder.reversed()) : keyOrder
 
             Chart(model.shortcuts) { item in
                 BarMark(
                     x: .value("Count", item.count),
-                    y: .value("Shortcut", item.key)
+                    y: .value("Shortcut", KeyCodeName.display(for: item.key))
                 )
                 .foregroundStyle(shortcutColor(item.key))
                 .cornerRadius(3)
@@ -59,14 +59,14 @@ extension ChartsView {
         if model.allCombos.isEmpty {
             emptyState
         } else {
-            let keyOrder = model.allCombos.map(\.key)
+            let keyOrder = model.allCombos.map { KeyCodeName.display(for: $0.key) }
             let domain = sortDescending ? Array(keyOrder.reversed()) : keyOrder
 
             VStack(alignment: .leading, spacing: 6) {
                 Chart(model.allCombos) { item in
                     BarMark(
                         x: .value("Count", item.count),
-                        y: .value("Combo", item.key)
+                        y: .value("Combo", KeyCodeName.display(for: item.key))
                     )
                     .foregroundStyle(comboColor(item.key))
                     .cornerRadius(3)
@@ -222,11 +222,11 @@ extension ChartsView {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                let keyOrder = display.map(\.combo)
+                let keyOrder = display.map { KeyCodeName.display(for: $0.combo) }
                 Chart(display) { item in
                     BarMark(
                         x: .value("Count", item.count),
-                        y: .value("Combo", item.combo)
+                        y: .value("Combo", KeyCodeName.display(for: item.combo))
                     )
                     .foregroundStyle(Color.red.opacity(0.75))
                     .cornerRadius(3)
