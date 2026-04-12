@@ -20,7 +20,7 @@ KeyLens stores only key names and counts — never the actual characters you typ
   <tr>
     <td><img src="docs/images/menu.png" width="300"/></td>
     <td align="center"><i>Menu Bar</i></td>
-    <td><img src="docs/images/Heatmap.png" width="450"/></td>
+    <td><img src="docs/images/Keyboard Heatmap.png" width="450"/></td>
     <td align="center"><i>Heatmap</i></td>
   </tr>
 </table>
