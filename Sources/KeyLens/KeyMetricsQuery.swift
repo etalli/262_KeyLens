@@ -145,22 +145,76 @@ extension KeyMetricsQuery {
             }
             guard let finger = registry.finger(for: keyName) else { return nil }
             let isThumb = finger == .thumb
-            let fingerLabel: String
-            switch finger {
-            case .thumb:  fingerLabel = "Thumb"
-            case .pinky:  fingerLabel = "Pinky"
-            case .ring:   fingerLabel = "Ring"
-            case .middle: fingerLabel = "Middle"
-            case .index:  fingerLabel = "Index"
-            }
             return ModifierFingerEntry(
                 id:           displayLabel,
                 displayLabel: displayLabel,
                 keyName:      keyName,
-                fingerLabel:  fingerLabel,
+                fingerLabel:  Self.fingerLabel(finger),
                 isThumb:      isThumb,
                 count:        count
             )
+        }
+    }
+
+    // Issue #335: same-hand shortcut strain analysis.
+    // A chord is "strained" when both the modifier and base key are on the same hand,
+    // requiring one hand to stretch across two keys simultaneously.
+    // (Same-finger is physically impossible for chords; same-hand is the actual ergonomic concern.)
+    // Returns same-hand entries sorted by count, plus total presses across all combos.
+    func shortcutStrainEntries() -> (entries: [ShortcutStrainEntry], totalPresses: Int) {
+        let registry  = LayoutRegistry.shared
+        let modCounts = store.shortcuts.modifiedCounts
+        let totalPresses = modCounts.values.reduce(0, +)
+
+        let modifierSymbols = ["⌘", "⇧", "⌥", "⌃"]
+        let modifierKeyNames: [String: String] = [
+            "⌘": "⌘Cmd", "⇧": "⇧Shift", "⌥": "⌥Option", "⌃": "⌃Ctrl"
+        ]
+
+        var result: [ShortcutStrainEntry] = []
+
+        for (combo, count) in modCounts {
+            // Strip leading modifier symbols to find the base key
+            var remaining = combo
+            var mods: [String] = []
+            var changed = true
+            while changed {
+                changed = false
+                for sym in modifierSymbols {
+                    if remaining.hasPrefix(sym) {
+                        mods.append(sym)
+                        remaining = String(remaining.dropFirst(sym.count))
+                        changed = true
+                        break
+                    }
+                }
+            }
+            let baseKey = remaining
+            guard !baseKey.isEmpty, !mods.isEmpty else { continue }
+            guard let keyHand = registry.hand(for: baseKey) else { continue }
+
+            // Flag if any modifier is on the same hand as the base key
+            for sym in mods {
+                guard let modKeyName = modifierKeyNames[sym],
+                      let modHand    = registry.hand(for: modKeyName),
+                      modHand == keyHand else { continue }
+                result.append(ShortcutStrainEntry(id: combo, combo: combo, count: count))
+                break  // one match per combo is enough
+            }
+        }
+
+        let sorted = result.sorted { $0.count > $1.count }
+        return (sorted, totalPresses)
+    }
+
+    // Shared finger label helper
+    private static func fingerLabel(_ finger: Finger) -> String {
+        switch finger {
+        case .thumb:  return "Thumb"
+        case .pinky:  return "Pinky"
+        case .ring:   return "Ring"
+        case .middle: return "Middle"
+        case .index:  return "Index"
         }
     }
 
