@@ -124,25 +124,26 @@ extension KeyMetricsQuery {
 
     // Issue #334: modifier key press counts broken down by finger assignment.
     // Uses LayoutRegistry.finger(for:) so ThumbClusterConfig overrides are respected.
+    // Counts are derived from modifiedCounts (combo strings like "⌘t", "⌃h")
+    // because modifier keypresses are not stored as individual keystrokes in keyCounts.
     func modifierFingerBreakdown() -> [ModifierFingerEntry] {
-        let registry = LayoutRegistry.shared
-        let counts   = store.counts
+        let registry  = LayoutRegistry.shared
+        let modCounts = store.shortcuts.modifiedCounts
 
-        // (displayLabel, storeName) — right-side modifiers appear as Key(N) from KeyboardMonitor
-        let modifierKeys: [(display: String, store: String)] = [
-            ("⌘L", "⌘Cmd"),
-            ("⌘R", "Key(54)"),
-            ("⇧L", "⇧Shift"),
-            ("⇧R", "Key(60)"),
-            ("⌥L", "⌥Option"),
-            ("⌥R", "Key(61)"),
-            ("⌃L", "⌃Ctrl"),
-            ("⌃R", "Key(62)"),
+        // (symbol in combo string, display label, canonical key name for finger lookup)
+        let modifiers: [(symbol: String, displayLabel: String, keyName: String)] = [
+            ("⌘", "⌘ Cmd",    "⌘Cmd"),
+            ("⇧", "⇧ Shift",  "⇧Shift"),
+            ("⌥", "⌥ Option", "⌥Option"),
+            ("⌃", "⌃ Ctrl",   "⌃Ctrl"),
         ]
 
-        return modifierKeys.compactMap { (display, storeName) -> ModifierFingerEntry? in
-            let count = counts[storeName] ?? 0
-            guard let finger = registry.finger(for: storeName) else { return nil }
+        return modifiers.compactMap { (symbol, displayLabel, keyName) -> ModifierFingerEntry? in
+            // Sum counts of all combos that contain this modifier symbol
+            let count = modCounts.reduce(0) { acc, pair in
+                pair.key.contains(symbol) ? acc + pair.value : acc
+            }
+            guard let finger = registry.finger(for: keyName) else { return nil }
             let isThumb = finger == .thumb
             let fingerLabel: String
             switch finger {
@@ -153,9 +154,9 @@ extension KeyMetricsQuery {
             case .index:  fingerLabel = "Index"
             }
             return ModifierFingerEntry(
-                id:           display,
-                displayLabel: display,
-                keyName:      storeName,
+                id:           displayLabel,
+                displayLabel: displayLabel,
+                keyName:      keyName,
                 fingerLabel:  fingerLabel,
                 isThumb:      isThumb,
                 count:        count
