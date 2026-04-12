@@ -1928,6 +1928,45 @@ final class L10n {
         }
     }
 
+    // MARK: - Thumb Cluster Config (Issue #333)
+
+    var thumbClusterConfigTitle: String {
+        ja("親指クラスター設定", en: "Thumb Cluster Config")
+    }
+
+    var thumbClusterConfigHelp: String {
+        ja("DIYキーボードで親指クラスターに割り当てたキーを選択してください。選択したキーはすべてのエルゴノミクス分析で親指として扱われます。",
+           en: "Select keys that are physically on your thumb cluster. These keys will be treated as thumb-assigned in all ergonomic analysis.")
+    }
+
+    var thumbClusterConfigNone: String {
+        ja("親指クラスターキーなし (標準配列)", en: "No thumb cluster keys (standard layout)")
+    }
+
+    var thumbClusterConfigActive: String {
+        ja("親指クラスター: ", en: "Thumb cluster: ")
+    }
+
+    var thumbClusterConfigDone: String {
+        ja("完了", en: "Done")
+    }
+
+    var thumbClusterConfigPresetCommon: String {
+        ja("基本 (Delete + Return)", en: "Common (Delete + Return)")
+    }
+
+    var thumbClusterConfigPresetExtended: String {
+        ja("拡張 (Delete, Return, Tab, Escape, CapsLock)", en: "Extended (Delete, Return, Tab, Escape, CapsLock)")
+    }
+
+    var thumbClusterConfigPresetNone: String {
+        ja("なし", en: "None")
+    }
+
+    var thumbClusterConfigPresetLabel: String {
+        ja("プリセット", en: "Preset")
+    }
+
     // MARK: - Thumb Optimization (Issue #208)
 
     var handLeft:  String { ja("左", en: "Left") }

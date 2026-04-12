@@ -28,7 +28,10 @@ extension ChartsView {
 
             switch ergoSubTab {
             case .recommendations:
-                ErgoRecommendationsView(recs: model.ergoRecommendations)
+                VStack(spacing: 0) {
+                    ThumbClusterSettingsView(showConfig: $showThumbClusterConfig, onChanged: { model.reload() })
+                    ErgoRecommendationsView(recs: model.ergoRecommendations)
+                }
 
             case .bigrams:
                 ScrollView {
@@ -852,5 +855,124 @@ private struct ErgoRecommendationsView: View {
         case .medium: return .orange
         case .low:    return .secondary
         }
+    }
+}
+
+// MARK: - Thumb Cluster Settings (Issue #333)
+
+private struct ThumbClusterSettingsView: View {
+    @Binding var showConfig: Bool
+    let onChanged: () -> Void
+
+    @ObservedObject private var theme = ThemeStore.shared
+    @State private var selectedKeys: Set<String> = []
+
+    var body: some View {
+        let l = L10n.shared
+        let currentKeys = LayoutRegistry.shared.activeProfile.thumbConfig?.thumbKeys ?? []
+
+        HStack(spacing: 10) {
+            Image(systemName: "hand.point.up.left")
+                .foregroundColor(theme.accentColor)
+                .font(.system(size: 15))
+
+            if currentKeys.isEmpty {
+                Text(l.thumbClusterConfigNone)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(l.thumbClusterConfigActive)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                ForEach(currentKeys.sorted(), id: \.self) { key in
+                    Text(key)
+                        .font(.system(size: 11, weight: .semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(theme.accentColor.opacity(0.15))
+                        .cornerRadius(4)
+                }
+            }
+
+            Spacer()
+
+            Button(l.thumbClusterConfigTitle) {
+                selectedKeys = LayoutRegistry.shared.activeProfile.thumbConfig?.thumbKeys ?? []
+                showConfig = true
+            }
+            .buttonStyle(.borderless)
+            .font(.system(size: 12))
+            .foregroundColor(theme.accentColor)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
+        .sheet(isPresented: $showConfig) {
+            thumbConfigSheet(onChanged: onChanged)
+        }
+    }
+
+    private func thumbConfigSheet(onChanged: @escaping () -> Void) -> some View {
+        let l = L10n.shared
+        return VStack(alignment: .leading, spacing: 20) {
+            Text(l.thumbClusterConfigTitle)
+                .font(.headline)
+
+            Text(l.thumbClusterConfigHelp)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 8) {
+                Text(l.thumbClusterConfigPresetLabel + ":")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Button(l.thumbClusterConfigPresetNone) {
+                    selectedKeys = []
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                Button(l.thumbClusterConfigPresetCommon) {
+                    selectedKeys = ThumbClusterConfig.common.thumbKeys
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                Button(l.thumbClusterConfigPresetExtended) {
+                    selectedKeys = ThumbClusterConfig.extended.thumbKeys
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(ThumbClusterConfig.assignableKeys, id: \.self) { key in
+                    Toggle(key, isOn: Binding(
+                        get: { selectedKeys.contains(key) },
+                        set: { isOn in
+                            if isOn { selectedKeys.insert(key) } else { selectedKeys.remove(key) }
+                        }
+                    ))
+                    .toggleStyle(.checkbox)
+                }
+            }
+
+            Divider()
+
+            HStack {
+                Spacer()
+                Button(l.thumbClusterConfigDone) {
+                    let config = selectedKeys.isEmpty ? nil : ThumbClusterConfig(thumbKeys: selectedKeys)
+                    LayoutRegistry.shared.setThumbConfig(config)
+                    onChanged()
+                    showConfig = false
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+            }
+        }
+        .padding(24)
+        .frame(minWidth: 360)
     }
 }

@@ -69,7 +69,7 @@ public struct ThumbImbalanceDetector: Equatable {
         var right = 0
 
         for (key, count) in counts {
-            guard layout.current.finger(for: key) == .thumb else { continue }
+            guard layout.finger(for: key) == .thumb else { continue }
             switch layout.hand(for: key) {
             case .left:  left  += count
             case .right: right += count

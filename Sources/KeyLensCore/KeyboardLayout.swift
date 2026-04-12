@@ -388,6 +388,43 @@ public struct SplitKeyboardConfig: Equatable {
     }
 }
 
+// MARK: - ThumbClusterConfig
+
+/// Declares which keys are physically on the thumb cluster of a custom keyboard.
+///
+/// On DIY keyboards (e.g. Corne, Moonlander), non-standard keys such as Backspace,
+/// Enter, and Delete are often moved to thumb-reachable positions. Configuring this
+/// tells KeyLens to treat those keys as thumb-assigned throughout all ergonomic analysis.
+public struct ThumbClusterConfig: Equatable {
+    /// Key names explicitly assigned to thumb. Must match KeyboardMonitor key name strings.
+    public let thumbKeys: Set<String>
+
+    public init(thumbKeys: Set<String> = []) {
+        self.thumbKeys = thumbKeys
+    }
+
+    /// Returns .thumb if keyName is in the thumb set, nil otherwise.
+    public func finger(for keyName: String) -> Finger? {
+        thumbKeys.contains(keyName) ? .thumb : nil
+    }
+
+    public var isEmpty: Bool { thumbKeys.isEmpty }
+
+    /// Keys that can reasonably be reassigned to a thumb cluster.
+    public static let assignableKeys: [String] = [
+        "Delete", "Return", "Tab", "Escape", "CapsLock",
+        "⌃Ctrl", "⇧Shift", "⌦FwdDel", "Enter(Num)"
+    ]
+
+    /// Preset: Backspace + Enter on thumb (common minimal cluster).
+    public static let common = ThumbClusterConfig(thumbKeys: ["Delete", "Return"])
+
+    /// Preset: common + Tab, Escape, CapsLock (extended cluster).
+    public static let extended = ThumbClusterConfig(
+        thumbKeys: ["Delete", "Return", "Tab", "Escape", "CapsLock"]
+    )
+}
+
 // MARK: - LayoutRegistry
 
 /// Holds the active keyboard layout and optional split configuration.
@@ -429,11 +466,33 @@ public final class LayoutRegistry {
         activeProfile.splitConfig?.hand(for: keyName) ?? activeProfile.layout.hand(for: keyName)
     }
 
+    /// Returns the finger for a key name, respecting ThumbClusterConfig overrides.
+    /// ThumbClusterConfig が設定されている場合はそれを優先する。
+    public func finger(for keyName: String) -> Finger? {
+        if let override = activeProfile.thumbConfig?.finger(for: keyName) { return override }
+        return activeProfile.layout.finger(for: keyName)
+    }
+
     /// Returns the load weight for the finger assigned to a key name, or nil if the key is unknown.
     /// キー名からその指の負荷重みを返す。未知のキーは nil。
     public func loadWeight(for keyName: String) -> Double? {
-        guard let finger = activeProfile.layout.finger(for: keyName) else { return nil }
-        return activeProfile.fingerWeights.weight(for: finger)
+        guard let f = finger(for: keyName) else { return nil }
+        return activeProfile.fingerWeights.weight(for: f)
+    }
+
+    /// Updates the thumb cluster configuration and persists it to UserDefaults.
+    /// 親指クラスター設定を更新し UserDefaults に永続化する。
+    public func setThumbConfig(_ config: ThumbClusterConfig?) {
+        let effective = config?.isEmpty == true ? nil : config
+        activeProfile = ErgonomicProfile(
+            name: activeProfile.name,
+            layout: activeProfile.layout,
+            fingerWeights: activeProfile.fingerWeights,
+            splitConfig: activeProfile.splitConfig,
+            thumbConfig: effective
+        )
+        let keys = Array(effective?.thumbKeys ?? [])
+        UserDefaults.standard.set(keys, forKey: Self.thumbConfigDefaultsKey)
     }
 
     // Deprecated properties — kept for backward compatibility if needed, but redirects to activeProfile
@@ -461,8 +520,8 @@ public final class LayoutRegistry {
 
         // Both keys must be on the same hand and use the same finger.
         // 同じ手・同じ指でなければ同指ビグラムではない。
-        guard let finger1 = activeProfile.layout.finger(for: k1),
-              let finger2 = activeProfile.layout.finger(for: k2),
+        guard let finger1 = finger(for: k1),
+              let finger2 = finger(for: k2),
               finger1 == finger2,
               let hand1 = hand(for: k1),
               let hand2 = hand(for: k2),
@@ -498,15 +557,34 @@ public final class LayoutRegistry {
     /// UserDefaults key for persisting the last resolved profile name.
     private static let profileDefaultsKey = "layoutRegistryProfileName"
 
+    /// UserDefaults key for persisting the thumb cluster key set.
+    private static let thumbConfigDefaultsKey = "layoutRegistryThumbKeys"
+
     /// Internal designated initialiser. Restores the last persisted profile if available.
     /// シングルトンは `.shared`、シミュレーション用は `forSimulation` を使うこと。
     init() {
+        var profile = ErgonomicProfile.standard
+
         if let saved = UserDefaults.standard.string(forKey: Self.profileDefaultsKey) {
             let known: [ErgonomicProfile] = [.standard, .splitErgo]
             if let match = known.first(where: { $0.name == saved }) {
-                activeProfile = match
+                profile = match
             }
         }
+
+        if let savedKeys = UserDefaults.standard.array(forKey: Self.thumbConfigDefaultsKey) as? [String],
+           !savedKeys.isEmpty {
+            let config = ThumbClusterConfig(thumbKeys: Set(savedKeys))
+            profile = ErgonomicProfile(
+                name: profile.name,
+                layout: profile.layout,
+                fingerWeights: profile.fingerWeights,
+                splitConfig: profile.splitConfig,
+                thumbConfig: config
+            )
+        }
+
+        activeProfile = profile
     }
 
     // MARK: - Simulation factory
