@@ -38,6 +38,7 @@ Maybe one two-key combination accounts for half your same-finger strain. You can
 
 The goal is to give you the data to make one concrete layout change that actually helps,
 rather than switching to Colemak blindly and hoping for the best.
+Keyboard shortcuts matter as much as letter keys — you can't optimize your layout without being able to swap modifier and navigation keys.
 
 ---
 
