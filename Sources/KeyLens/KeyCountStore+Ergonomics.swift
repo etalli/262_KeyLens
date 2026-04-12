@@ -136,6 +136,12 @@ extension KeyCountStore {
         let q = queue.sync { makeQuery() }
         return q.layerEfficiency()
     }
+
+    // Issue #334: modifier key breakdown by finger
+    func modifierFingerBreakdown() -> [ModifierFingerEntry] {
+        let q = queue.sync { makeQuery() }
+        return q.modifierFingerBreakdown()
+    }
 }
 
 // MARK: - Issue #299: Ergonomic Recommendations

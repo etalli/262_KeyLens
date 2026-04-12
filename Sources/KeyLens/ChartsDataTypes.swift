@@ -39,6 +39,16 @@ struct ShortcutEntry: Identifiable {
     init(_ t: (key: String, count: Int)) { id = t.key; key = t.key; count = t.count }
 }
 
+// Issue #334: modifier key breakdown by finger
+struct ModifierFingerEntry: Identifiable {
+    let id: String          // e.g. "⌘L"
+    let displayLabel: String
+    let keyName: String     // key name in store: "⌘Cmd", "Key(54)", etc.
+    let fingerLabel: String // e.g. "Thumb", "Pinky"
+    let isThumb: Bool
+    let count: Int
+}
+
 struct BigramEntry: Identifiable {
     let id: String
     let pair: String

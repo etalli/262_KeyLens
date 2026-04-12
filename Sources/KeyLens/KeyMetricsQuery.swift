@@ -122,6 +122,48 @@ extension KeyMetricsQuery {
         return topEntries(filtered, limit: limit)
     }
 
+    // Issue #334: modifier key press counts broken down by finger assignment.
+    // Uses LayoutRegistry.finger(for:) so ThumbClusterConfig overrides are respected.
+    // Counts are derived from modifiedCounts (combo strings like "⌘t", "⌃h")
+    // because modifier keypresses are not stored as individual keystrokes in keyCounts.
+    func modifierFingerBreakdown() -> [ModifierFingerEntry] {
+        let registry  = LayoutRegistry.shared
+        let modCounts = store.shortcuts.modifiedCounts
+
+        // (symbol in combo string, display label, canonical key name for finger lookup)
+        let modifiers: [(symbol: String, displayLabel: String, keyName: String)] = [
+            ("⌘", "⌘ Cmd",    "⌘Cmd"),
+            ("⇧", "⇧ Shift",  "⇧Shift"),
+            ("⌥", "⌥ Option", "⌥Option"),
+            ("⌃", "⌃ Ctrl",   "⌃Ctrl"),
+        ]
+
+        return modifiers.compactMap { (symbol, displayLabel, keyName) -> ModifierFingerEntry? in
+            // Sum counts of all combos that contain this modifier symbol
+            let count = modCounts.reduce(0) { acc, pair in
+                pair.key.contains(symbol) ? acc + pair.value : acc
+            }
+            guard let finger = registry.finger(for: keyName) else { return nil }
+            let isThumb = finger == .thumb
+            let fingerLabel: String
+            switch finger {
+            case .thumb:  fingerLabel = "Thumb"
+            case .pinky:  fingerLabel = "Pinky"
+            case .ring:   fingerLabel = "Ring"
+            case .middle: fingerLabel = "Middle"
+            case .index:  fingerLabel = "Index"
+            }
+            return ModifierFingerEntry(
+                id:           displayLabel,
+                displayLabel: displayLabel,
+                keyName:      keyName,
+                fingerLabel:  fingerLabel,
+                isThumb:      isThumb,
+                count:        count
+            )
+        }
+    }
+
     func topKeys(limit: Int = 10) -> [(key: String, count: Int)] {
         topEntries(store.counts, limit: limit)
     }

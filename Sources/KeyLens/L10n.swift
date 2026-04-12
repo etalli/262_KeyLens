@@ -1928,6 +1928,26 @@ final class L10n {
         }
     }
 
+    // MARK: - Modifier Finger Analysis (Issue #334)
+
+    var modifierFingerTitle: String {
+        ja("モディファイアキーの指別分析", en: "Modifier Keys by Finger")
+    }
+
+    var modifierFingerHelp: String {
+        ja("各モディファイアキー (⌘⇧⌥⌃) が何の指で押されているかを示します。親指クラスターに移動したキーは「Thumb」として表示されます。",
+           en: "Shows which finger presses each modifier key (⌘⇧⌥⌃). Keys moved to a thumb cluster appear as Thumb.")
+    }
+
+    var modifierFingerNoData: String {
+        ja("モディファイアキーのデータなし", en: "No modifier key data yet")
+    }
+
+    func modifierFingerSummary(thumbPct: Int, pinkyPct: Int) -> String {
+        ja("親指 \(thumbPct)%  /  小指 \(pinkyPct)%",
+           en: "Thumb \(thumbPct)%  /  Pinky \(pinkyPct)%")
+    }
+
     // MARK: - Thumb Cluster Config (Issue #333)
 
     var thumbClusterConfigTitle: String {

@@ -1,11 +1,13 @@
 import SwiftUI
 import Charts
+import KeyLensCore
 
 extension ChartsView {
 
     var shortcutsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
+                chartSection(L10n.shared.modifierFingerTitle, helpText: L10n.shared.modifierFingerHelp) { modifierFingerChart }
                 chartSection(L10n.shared.chartTitleCmdShortcuts, helpText: L10n.shared.helpShortcuts, showSort: true) { shortcutsChart }
                 chartSection(L10n.shared.chartTitleAllCombos, helpText: L10n.shared.helpAllCombos, showSort: true) { allCombosChart }
             }
@@ -102,5 +104,86 @@ extension ChartsView {
         case "⇧": return .green
         default:   return .gray
         }
+    }
+
+    // MARK: - Modifier Keys by Finger (Issue #334)
+
+    @ViewBuilder
+    var modifierFingerChart: some View {
+        let l = L10n.shared
+        let data = model.modifierFingerData
+
+        if data.allSatisfy({ $0.count == 0 }) {
+            Text(l.modifierFingerNoData)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                // Bar chart: one bar per modifier key, colored by finger
+                Chart(data) { item in
+                    BarMark(
+                        x: .value("Count", item.count),
+                        y: .value("Key", item.displayLabel)
+                    )
+                    .foregroundStyle(modifierFingerColor(item))
+                    .cornerRadius(3)
+                    .annotation(position: .trailing, spacing: 4) {
+                        if item.count > 0 {
+                            Text(item.count.formatted())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let label = value.as(String.self) {
+                                VStack(alignment: .trailing, spacing: 0) {
+                                    Text(label).font(.system(size: 13, weight: .semibold))
+                                    Text(fingerLabel(for: label, in: data))
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                .chartLegend(.hidden)
+                .frame(height: CGFloat(data.count * 36 + 24))
+
+                // Summary line: thumb % vs pinky %
+                let total     = data.map(\.count).reduce(0, +)
+                let thumbSum  = data.filter(\.isThumb).map(\.count).reduce(0, +)
+                let pinkySum  = data.filter { !$0.isThumb }.map(\.count).reduce(0, +)
+                if total > 0 {
+                    let thumbPct = Int((Double(thumbSum) / Double(total) * 100).rounded())
+                    let pinkyPct = Int((Double(pinkySum) / Double(total) * 100).rounded())
+                    HStack(spacing: 16) {
+                        HStack(spacing: 6) {
+                            Circle().fill(Color.blue).frame(width: 8, height: 8)
+                            Text("Thumb").font(.caption).foregroundStyle(.secondary)
+                        }
+                        HStack(spacing: 6) {
+                            Circle().fill(Color.red).frame(width: 8, height: 8)
+                            Text("Pinky").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(l.modifierFingerSummary(thumbPct: thumbPct, pinkyPct: pinkyPct))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func modifierFingerColor(_ entry: ModifierFingerEntry) -> Color {
+        entry.isThumb ? .blue : .red
+    }
+
+    private func fingerLabel(for displayLabel: String, in data: [ModifierFingerEntry]) -> String {
+        data.first(where: { $0.displayLabel == displayLabel })?.fingerLabel ?? ""
     }
 }
