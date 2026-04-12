@@ -12,6 +12,8 @@ final class ChartDataModel: ObservableObject {
     @Published var perDayKeys:           [DailyKeyEntry]        = []
     @Published var shortcuts:            [ShortcutEntry]        = []
     @Published var allCombos:            [ShortcutEntry]        = []
+    // Issue #334: modifier key finger breakdown
+    @Published var modifierFingerData:   [ModifierFingerEntry]  = []
     @Published var keyCounts:            [String: Int]          = [:]
     @Published var topBigrams:           [BigramEntry]          = []
     @Published var sameFingerRate:       Double?                = nil
@@ -186,6 +188,8 @@ final class ChartDataModel: ObservableObject {
             }
             // Issue #209: Layer key efficiency
             let layerEfficiency    = store.layerEfficiency()
+            // Issue #334: modifier key finger breakdown
+            let modifierFingerData = store.modifierFingerBreakdown()
 
             // Summary tab scalars (moved from view bodies to avoid main-thread DB calls)
             let totalCount       = store.totalCount
@@ -235,6 +239,7 @@ final class ChartDataModel: ObservableObject {
                 self.perDayKeys           = perDayKeys
                 self.shortcuts            = shortcuts
                 self.allCombos            = allCombos
+                self.modifierFingerData   = modifierFingerData
                 self.keyCounts            = keyCounts
                 self.topBigrams           = topBigrams
                 self.sameFingerRate       = sameFingerRate

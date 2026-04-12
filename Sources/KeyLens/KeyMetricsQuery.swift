@@ -122,6 +122,47 @@ extension KeyMetricsQuery {
         return topEntries(filtered, limit: limit)
     }
 
+    // Issue #334: modifier key press counts broken down by finger assignment.
+    // Uses LayoutRegistry.finger(for:) so ThumbClusterConfig overrides are respected.
+    func modifierFingerBreakdown() -> [ModifierFingerEntry] {
+        let registry = LayoutRegistry.shared
+        let counts   = store.counts
+
+        // (displayLabel, storeName) — right-side modifiers appear as Key(N) from KeyboardMonitor
+        let modifierKeys: [(display: String, store: String)] = [
+            ("⌘L", "⌘Cmd"),
+            ("⌘R", "Key(54)"),
+            ("⇧L", "⇧Shift"),
+            ("⇧R", "Key(60)"),
+            ("⌥L", "⌥Option"),
+            ("⌥R", "Key(61)"),
+            ("⌃L", "⌃Ctrl"),
+            ("⌃R", "Key(62)"),
+        ]
+
+        return modifierKeys.compactMap { (display, storeName) -> ModifierFingerEntry? in
+            let count = counts[storeName] ?? 0
+            guard let finger = registry.finger(for: storeName) else { return nil }
+            let isThumb = finger == .thumb
+            let fingerLabel: String
+            switch finger {
+            case .thumb:  fingerLabel = "Thumb"
+            case .pinky:  fingerLabel = "Pinky"
+            case .ring:   fingerLabel = "Ring"
+            case .middle: fingerLabel = "Middle"
+            case .index:  fingerLabel = "Index"
+            }
+            return ModifierFingerEntry(
+                id:           display,
+                displayLabel: display,
+                keyName:      storeName,
+                fingerLabel:  fingerLabel,
+                isThumb:      isThumb,
+                count:        count
+            )
+        }
+    }
+
     func topKeys(limit: Int = 10) -> [(key: String, count: Int)] {
         topEntries(store.counts, limit: limit)
     }
