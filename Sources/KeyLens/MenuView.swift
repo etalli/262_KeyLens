@@ -147,9 +147,12 @@ struct MenuView: View {
     private var footerRow: some View {
         let l = L10n.shared
         return VStack(spacing: 0) {
-            menuRow(l.aboutMenuItem,           icon: "info.circle")     { appDelegate.showAboutPanel() }
+            menuRow(l.aboutMenuItem,           icon: "info.circle")       { appDelegate.showAboutPanel() }
             menuRow(l.checkForUpdatesMenuItem, icon: "arrow.down.circle") { appDelegate.checkForUpdates() }
-            menuRow(l.quit, icon: "power")       { appDelegate.quit() }
+            menuRow(l.helpMenuItem,            icon: "questionmark.circle") {
+                NSWorkspace.shared.open(URL(string: "https://etalli.github.io/262_KeyLens/landing-page/")!)
+            }
+            menuRow(l.quit, icon: "power")     { appDelegate.quit() }
         }
     }
 

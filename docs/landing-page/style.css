@@ -128,7 +128,7 @@ nav {
 /* Hero */
 .hero {
     padding-top: calc(var(--nav-height) + 80px);
-    padding-bottom: 120px;
+    padding-bottom: 60px;
     position: relative;
 }
 
@@ -322,7 +322,7 @@ nav {
 
 /* Screenshots */
 .screenshots {
-    padding: 80px 0 100px;
+    padding: 80px 0 40px;
 }
 
 .screenshot-tabs {
@@ -395,7 +395,7 @@ nav {
 
 /* Security */
 .security {
-    padding: 80px 0 120px;
+    padding: 40px 0 80px;
 }
 
 .security-card {

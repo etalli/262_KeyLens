@@ -146,6 +146,10 @@ final class L10n {
         ja("アップデートを確認…", en: "Check for Updates…")
     }
 
+    var helpMenuItem: String {
+        ja("ヘルプ", en: "Help")
+    }
+
     var updateAvailableTitle: String {
         ja("アップデートがあります", en: "Update Available")
     }
