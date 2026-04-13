@@ -602,12 +602,13 @@ final class KeyCountStore {
     }
 
     /// Increment a modifier+key combo count.
+    /// Uses async (not sync) to avoid blocking the event tap callback on the main thread.
     func incrementModified(key: String) {
-        queue.sync {
-            store.shortcuts.modifiedCounts[key, default: 0] += 1
-            store.shortcuts.dailyModifiedCount[todayKey, default: 0] += 1
+        queue.async {
+            self.store.shortcuts.modifiedCounts[key, default: 0] += 1
+            self.store.shortcuts.dailyModifiedCount[self.todayKey, default: 0] += 1
+            self.scheduleSave()
         }
-        scheduleSave()
     }
 
     // MARK: - Session management (Issue #60)
