@@ -2023,6 +2023,21 @@ final class L10n {
         ja("打鍵強度の凡例：少ない から 多い", en: "Keystroke intensity legend, from less to more")
     }
 
+    // MARK: - Weekly Heatmap Accessibility (Issue #344)
+
+    func heatmapCellAccessibilityLabel(weekday: String, hour: Int, avgCount: Double, avgWPM: Double?) -> String {
+        let hourStr = String(format: "%02d:00", hour)
+        let countPart: String = avgCount < 0.5
+            ? ja("打鍵なし", en: "no keystrokes")
+            : ja("平均 \(Int(avgCount.rounded()))打鍵", en: "avg \(Int(avgCount.rounded())) keystrokes")
+        if let wpm = avgWPM, wpm >= 0.5 {
+            let wpmStr = String(format: "%.0f", wpm)
+            return ja("\(weekday) \(hourStr)、\(countPart)、\(wpmStr) WPM",
+                      en: "\(weekday) \(hourStr), \(countPart), \(wpmStr) WPM")
+        }
+        return ja("\(weekday) \(hourStr)、\(countPart)", en: "\(weekday) \(hourStr), \(countPart)")
+    }
+
     // MARK: - Layer Mapping (Issue #209)
 
     var layerMappingMenuTitle: String {

@@ -728,11 +728,20 @@ struct WeeklyHeatmapView: View {
         }()
         let intensity = maxValue > 0 ? min(value / maxValue, 1.0) : 0
         let fill = Color.blue.opacity(0.06 + intensity * 0.88)
+        let fullNames = L10n.shared.weekdayFullNames
+        let dayName = wd < fullNames.count ? fullNames[wd] : ""
+        let a11yLabel = L10n.shared.heatmapCellAccessibilityLabel(
+            weekday: dayName,
+            hour: hour,
+            avgCount: cell?.avgCount ?? 0,
+            avgWPM: cell?.avgWPM
+        )
         return Rectangle()
             .fill(fill)
             .frame(width: cellW - 1, height: cellH - 1)
             .cornerRadius(2)
             .onHover { hovering in hoveredCell = hovering ? cell : nil }
+            .accessibilityLabel(a11yLabel)
     }
 
     @ViewBuilder
