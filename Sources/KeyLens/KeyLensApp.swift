@@ -13,8 +13,15 @@ enum KeyLens {
         return dir.appendingPathComponent("app.log")
     }()
 
+    private static let logFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
+        f.timeZone = TimeZone.current
+        return f
+    }()
+
     static func log(_ message: String) {
-        let line = "[\(Date().formatted(.iso8601))] \(message)\n"
+        let line = "[\(logFormatter.string(from: Date()))] \(message)\n"
         print(line, terminator: "")
         if let data = line.data(using: .utf8),
            let handle = try? FileHandle(forWritingTo: logURL) {
