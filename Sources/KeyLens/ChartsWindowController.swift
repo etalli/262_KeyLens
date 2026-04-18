@@ -93,6 +93,8 @@ final class ChartDataModel: ObservableObject {
     @Published var shortcutStrainEntries:      [ShortcutStrainEntry]         = []
     @Published var shortcutStrainTotalPresses: Int                           = 0
     // Issue #258: background loading state
+    // Issue #347: Key Accumulation Chart — running cumulative sum of daily keystrokes
+    @Published var keyAccumulation:          [AccumulationEntry]           = []
     @Published var isLoading: Bool = false
 
     // Summary tab scalars — computed on background thread during reload() to avoid main-thread DB calls in view bodies.
@@ -121,6 +123,13 @@ final class ChartDataModel: ObservableObject {
             let topKeys             = store.topKeys(limit: 20).map(TopKeyEntry.init)
             let rawDailyTotals      = store.dailyTotals()
             let dailyTotals         = rawDailyTotals.map(DailyTotalEntry.init)
+            let keyAccumulation: [AccumulationEntry] = {
+                var running = 0
+                return rawDailyTotals.map { entry in
+                    running += entry.total
+                    return AccumulationEntry(id: entry.date, date: entry.date, cumulative: running)
+                }
+            }()
             let categories          = store.countsByType().map(CategoryEntry.init)
             let perDayKeys          = store.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
             let shortcuts           = store.topModifiedKeys(prefix: "⌘", limit: 20).map(ShortcutEntry.init)
@@ -240,6 +249,7 @@ final class ChartDataModel: ObservableObject {
                 guard let self else { return }
                 self.topKeys              = topKeys
                 self.dailyTotals          = dailyTotals
+                self.keyAccumulation      = keyAccumulation
                 self.categories           = categories
                 self.perDayKeys           = perDayKeys
                 self.shortcuts            = shortcuts

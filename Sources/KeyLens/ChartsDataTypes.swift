@@ -17,6 +17,12 @@ struct DailyTotalEntry: Identifiable {
     init(_ t: (date: String, total: Int)) { id = t.date; date = t.date; total = t.total }
 }
 
+struct AccumulationEntry: Identifiable {
+    let id: String
+    let date: String
+    let cumulative: Int
+}
+
 struct CategoryEntry: Identifiable {
     var id: String { type.rawValue }
     let type: KeyType

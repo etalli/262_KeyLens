@@ -48,6 +48,7 @@ extension ChartsView {
                     VStack(alignment: .leading, spacing: 40) {
                         chartSection(L10n.shared.chartTitleDailyTotals, helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
                         chartSection(L10n.shared.chartTitleMonthlyTotals, helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
+                        chartSection(L10n.shared.chartTitleKeyAccumulation, helpText: L10n.shared.helpKeyAccumulation) { keyAccumulationChart }
                         chartSection(L10n.shared.chartTitleSessions, helpText: L10n.shared.helpSessions) { sessionsChart }
                     }
                     .padding(24)
@@ -349,6 +350,88 @@ extension ChartsView {
             }
             .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
             .frame(height: 180)
+        }
+    }
+
+    // MARK: - Issue #347: Key Accumulation Chart
+
+    @ViewBuilder
+    var keyAccumulationChart: some View {
+        if model.keyAccumulation.isEmpty {
+            emptyState
+        } else if model.keyAccumulation.count == 1 {
+            Chart(model.keyAccumulation) { item in
+                BarMark(x: .value("Date", item.date), y: .value("Total", item.cumulative))
+                    .foregroundStyle(theme.accentColor)
+                    .cornerRadius(4)
+            }
+            .frame(height: 180)
+        } else {
+            let entries = model.keyAccumulation
+            let milestone = entries.first(where: { $0.cumulative >= 1_000_000 })
+            Chart {
+                ForEach(entries) { item in
+                    AreaMark(
+                        x: .value("Date", item.date),
+                        y: .value("Cumulative", item.cumulative)
+                    )
+                    .foregroundStyle(theme.accentColor.opacity(0.12))
+                    LineMark(
+                        x: .value("Date", item.date),
+                        y: .value("Cumulative", item.cumulative)
+                    )
+                    .foregroundStyle(theme.accentColor)
+                    .interpolationMethod(.catmullRom)
+                }
+                if let m = milestone {
+                    RuleMark(y: .value("1M", 1_000_000))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .foregroundStyle(.secondary.opacity(0.5))
+                        .annotation(position: .top, alignment: .leading) {
+                            Text("1M")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    PointMark(
+                        x: .value("Date", m.date),
+                        y: .value("Cumulative", m.cumulative)
+                    )
+                    .foregroundStyle(.yellow)
+                    .symbolSize(60)
+                    .annotation(position: .top, spacing: 4) {
+                        Text("🎉 1M")
+                            .font(.caption2)
+                    }
+                }
+            }
+            .chartXAxis {
+                let stride = max(2, entries.count / 5)
+                AxisMarks(values: entries.enumerated()
+                    .filter { $0.offset % stride == 0 }
+                    .map { $0.element.date }
+                ) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let d = value.as(String.self) {
+                            Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))
+                                .font(.footnote)
+                        }
+                    }
+                }
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let v = value.as(Int.self) {
+                            Text(v.formatted(.number.notation(.compactName)))
+                                .font(.footnote)
+                        }
+                    }
+                }
+            }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
+            .frame(height: 200)
         }
     }
 

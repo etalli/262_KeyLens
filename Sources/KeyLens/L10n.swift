@@ -1260,6 +1260,13 @@ final class L10n {
         )
     }
 
+    var helpKeyAccumulation: String {
+        ja(
+            "日別打鍵数の累計（ランニングトータル）を折れ線グラフで表示します。打鍵数の節目（100万回など）の達成時期を確認できます。",
+            en: "Running total of all keystrokes over time. Shows when you hit major milestones such as 1 million keypresses."
+        )
+    }
+
     var helpKeyboardHeatmap: String {
         ja(
             "キーボード上の各キーの使用頻度を色の濃さで表示します。よく使うキーほど濃い色になります。\n\n負荷ビューに切り替えると、同指連続入力（高負荷バイグラム）が多いキーを確認できます。",
@@ -2204,6 +2211,7 @@ final class L10n {
     var chartTitleHourlyDistribution: String { ja("時間別分布", en: "Hourly Distribution") }
     var chartTitleDailyTotals: String { ja("日別合計", en: "Daily Totals") }
     var chartTitleMonthlyTotals: String { ja("月別合計", en: "Monthly Totals") }
+    var chartTitleKeyAccumulation: String { ja("累計打鍵数", en: "Key Accumulation") }
     var chartTitleKeyboardHeatmap: String { ja("キーボードヒートマップ", en: "Keyboard Heatmap") }
     var chartTitleTopKeys: String { ja("上位20キー — 全期間", en: "Top 20 Keys — All Time") }
     var chartTitleKeyCategories: String { ja("キー分類", en: "Key Categories") }
