@@ -1192,6 +1192,7 @@ final class L10n {
             en: "Keystroke counts grouped by detected keyboard device name. Useful for comparing built-in and external keyboard usage."
         )
     }
+    var manageDevices: String        { ja("デバイスを管理", en: "Manage Devices") }
     var deleteDeviceTitle: String    { ja("デバイスを削除", en: "Delete Device") }
     var deleteDeviceMessage: String  { ja("このデバイスのすべての打鍵データが削除されます。この操作は取り消せません。", en: "All keystroke data for this device will be permanently deleted. This cannot be undone.") }
     var deleteDeviceConfirm: String  { ja("削除", en: "Delete") }

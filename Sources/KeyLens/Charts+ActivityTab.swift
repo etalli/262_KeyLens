@@ -370,14 +370,26 @@ extension ChartsView {
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 if deviceNames.count > 1 {
-                    Picker(L10n.shared.accumDeviceFilterAll, selection: $accumSelectedDevice) {
-                        Text(L10n.shared.accumDeviceFilterAll).tag(String?.none)
-                        ForEach(deviceNames, id: \.self) { name in
-                            Text(name).tag(String?.some(name))
+                    HStack(spacing: 8) {
+                        Picker(L10n.shared.accumDeviceFilterAll, selection: $accumSelectedDevice) {
+                            Text(L10n.shared.accumDeviceFilterAll).tag(String?.none)
+                            ForEach(deviceNames, id: \.self) { name in
+                                Text(name).tag(String?.some(name))
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: 200)
+
+                        Button {
+                            typingSubTab = .devices
+                        } label: {
+                            Label(L10n.shared.manageDevices, systemImage: "keyboard")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help(L10n.shared.manageDevices)
                     }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: 200)
                 }
 
                 accumChartContent(entries: activeEntries)
