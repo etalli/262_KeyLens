@@ -624,14 +624,27 @@ public final class LayoutRegistry {
     
     // MARK: - Hardware Awareness
     
+    /// MCU/controller substrings that are noise — filtered out before building the device label.
+    /// These are microcontroller product names that appear as sibling USB HID devices
+    /// alongside the actual keyboard name, causing labels like "Pangaea / Pico W".
+    private static let mcuNoiseKeywords: [String] = [
+        "pico w", "pico", "rp2040", "pro micro", "elite-c", "nice!nano",
+        "bluemicro", "kb2040", "waveshare", "teensy", "arduino",
+    ]
+
     /// Normalises the connected device name list into a stable display label.
-    /// 接続デバイス名の配列を安定した表示ラベルに正規化する。
+    /// MCU controller names (Pico W, RP2040, etc.) are stripped as noise.
+    /// 接続デバイス名の配列を安定した表示ラベルに正規化する。MCU名はノイズとして除去する。
     static func resolvedDeviceLabel(for names: [String]) -> String {
         let cleaned = Array(
             Set(
                 names
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                     .filter { !$0.isEmpty }
+                    .filter { name in
+                        let lower = name.lowercased()
+                        return !mcuNoiseKeywords.contains { lower == $0 || lower.hasPrefix($0) }
+                    }
             )
         ).sorted()
         guard !cleaned.isEmpty else { return "Unknown Keyboard" }
