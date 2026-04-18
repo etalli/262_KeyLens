@@ -370,14 +370,14 @@ extension ChartsView {
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 if deviceNames.count > 1 {
-                    Picker("", selection: $accumSelectedDevice) {
+                    Picker(L10n.shared.accumDeviceFilterAll, selection: $accumSelectedDevice) {
                         Text(L10n.shared.accumDeviceFilterAll).tag(String?.none)
                         ForEach(deviceNames, id: \.self) { name in
                             Text(name).tag(String?.some(name))
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 320)
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 200)
                 }
 
                 accumChartContent(entries: activeEntries)
