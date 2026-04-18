@@ -68,64 +68,54 @@ struct ActivityCalendarView: View {
         let cols   = Int(ceil(Double(days.count) / 7.0))
 
         VStack(alignment: .leading, spacing: 6) {
-            // Day-of-week labels (Sun … Sat)
-            // 曜日ラベル（Sun〜Sat）
-            HStack(spacing: 0) {
-                // Indent to match grid columns offset — no leading label column here
-                // グリッドに合わせた先頭スペース
-                Spacer().frame(width: 0)
-            }
+            // DOW label column is fixed outside the scroll view so it stays visible at any window width.
+            HStack(alignment: .top, spacing: spacing) {
+                VStack(alignment: .trailing, spacing: spacing) {
+                    ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { label in
+                        Text(label)
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(width: cellSize, height: cellSize)
+                            .accessibilityHidden(true)
+                    }
+                }
 
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: spacing) {
-                        // DOW header column (Sun → Sat labels on left side)
-                        // 曜日ヘッダー列（左側）
-                        VStack(alignment: .trailing, spacing: spacing) {
-                            ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { label in
-                                Text(label)
-                                    .font(.system(size: 9, design: .monospaced))
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: cellSize, height: cellSize)
-                                    .accessibilityHidden(true)
-                            }
-                        }
-
-                        // Week columns
-                        // 週ごとの列
-                        ForEach(0..<cols, id: \.self) { col in
-                            VStack(spacing: spacing) {
-                                ForEach(0..<7, id: \.self) { row in
-                                    let idx = col * 7 + row
-                                    if idx < days.count && !days[idx].date.isEmpty {
-                                        let day = days[idx]
-                                        let dateLabel = accessibilityDate(day.date)
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .fill(intensityColor(count: day.count, max: max))
-                                            .frame(width: cellSize, height: cellSize)
-                                            .help("\(day.date): \(day.count.formatted()) keystrokes")
-                                            .accessibilityLabel(
-                                                L10n.shared.calendarDayAccessibilityLabel(
-                                                    dateLabel: dateLabel, count: day.count))
-                                    } else {
-                                        // Empty padding slot or out-of-range
-                                        // 空スロット
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .fill(Color.clear)
-                                            .frame(width: cellSize, height: cellSize)
-                                            .accessibilityHidden(true)
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: spacing) {
+                            // Week columns
+                            ForEach(0..<cols, id: \.self) { col in
+                                VStack(spacing: spacing) {
+                                    ForEach(0..<7, id: \.self) { row in
+                                        let idx = col * 7 + row
+                                        if idx < days.count && !days[idx].date.isEmpty {
+                                            let day = days[idx]
+                                            let dateLabel = accessibilityDate(day.date)
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .fill(intensityColor(count: day.count, max: max))
+                                                .frame(width: cellSize, height: cellSize)
+                                                .help("\(day.date): \(day.count.formatted()) keystrokes")
+                                                .accessibilityLabel(
+                                                    L10n.shared.calendarDayAccessibilityLabel(
+                                                        dateLabel: dateLabel, count: day.count))
+                                        } else {
+                                            // Empty padding slot
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .fill(Color.clear)
+                                                .frame(width: cellSize, height: cellSize)
+                                                .accessibilityHidden(true)
+                                        }
                                     }
                                 }
+                                .id(col)
                             }
-                            .id(col)
                         }
+                        .padding(.bottom, 4)
                     }
-                    .padding(.bottom, 4)
-                }
-                .onAppear {
-                    // Scroll to the rightmost (most recent) week on load
-                    // 表示時に最新週（右端）へスクロール
-                    proxy.scrollTo(cols - 1, anchor: .trailing)
+                    .onAppear {
+                        // Scroll to the rightmost (most recent) week on load
+                        proxy.scrollTo(cols - 1, anchor: .trailing)
+                    }
                 }
             }
 
