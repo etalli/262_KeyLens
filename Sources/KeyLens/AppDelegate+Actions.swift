@@ -61,7 +61,6 @@ extension AppDelegate {
         objectWillChange.send()
     }
 
-    @MainActor
     func exportWeeklySummaryCard() {
         let l = L10n.shared
         let dateFmt = DateFormatter()
@@ -73,27 +72,21 @@ extension AppDelegate {
         panel.nameFieldStringValue = "KeyLens_weekly_\(tag).png"
         panel.allowedContentTypes = [.png]
 
-        let complete: (NSApplication.ModalResponse) -> Void = { response in
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
-            if WeeklySummaryGenerator.generate(to: url) != nil {
-                NSWorkspace.shared.activateFileViewerSelecting([url])
-            } else {
-                let alert = NSAlert()
-                alert.messageText = l.weeklySummaryCardSaveFailed
-                alert.runModal()
+            Task { @MainActor in
+                if WeeklySummaryGenerator.generate(to: url) != nil {
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                } else {
+                    let alert = NSAlert()
+                    alert.messageText = l.weeklySummaryCardSaveFailed
+                    alert.runModal()
+                }
             }
-        }
-
-        let window = NSApp.keyWindow ?? ChartsWindowController.shared.window
-        if let window {
-            panel.beginSheetModal(for: window, completionHandler: complete)
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-            panel.begin(completionHandler: complete)
         }
     }
 
-    @MainActor
     func exportYearInReviewCard() {
         let l = L10n.shared
         let year = Calendar.current.component(.year, from: Date())
@@ -103,23 +96,18 @@ extension AppDelegate {
         panel.nameFieldStringValue = "KeyLens_year_\(year).png"
         panel.allowedContentTypes = [.png]
 
-        let complete: (NSApplication.ModalResponse) -> Void = { response in
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
-            if YearInReviewGenerator.generate(year: year, to: url) != nil {
-                NSWorkspace.shared.activateFileViewerSelecting([url])
-            } else {
-                let alert = NSAlert()
-                alert.messageText = l.yearInReviewSaveFailed
-                alert.runModal()
+            Task { @MainActor in
+                if YearInReviewGenerator.generate(year: year, to: url) != nil {
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                } else {
+                    let alert = NSAlert()
+                    alert.messageText = l.yearInReviewSaveFailed
+                    alert.runModal()
+                }
             }
-        }
-
-        let window = NSApp.keyWindow ?? ChartsWindowController.shared.window
-        if let window {
-            panel.beginSheetModal(for: window, completionHandler: complete)
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-            panel.begin(completionHandler: complete)
         }
     }
 
