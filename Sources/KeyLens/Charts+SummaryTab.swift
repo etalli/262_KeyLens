@@ -7,12 +7,12 @@ extension ChartsView {
         ScrollView {
             VStack(alignment: .leading, spacing: 40) {
                 allTimeTotalSection
+                chartSection(L10n.shared.chartTitleActivityCalendar, helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection(L10n.shared.weeklySummaryCardTitle) {
                     VStack(alignment: .leading, spacing: 12) {
                         WeeklySummaryCardView(data: model.weeklySummaryData, embedded: true)
                     }
                 }
-                chartSection(L10n.shared.chartTitleActivityCalendar, helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
                 chartSection(L10n.shared.chartTitleWeeklyReport, helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
 chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) {
                     mouseKeyboardBalanceChart
