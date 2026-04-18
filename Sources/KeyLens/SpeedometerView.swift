@@ -139,6 +139,10 @@ struct SpeedometerView: View {
             .frame(width: 260, height: 200)
 
             HStack(alignment: .firstTextBaseline, spacing: 4) {
+                // Hidden mirror balances the visible "WPM" label so the number centers on the arc pivot.
+                Text(L10n.shared.speedometerWPMLabel)
+                    .font(.title2)
+                    .hidden()
                 Text(verbatim: "\(Int(vm.displayWPM))")
                     .font(.system(size: 44, weight: .bold, design: .monospaced))
                 Text(L10n.shared.speedometerWPMLabel)
