@@ -86,4 +86,30 @@ extension KeyCountStore {
         let dest = try DatabaseQueue(path: url.path)
         try src.backup(to: dest)
     }
+
+    /// Replace live keylens.db with the given backup .db file and reload all in-memory state.
+    func restoreFromBackup(url: URL) throws {
+        flushSync()
+        var thrownError: Error?
+        queue.sync {
+            guard let db = dbQueue else { return }
+            let dest = URL(fileURLWithPath: db.path)
+            dbQueue = nil
+            do {
+                if FileManager.default.fileExists(atPath: dest.path) {
+                    try FileManager.default.removeItem(at: dest)
+                }
+                try FileManager.default.copyItem(at: url, to: dest)
+                dbQueue = try DatabaseQueue(path: dest.path)
+            } catch {
+                // Re-open original path so the app isn't left without a DB.
+                dbQueue = try? DatabaseQueue(path: dest.path)
+                thrownError = error
+                return
+            }
+            resetInMemoryStateLocked()
+        }
+        if let error = thrownError { throw error }
+        loadFromSQLite()
+    }
 }

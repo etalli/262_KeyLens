@@ -679,6 +679,14 @@ final class KeyCountStore {
         }
     }
 
+    /// Resets all in-memory state. Must be called from within `queue`.
+    func resetInMemoryStateLocked() {
+        store = CountData(startedAt: Date(), counts: [:])
+        pending = PendingStore()
+        _todayCount = 0
+        _todayCacheDate = todayKey
+    }
+
     /// Restores data from a backup URL produced by backupDBForUndo().
     /// Closes the current DB, overwrites the live file with the backup, and reloads in-memory state.
     func restoreFromUndo(url: URL) {
@@ -694,10 +702,7 @@ final class KeyCountStore {
             } catch {
                 return
             }
-            store = CountData(startedAt: Date(), counts: [:])
-            pending = PendingStore()
-            _todayCount = 0
-            _todayCacheDate = todayKey
+            resetInMemoryStateLocked()
         }
         loadFromSQLite()
     }

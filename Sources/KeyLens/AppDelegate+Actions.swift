@@ -375,15 +375,19 @@ extension AppDelegate {
 
         let panel = NSSavePanel()
         panel.title = L10n.shared.backupMenuItem
-        panel.nameFieldStringValue = "KeyLens-backup-\(tag).json"
-        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "KeyLens-backup-\(tag).db"
+        panel.allowedContentTypes = [.init(filenameExtension: "db")!]
         panel.canCreateDirectories = true
 
         NSApp.activate(ignoringOtherApps: true)
         panel.begin { response in
             guard response == .OK, let dest = panel.url else { return }
-            let src = KeyCountStore.shared.saveURL
-            try? FileManager.default.copyItem(at: src, to: dest)
+            do {
+                try KeyCountStore.shared.exportSQLite(to: dest)
+                NSWorkspace.shared.selectFile(dest.path, inFileViewerRootedAtPath: "")
+            } catch {
+                KeyLens.log("Backup failed: \(error)")
+            }
         }
     }
 
@@ -401,20 +405,23 @@ extension AppDelegate {
 
         let panel = NSOpenPanel()
         panel.title = l.restoreMenuItem
-        panel.allowedContentTypes = [.json]
+        panel.allowedContentTypes = [.init(filenameExtension: "db")!]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
 
         NSApp.activate(ignoringOtherApps: true)
         panel.begin { response in
             guard response == .OK, let src = panel.url else { return }
-            let dest = KeyCountStore.shared.saveURL
             do {
-                _ = try? FileManager.default.removeItem(at: dest)
-                try FileManager.default.copyItem(at: src, to: dest)
-                KeyCountStore.shared.reload()
+                try KeyCountStore.shared.restoreFromBackup(url: src)
             } catch {
                 KeyLens.log("Restore failed: \(error)")
+                DispatchQueue.main.async {
+                    let err = NSAlert()
+                    err.messageText = l.restoreFailedAlert
+                    err.informativeText = error.localizedDescription
+                    err.runModal()
+                }
             }
         }
     }
