@@ -178,4 +178,19 @@ extension KeyCountStore {
     func allEntries() -> [(key: String, total: Int, today: Int)] {
         queue.sync { makeQuery().allEntries() }
     }
+
+    /// Permanently removes a device and all its historical data.
+    /// Deletes from in-memory store, pending buffer, and SQLite daily_devices table.
+    func deleteDevice(_ device: String) {
+        queue.sync {
+            store.appTracker.deviceCounts.removeValue(forKey: device)
+            for date in pending.dailyDevices.keys {
+                pending.dailyDevices[date]?.removeValue(forKey: device)
+            }
+        }
+        guard let db = dbQueue else { return }
+        try? db.write { db in
+            try db.execute(sql: "DELETE FROM daily_devices WHERE device = ?", arguments: [device])
+        }
+    }
 }

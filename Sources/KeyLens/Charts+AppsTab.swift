@@ -214,26 +214,59 @@ extension ChartsView {
         if model.topDevices.isEmpty {
             emptyState
         } else {
-            let deviceOrder = model.topDevices.map(\.device)
-            let domain = sortDescending ? Array(deviceOrder.reversed()) : deviceOrder
-
-            Chart(model.topDevices) { item in
-                BarMark(
-                    x: .value("Count", item.count),
-                    y: .value("Device", item.device)
-                )
-                .foregroundStyle(Color.indigo.gradient)
-                .cornerRadius(3)
-                .annotation(position: .trailing, spacing: 4) {
-                    Text(item.count.formatted())
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+            let entries = sortDescending ? model.topDevices : model.topDevices.reversed()
+            let maxCount = CGFloat(entries.map(\.count).max() ?? 1)
+            VStack(spacing: 0) {
+                ForEach(entries) { item in
+                    HStack(spacing: 8) {
+                        Text(item.device)
+                            .font(.system(size: 11))
+                            .frame(width: 160, alignment: .trailing)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        GeometryReader { geo in
+                            let barWidth = max(geo.size.width * CGFloat(item.count) / maxCount, 4)
+                            HStack(spacing: 4) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.indigo.gradient)
+                                    .frame(width: barWidth, height: 14)
+                                Text(item.count.formatted())
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                Spacer(minLength: 0)
+                            }
+                            .frame(maxHeight: .infinity, alignment: .center)
+                        }
+                        Button {
+                            devicePendingDelete = item.device
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.secondary)
+                                .font(.system(size: 11))
+                        }
+                        .buttonStyle(.plain)
+                        .help(L10n.shared.deleteDeviceTitle)
+                    }
+                    .frame(height: 26)
                 }
             }
-            .chartYScale(domain: domain)
-            .chartLegend(.hidden)
-            .chartXAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
-            .frame(height: CGFloat(model.topDevices.count * 28 + 24))
+            .alert(
+                L10n.shared.deleteDeviceTitle,
+                isPresented: Binding(
+                    get: { devicePendingDelete != nil },
+                    set: { if !$0 { devicePendingDelete = nil } }
+                ),
+                presenting: devicePendingDelete
+            ) { device in
+                Button(L10n.shared.deleteDeviceConfirm, role: .destructive) {
+                    KeyCountStore.shared.deleteDevice(device)
+                    if accumSelectedDevice == device { accumSelectedDevice = nil }
+                    model.reload()
+                }
+                Button(L10n.shared.cancel, role: .cancel) {}
+            } message: { device in
+                Text("\"\(device)\"\n\(L10n.shared.deleteDeviceMessage)")
+            }
         }
     }
 

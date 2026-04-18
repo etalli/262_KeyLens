@@ -46,6 +46,8 @@ struct ChartsView: View {
     @State var slowBigramFingerFilter: String? = nil
     /// Selected device filter for the Key Accumulation chart. nil = All Devices (Issue #349).
     @State var accumSelectedDevice: String? = nil
+    /// Device pending deletion confirmation (Issue #352).
+    @State var devicePendingDelete: String? = nil
     /// Whether a manual WPM session is active (Issue #150).
     @State var isMeasuringWPM: Bool = false
     /// Result of the last completed WPM session.
