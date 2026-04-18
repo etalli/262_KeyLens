@@ -14,13 +14,13 @@ extension AppDelegate {
     }
 
     func showCharts(tab: ChartTab) {
-        UserDefaults.standard.set(tab.rawValue, forKey: "selectedChartTab")
+        UserDefaults.standard.set(tab.rawValue, forKey: UDKeys.selectedChartTab)
         ChartsWindowController.shared.showWindow()
     }
 
     func showMouseDistanceChart() {
-        UserDefaults.standard.set(ChartTab.mouse.rawValue, forKey: "selectedChartTab")
-        UserDefaults.standard.set(MouseSubTab.distance.rawValue, forKey: "selectedMouseSubTab")
+        UserDefaults.standard.set(ChartTab.mouse.rawValue, forKey: UDKeys.selectedChartTab)
+        UserDefaults.standard.set(MouseSubTab.distance.rawValue, forKey: UDKeys.selectedMouseSubTab)
         ChartsWindowController.shared.showWindow()
     }
 

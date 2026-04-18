@@ -65,21 +65,21 @@ final class ThemeStore: ObservableObject {
     static let shared = ThemeStore()
 
     @Published var current: ChartTheme {
-        didSet { UserDefaults.standard.set(current.rawValue, forKey: "chartTheme") }
+        didSet { UserDefaults.standard.set(current.rawValue, forKey: UDKeys.chartTheme) }
     }
 
     @Published var appearance: AppAppearance {
         didSet {
-            UserDefaults.standard.set(appearance.rawValue, forKey: "appAppearance")
+            UserDefaults.standard.set(appearance.rawValue, forKey: UDKeys.appAppearance)
             appearance.apply()
         }
     }
 
     private init() {
-        let savedTheme = UserDefaults.standard.string(forKey: "chartTheme") ?? ""
+        let savedTheme = UserDefaults.standard.string(forKey: UDKeys.chartTheme) ?? ""
         current = ChartTheme(rawValue: savedTheme) ?? .blue
 
-        let savedAppearance = UserDefaults.standard.string(forKey: "appAppearance") ?? ""
+        let savedAppearance = UserDefaults.standard.string(forKey: UDKeys.appAppearance) ?? ""
         appearance = AppAppearance(rawValue: savedAppearance) ?? .system
     }
 

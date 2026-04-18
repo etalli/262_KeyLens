@@ -949,8 +949,8 @@ extension KeyMetricsQuery {
         guard !bigrams.isEmpty else { return [] }
         let totalBigrams = bigrams.values.reduce(0, +)
 
-        let templateRaw = UserDefaults.standard.string(forKey: "heatmapTemplate") ?? "ANSI"
-        let hasKLE = !(UserDefaults.standard.string(forKey: "kleCustomLayoutJSON") ?? "").isEmpty
+        let templateRaw = UserDefaults.standard.string(forKey: UDKeys.heatmapTemplate) ?? "ANSI"
+        let hasKLE = !(UserDefaults.standard.string(forKey: UDKeys.kleCustomLayoutJSON) ?? "").isEmpty
         let userLayoutLabel: String = {
             switch templateRaw {
             case "Custom":              return "Your Layout (Custom)"

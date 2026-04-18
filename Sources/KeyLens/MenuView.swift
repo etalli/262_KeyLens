@@ -482,9 +482,9 @@ private struct SettingsMenuRow: View {
         menu.addItem(.separator())
 
         // Advanced Mode toggle (#307)
-        let isAdvanced = UserDefaults.standard.bool(forKey: "advancedMode")
+        let isAdvanced = UserDefaults.standard.bool(forKey: UDKeys.advancedMode)
         add(l.advancedModeMenuTitle, to: menu, icon: "wrench.and.screwdriver", checked: isAdvanced) {
-            UserDefaults.standard.set(!isAdvanced, forKey: "advancedMode")
+            UserDefaults.standard.set(!isAdvanced, forKey: UDKeys.advancedMode)
         }
 
         menu.addItem(.separator())

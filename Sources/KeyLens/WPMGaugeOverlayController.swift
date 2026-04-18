@@ -8,7 +8,7 @@ enum SpeedometerSize: String, CaseIterable {
     case medium
     case large
 
-    static let defaultsKey = "speedometerSize"
+    static let defaultsKey = UDKeys.speedometerSize
 
     /// Scale factor applied to SpeedometerView (native ~280 px tall).
     var scale: CGFloat {
@@ -215,7 +215,7 @@ final class WPMGaugeOverlayController: NSObject, NSWindowDelegate {
 
     // NSWindowDelegate: persist position after drag.
     func windowDidMove(_ notification: Notification) {
-        UserDefaults.standard.set(Double(panel.frame.origin.x), forKey: "wpmGaugeOverlayX")
-        UserDefaults.standard.set(Double(panel.frame.origin.y), forKey: "wpmGaugeOverlayY")
+        UserDefaults.standard.set(Double(panel.frame.origin.x), forKey: UDKeys.wpmGaugeOverlayX)
+        UserDefaults.standard.set(Double(panel.frame.origin.y), forKey: UDKeys.wpmGaugeOverlayY)
     }
 }

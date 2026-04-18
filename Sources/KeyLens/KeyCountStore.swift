@@ -334,8 +334,8 @@ final class KeyCountStore {
 
     /// Notification interval (persisted in UserDefaults, default 1000).
     static var milestoneInterval: Int {
-        get { let v = UserDefaults.standard.integer(forKey: "milestoneInterval"); return v > 0 ? v : 1000 }
-        set { UserDefaults.standard.set(newValue, forKey: "milestoneInterval") }
+        get { let v = UserDefaults.standard.integer(forKey: UDKeys.milestoneInterval); return v > 0 ? v : 1000 }
+        set { UserDefaults.standard.set(newValue, forKey: UDKeys.milestoneInterval) }
     }
 
     // MARK: - Date helpers

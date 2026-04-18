@@ -74,16 +74,16 @@ struct KeyboardHeatmapView: View {
     @State private var toastDismissTask: DispatchWorkItem? = nil
     // Tracks the last resolved template so the toast fires only on *changes*, not every poll tick.
     // @AppStorage so it survives view unmount — allows detecting disconnect while window was closed.
-    @AppStorage("heatmapLastResolvedTemplate") private var lastResolvedTemplate: HeatmapTemplate = .ansi
-    @AppStorage("heatmapTemplate") private var template: HeatmapTemplate = .ansi
+    @AppStorage(UDKeys.heatmapLastResolvedTemplate) private var lastResolvedTemplate: HeatmapTemplate = .ansi
+    @AppStorage(UDKeys.heatmapTemplate) private var template: HeatmapTemplate = .ansi
     // Issue #318: multiple KLE profiles (replaces single kleCustomLayout* keys)
-    @AppStorage("kleProfiles") private var kleProfilesJSON: String = "[]"
-    @AppStorage("kleSelectedProfileID") private var kleSelectedProfileIDString: String = ""
+    @AppStorage(UDKeys.kleProfiles) private var kleProfilesJSON: String = "[]"
+    @AppStorage(UDKeys.kleSelectedProfileID) private var kleSelectedProfileIDString: String = ""
     // Legacy keys — read only for one-time migration
-    @AppStorage("kleCustomLayoutJSON") private var legacyKLEJSON: String = ""
-    @AppStorage("kleCustomKeywords") private var legacyKLEKeywords: String = ""
-    @AppStorage("kleCustomLayoutFileName") private var legacyKLEFileName: String = ""
-    @AppStorage("kleCustomLayoutURL") private var legacyKLEURL: String = ""
+    @AppStorage(UDKeys.kleCustomLayoutJSON) private var legacyKLEJSON: String = ""
+    @AppStorage(UDKeys.kleCustomKeywords) private var legacyKLEKeywords: String = ""
+    @AppStorage(UDKeys.kleCustomLayoutFileName) private var legacyKLEFileName: String = ""
+    @AppStorage(UDKeys.kleCustomLayoutURL) private var legacyKLEURL: String = ""
     @State private var kleURLInput: String = ""
     @State private var kleURLLoading: Bool = false
     @State private var showRenameAlert: Bool = false

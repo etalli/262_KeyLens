@@ -8,9 +8,9 @@ struct ChartsView: View {
     @ObservedObject var model: ChartDataModel
     @ObservedObject var theme = ThemeStore.shared
 
-    @AppStorage("selectedChartTab") var selectedTab: ChartTab = .summary
-    @AppStorage("frequentChartsSortDescending") var sortDescending: Bool = true
-    @AppStorage("advancedMode") var advancedMode: Bool = false
+    @AppStorage(UDKeys.selectedChartTab) var selectedTab: ChartTab = .summary
+    @AppStorage(UDKeys.frequentChartsSortDescending) var sortDescending: Bool = true
+    @AppStorage(UDKeys.advancedMode) var advancedMode: Bool = false
     /// Active sub-tab within the Typing tab (#311).
     @State var typingSubTab: TypingSubTab = .live
 
@@ -31,7 +31,7 @@ struct ChartsView: View {
     /// Active sub-tab within the Training tab (Issue #276).
     @State var trainingSubTab: TrainingSubTab = .drill
     /// Active sub-tab within the Mouse tab (Issue #275).
-    @AppStorage("selectedMouseSubTab") var mouseSubTab: MouseSubTab = .distance
+    @AppStorage(UDKeys.selectedMouseSubTab) var mouseSubTab: MouseSubTab = .distance
     /// Active sub-tab within the Apps tab (Issue #274).
     @State var appsSubTab: AppsSubTab = .apps
     /// Active sub-tab within the Ergonomics tab (Issue #273).
@@ -41,7 +41,7 @@ struct ChartsView: View {
     /// State object for the Key Swap Optimizer (Issue #235).
     @StateObject var optimizerState = OptimizerSimulatorState()
     /// Saved drill presets stored as JSON (Issue #278).
-    @AppStorage("drillPresets") var drillPresetsJSON: String = "[]"
+    @AppStorage(UDKeys.drillPresets) var drillPresetsJSON: String = "[]"
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
     /// Whether a manual WPM session is active (Issue #150).
@@ -55,10 +55,10 @@ struct ChartsView: View {
     /// Target key for the Key Transition analysis section (Issue #98).
     @State var keyTransitionTarget: String = ""
     /// Selected training session length — persisted across launches.
-    @AppStorage("trainingSessionLength") var sessionLength: SessionLength = .normal
+    @AppStorage(UDKeys.trainingSessionLength) var sessionLength: SessionLength = .normal
     /// IKI speed threshold for drill selection (ms). Bigrams slower than this are included.
     /// 0 = no filter (all ranked bigrams are used).
-    @AppStorage("bigramDrillIKIThreshold") var drillIKIThreshold: Double = 0
+    @AppStorage(UDKeys.bigramDrillIKIThreshold) var drillIKIThreshold: Double = 0
     /// Changed each time the user taps "New Session" to force InteractivePracticeView to reset.
     @State var trainingResetToken = UUID()
     /// Controls the confirmation alert for clearing training history.
@@ -67,7 +67,7 @@ struct ChartsView: View {
     @State var comparisonResult: ComparisonResult? = nil
     /// Whether the thumb key optimization subsection is shown in Layout Comparison (Issue #208).
     /// 親指キー最適化サブセクションを Layout Comparison に表示するか（Issue #208）。
-    @AppStorage("thumbOptimizationEnabled") var thumbOptimizationEnabled: Bool = false
+    @AppStorage(UDKeys.thumbOptimizationEnabled) var thumbOptimizationEnabled: Bool = false
     /// Set of section titles that are currently collapsed (Issue #251).
     /// 折りたたまれているセクションのタイトルセット。
     @State var collapsedSections: Set<String> = []
