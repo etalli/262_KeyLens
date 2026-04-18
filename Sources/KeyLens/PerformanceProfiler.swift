@@ -38,7 +38,7 @@ final class PerformanceProfiler {
         if let enabledCached, now.timeIntervalSince(enabledCacheAt) < 3 {
             return enabledCached
         }
-        let enabled = UserDefaults.standard.bool(forKey: "perfProfilingEnabled")
+        let enabled = UserDefaults.standard.bool(forKey: UDKeys.perfProfilingEnabled)
         enabledCached = enabled
         enabledCacheAt = now
         return enabled

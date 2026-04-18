@@ -205,7 +205,7 @@ struct ComparisonResultView: View {
     let result: ComparisonResult
     // Observing UserDefaults language key ensures SwiftUI re-renders this view
     // immediately when the user switches language, without requiring a new Compare press.
-    @AppStorage("appLanguage") private var appLanguage: String = "system"
+    @AppStorage(UDKeys.appLanguage) private var appLanguage: String = "system"
     private var l: L10n { L10n.shared }
 
     private static let dateFmt: DateFormatter = {

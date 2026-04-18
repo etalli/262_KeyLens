@@ -6,7 +6,7 @@ struct BigramHeatmapView: View {
     let bigramIKIMap:  [String: Double]   // "a→s" → avg IKI ms
     let topKeyEntries: [TopKeyEntry]      // ordered by frequency; used to pick axis keys
 
-    @AppStorage("bigramHeatmapTopN") private var topN: Int = 12
+    @AppStorage(UDKeys.bigramHeatmapTopN) private var topN: Int = 12
     @State private var hoveredBigram: String? = nil
 
     private let cellSize:  CGFloat = 26
