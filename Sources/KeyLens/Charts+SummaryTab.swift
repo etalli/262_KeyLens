@@ -14,9 +14,6 @@ extension ChartsView {
                     }
                 }
                 chartSection(L10n.shared.chartTitleWeeklyReport, helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
-chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) {
-                    mouseKeyboardBalanceChart
-                }
             }
             .padding(24)
         }

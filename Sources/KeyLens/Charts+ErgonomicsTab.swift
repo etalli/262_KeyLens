@@ -65,6 +65,7 @@ extension ChartsView {
                         chartSection(L10n.shared.keyTransitionTitle, helpText: L10n.shared.helpKeyTransition) { keyTransitionSection }
                         chartSection(L10n.shared.chartTitleLearningCurve, helpText: L10n.shared.helpLearningCurve) { learningCurveChart }
                         chartSection(L10n.shared.fatigueCurveTitle, helpText: L10n.shared.helpFatigueCurve) { fatigueCurveChart }
+                        chartSection(L10n.shared.chartTitleMouseKeyboardBalance, helpText: L10n.shared.helpMouseKeyboardBalance) { mouseKeyboardBalanceChart }
                     }
                     .padding(24)
                 }
