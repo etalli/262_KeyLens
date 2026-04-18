@@ -2212,6 +2212,7 @@ final class L10n {
     var chartTitleDailyTotals: String { ja("日別合計", en: "Daily Totals") }
     var chartTitleMonthlyTotals: String { ja("月別合計", en: "Monthly Totals") }
     var chartTitleKeyAccumulation: String { ja("累計打鍵数", en: "Key Accumulation") }
+    var accumDeviceFilterAll: String      { ja("全デバイス", en: "All Devices") }
     var chartTitleKeyboardHeatmap: String { ja("キーボードヒートマップ", en: "Keyboard Heatmap") }
     var chartTitleTopKeys: String { ja("上位20キー — 全期間", en: "Top 20 Keys — All Time") }
     var chartTitleKeyCategories: String { ja("キー分類", en: "Key Categories") }

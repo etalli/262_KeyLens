@@ -116,6 +116,10 @@ extension KeyCountStore {
         queue.sync { makeQuery().dailyTotals() }
     }
 
+    func dailyTotals(forDevice device: String) -> [(date: String, total: Int)] {
+        queue.sync { makeQuery().dailyTotals(forDevice: device) }
+    }
+
     func dailyTotals(last days: Int) -> [(date: String, count: Int)] {
         queue.sync { makeQuery().dailyTotals(last: days) }
     }

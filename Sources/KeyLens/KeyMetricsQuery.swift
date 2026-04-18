@@ -450,6 +450,23 @@ extension KeyMetricsQuery {
         return map.sorted { $0.key < $1.key }.map { (date: $0.key, total: $0.value) }
     }
 
+    func dailyTotals(forDevice device: String) -> [(date: String, total: Int)] {
+        guard let db = dbQueue else { return [] }
+        var map: [String: Int] = [:]
+        if let rows = try? db.read({ db in
+            try Row.fetchAll(db, sql: """
+                SELECT date, SUM(count) as total FROM daily_devices
+                WHERE device = ? GROUP BY date ORDER BY date
+                """, arguments: [device])
+        }) {
+            for row in rows { map[row["date"], default: 0] = (row["total"] as Int) }
+        }
+        for (date, devices) in pending.dailyDevices {
+            if let count = devices[device] { map[date, default: 0] += count }
+        }
+        return map.sorted { $0.key < $1.key }.map { (date: $0.key, total: $0.value) }
+    }
+
     func dailyTotals(last days: Int) -> [(date: String, count: Int)] {
         let cal = Calendar.current
         let cutoffDate = cal.date(byAdding: .day, value: -(days - 1), to: Date()) ?? Date()

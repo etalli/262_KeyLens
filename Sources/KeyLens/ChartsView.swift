@@ -44,6 +44,8 @@ struct ChartsView: View {
     @AppStorage(UDKeys.drillPresets) var drillPresetsJSON: String = "[]"
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
     @State var slowBigramFingerFilter: String? = nil
+    /// Selected device filter for the Key Accumulation chart. nil = All Devices (Issue #349).
+    @State var accumSelectedDevice: String? = nil
     /// Whether a manual WPM session is active (Issue #150).
     @State var isMeasuringWPM: Bool = false
     /// Result of the last completed WPM session.

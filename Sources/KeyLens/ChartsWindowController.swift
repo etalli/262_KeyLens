@@ -95,6 +95,8 @@ final class ChartDataModel: ObservableObject {
     // Issue #258: background loading state
     // Issue #347: Key Accumulation Chart — running cumulative sum of daily keystrokes
     @Published var keyAccumulation:          [AccumulationEntry]           = []
+    // Issue #349: per-device accumulation for device filter picker
+    @Published var keyAccumulationByDevice:  [String: [AccumulationEntry]] = [:]
     @Published var isLoading: Bool = false
 
     // Summary tab scalars — computed on background thread during reload() to avoid main-thread DB calls in view bodies.
@@ -129,6 +131,18 @@ final class ChartDataModel: ObservableObject {
                     running += entry.total
                     return AccumulationEntry(id: entry.date, date: entry.date, cumulative: running)
                 }
+            }()
+            let topDevicesForAccum  = store.topDevices(limit: 20)
+            let keyAccumulationByDevice: [String: [AccumulationEntry]] = {
+                var result: [String: [AccumulationEntry]] = [:]
+                for d in topDevicesForAccum {
+                    var running = 0
+                    result[d.device] = store.dailyTotals(forDevice: d.device).map { entry in
+                        running += entry.total
+                        return AccumulationEntry(id: "\(d.device)-\(entry.date)", date: entry.date, cumulative: running)
+                    }
+                }
+                return result
             }()
             let categories          = store.countsByType().map(CategoryEntry.init)
             let perDayKeys          = store.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
@@ -249,7 +263,8 @@ final class ChartDataModel: ObservableObject {
                 guard let self else { return }
                 self.topKeys              = topKeys
                 self.dailyTotals          = dailyTotals
-                self.keyAccumulation      = keyAccumulation
+                self.keyAccumulation         = keyAccumulation
+                self.keyAccumulationByDevice = keyAccumulationByDevice
                 self.categories           = categories
                 self.perDayKeys           = perDayKeys
                 self.shortcuts            = shortcuts

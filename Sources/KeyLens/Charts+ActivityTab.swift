@@ -353,21 +353,48 @@ extension ChartsView {
         }
     }
 
-    // MARK: - Issue #347: Key Accumulation Chart
+    // MARK: - Issue #347 / #349: Key Accumulation Chart with device filter
 
     @ViewBuilder
     var keyAccumulationChart: some View {
-        if model.keyAccumulation.isEmpty {
+        let deviceNames = model.topDevices.map(\.device)
+        let activeEntries: [AccumulationEntry] = {
+            if let dev = accumSelectedDevice, let entries = model.keyAccumulationByDevice[dev] {
+                return entries
+            }
+            return model.keyAccumulation
+        }()
+
+        if activeEntries.isEmpty {
             emptyState
-        } else if model.keyAccumulation.count == 1 {
-            Chart(model.keyAccumulation) { item in
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                if deviceNames.count > 1 {
+                    Picker("", selection: $accumSelectedDevice) {
+                        Text(L10n.shared.accumDeviceFilterAll).tag(String?.none)
+                        ForEach(deviceNames, id: \.self) { name in
+                            Text(name).tag(String?.some(name))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 320)
+                }
+
+                accumChartContent(entries: activeEntries)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func accumChartContent(entries: [AccumulationEntry]) -> some View {
+        if entries.count == 1 {
+            Chart(entries) { item in
                 BarMark(x: .value("Date", item.date), y: .value("Total", item.cumulative))
                     .foregroundStyle(theme.accentColor)
                     .cornerRadius(4)
             }
             .frame(height: 180)
         } else {
-            let entries = model.keyAccumulation
             let milestone = entries.first(where: { $0.cumulative >= 1_000_000 })
             Chart {
                 ForEach(entries) { item in
