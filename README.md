@@ -9,9 +9,9 @@ English | [日本語](docs/README.ja.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
 [![Hypercommit](https://img.shields.io/badge/Hypercommit-DB2475)](https://hypercommit.com/262-keylens)
 
-KeyLens is a macOS menu bar app that tracks your keystrokes locally and recommends ergonomic layout changes based on your actual usage.
+KeyLens is a macOS menu bar app that tracks your keystrokes and recommends ergonomic layout changes based on your actual usage.
 
-KeyLens stores only key names and counts — never the actual characters you type. Passwords and sensitive input are completely safe.
+KeyLens stores only key names and counts locally — never the actual characters you type. Passwords and sensitive input are completely safe.
 
 
 [**Document**](https://etalli.github.io/262_KeyLens/landing-page/) — screenshots and layout optimization walkthrough
@@ -29,25 +29,25 @@ KeyLens stores only key names and counts — never the actual characters you typ
 
 ## Why KeyLens?
 
-Most keyboard ergonomics advice is generic: "use Colemak", "avoid pinkies", "get a split keyboard".
-None of it is based on *your* actual typing patterns.
 
-KeyLens records which keys you press, how often, and with which fingers — then tells you where
-your real strain comes from. Maybe your left pinky is doing 3× the work of your right.
-Maybe one two-key combination accounts for half your same-finger strain. You can't fix what you can't measure.
+Ergonomic keyboard advice usually comes down to optimizing posture, layout, and typing behavior. The core goals are: keep wrists neutral, minimize finger travel, and distribute the load efficiently.
 
-The goal is to give you the data to make one concrete layout change that actually helps,
-rather than switching to Colemak blindly and hoping for the best.
-Keyboard shortcuts matter as much as letter keys — you can't optimize your layout without being able to swap modifier and navigation keys.
+Most advice, however, is generic: "use Colemak", "avoid pinkies", "get a split keyboard", "use thumbs for layers". These recommendations can help, but they aren't based on how you actually type.
+
+KeyLens changes that.  It records which keys you press, how often, and with which fingers you use, so you can see where your strain really comes from. For example, you might discover your left pinky does significantly more work than your right, or that a specific key pair dominates your same-finger usage.
+
+The goal is to provide real data to guide your layout decisions. And it's not just about letter keys---modifier and navigation keys matter just as much, especially when it  comes to shortcuts.
 
 ---
 
 ## What KeyLens Can Do
 
-- **Find where your strain actually comes from** — See which fingers are overloaded, which key pairs cause same-finger strain, and how your workload is distributed across your hands.
-- **Simulate layout changes before you commit** — Compare how Colemak, Dvorak, or a custom layout would change your travel distance and finger load, based on your real typing data.
-- **Track how your typing evolves** — Monitor your WPM, keystroke rhythm, and fatigue curve over days and weeks to see if your habits are improving.
-- **See your typing broken down by app** — Know which apps drive the most keystrokes and strain, so you can focus ergonomic changes where they matter most.
+- **Find where your strain comes from** — See which fingers are overloaded, which key pairs cause same-finger strain, and how your workload is distributed across your hands.
+- **Simulate layout changes before you commit** — Compare how Colemak, Dvorak, or a custom layout would affect your travel distance and finger load, using your real typing data.
+- **Track how your typing evolves** — Monitor WPM, keystroke rhythm, and fatigue over days and weeks to see if your habits are improving.
+- **See your typing broken down by app** — Know which apps drive the most keystrokes and ergonomic strain, so you can focus changes where they matter most.
+- **Analyze shortcuts and modifier usage** — See which key combinations you use most and whether your modifier layout is causing hand strain.
+- **Track mouse movement alongside keystrokes** — See daily cursor distance and how your mouse usage compares to your keyboard load.
 - **Watch your keystrokes in real time** — A floating overlay shows what you just typed, useful for learning new layouts or shortcuts.
 
 ---
@@ -69,13 +69,10 @@ Keyboard shortcuts matter as much as letter keys — you can't optimize your lay
 
 ---
 
-## How to Use
+## Docs
 
-See [HowToUse](docs/HowToUse.md) for the full usage guide — menu bar items, Charts window tabs, AI Analysis, and the Keystroke Overlay.
-
----
-
-For internal design details (including security model), see [Architecture](docs/Architecture.md).
-See [HowToBuild](docs/HowToBuild.md) for prerequisites, build commands, test setup, and logs.
-For the development roadmap, see [Roadmap](docs/Roadmap.md).
-Bug reports and feature requests: open an [issue](https://github.com/etalli/262_KeyLens/issues).
+- [HowToUse](docs/HowToUse.md) — usage guide
+- [Architecture](docs/Architecture.md) — internal design and security model
+- [HowToBuild](docs/HowToBuild.md) — build, test, and logs
+- [Roadmap](docs/Roadmap.md) — development roadmap
+- [Issues](https://github.com/etalli/262_KeyLens/issues) — bug reports and feature requests
