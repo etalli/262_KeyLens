@@ -12,18 +12,21 @@ First, we define the relative "strength" or "stamina" of each finger:
 - **Ring finger**: 0.6
 - **Pinky finger**: 0.5 (The weakest and most easily fatigued)
 
-**Formula**: `Keystrokes / Capability Value`
+**Formula**: `load(key) = keyCount / fingerWeight`
+
 For example, typing 100 times with your pinky (0.5) is counted as the same load as typing 200 times with your index finger (1.0). In other words, weaker fingers incur a higher load per keystroke.
+
+Default values are derived from Carpalx (Krzywinski, 2006) and empirical measurements in Kim et al. (2014).
 
 ### 2. Same-Finger Bigram Penalty (SameFingerPenalty)
 
 Typing different keys consecutively with the same finger (Same-Finger Bigram) puts significant strain on the hand. The penalty is computed as:
 
 ```
-penalty = fingerWeight × distanceFactor ^ 2
+penalty = fingerWeight × distanceFactor ^ exponent
 ```
 
-Distance factors by tier:
+With the default exponent of **2.0**, distance factors by tier:
 
 | Tier | Distance Factor | Resulting Penalty (index finger, weight 1.0) |
 |------|----------------|----------------------------------------------|
@@ -34,41 +37,50 @@ Distance factors by tier:
 
 The exponent (2.0) means vertical stretching increases load quadratically — one row apart is 4× more costly than adjacent, two rows apart is 16×.
 
+> The default factor values are initial design values inspired by the Carpalx effort model. They are intentionally configurable and will be refined with empirical IKI (inter-keystroke interval) data as it accumulates.
+
 ### 3. High-Strain Sequence Detection (HighStrainDetector)
 
-Movements that are particularly likely to cause repetitive strain injury (RSI) are flagged as "High Strain":
+Movements particularly likely to cause repetitive strain injury (RSI) are flagged as "High Strain":
 
 **High-strain bigram (2 keys):**
-- **Criteria**: Same finger + vertical movement of 1 or more rows.
+- **Criteria**: Same finger AND same hand, with distance tier ≥ `.oneRow` (≥ 1 row of vertical travel).
 - **Example**: F → R (left index, 1 row apart) = high-strain. F → G (adjacent, same row) = NOT high-strain.
 
 **High-strain trigram (3 keys):**
 - **Criteria**: Two consecutive bigrams are both high-strain.
 - **Example**: F → R → T — if both F→R and R→T qualify as high-strain bigrams, the trigram is flagged.
 
-These sequences are specifically tracked and visualized in the "Strain" mode of the heatmap.
+These sequences are tracked and visualized in the "Strain" mode of the keyboard heatmap.
 
 ### 4. Integrated Scoring (ErgonomicScoreEngine)
 
-All metrics are combined into a single score out of 100 using this formula:
+All metrics are combined into a single score out of 100:
 
 ```
 score = 100
-  − sameFingerPenaltyWeight    × (sameFingerRate    × 100)
-  − highStrainPenaltyWeight    × (highStrainRate    × 100)
-  − thumbImbalancePenaltyWeight× (thumbImbalanceRatio × 100)
-  − rowReachPenaltyWeight      × (rowReachScore     × 100)
-  + alternationRewardWeight    × (handAlternationRate × 100)
-  + thumbEfficiencyBonusWeight × (thumbEfficiencyCoefficient × 100)
+  − sameFingerPenaltyWeight     × (sameFingerRate        × 100)
+  − highStrainPenaltyWeight     × (highStrainRate         × 100)
+  − thumbImbalancePenaltyWeight × (thumbImbalanceRatio    × 100)
+  − rowReachPenaltyWeight       × (rowReachScore          × 100)
+  + alternationRewardWeight     × (handAlternationRate    × 100)
+  + thumbEfficiencyBonusWeight  × (thumbEfficiencyScore   × 100)
 ```
 
-All sub-scores are normalized to [0, 100] before weighting. The score is clamped to [0, 100].
+All sub-scores are normalized to [0, 100] before weighting. The final value is clamped to [0, 100].
 
-- **Deductions**: Same-finger bigram rate, high-strain sequence rate, thumb imbalance (left vs. right), and excessive row reach.
-- **Bonuses**: Hand alternation rate and efficient thumb key utilization.
+**Default weights:**
+
+| Component | Direction | Weight |
+|-----------|-----------|--------|
+| Same-finger bigram rate | Penalty | 0.30 |
+| High-strain sequence rate | Penalty | 0.25 |
+| Thumb imbalance (left vs right) | Penalty | 0.15 |
+| Row reach (frequency-weighted distance from home row) | Penalty | 0.20 |
+| Hand alternation rate | Bonus | 0.20 |
+| Thumb efficiency coefficient | Bonus | 0.10 |
+
+Max possible deduction: 90 pts (sum of penalty weights × 100). Max possible bonus: 30 pts.
 
 **Summary**:
-Rather than simply counting "which key was pressed how many times," KeyLens simulates the physical strain based on "which finger was used, how far it had to stretch, and how much it was used consecutively."
-
----
-*If you are interested in more detailed logic, such as the handling of specific keys like Space or Cmd, please let us know.*
+Rather than simply counting "which key was pressed how many times," KeyLens simulates the physical strain based on "which finger was used, how far it had to stretch, and how much it was used consecutively." The row reach penalty additionally discourages layouts that place frequent keys far from the home row.
