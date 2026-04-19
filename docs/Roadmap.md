@@ -23,13 +23,14 @@ Experience shows that split or slightly spaced keyboards reduce fatigue during e
 
 | Priority | Issues | Theme |
 |----------|--------|-------|
-| Closed | #144, #145, #146 | Bugs resolved in v0.56 |
 | Closed | #61, #85, #98, #103, #104 | Phase 1: Measurement & Scoring |
-| Closed | #60 | Session detection |
-| P2 — Training chain | #83 → #87 → #86 → #84 → #90 → #89 → #88 → #82 | Drill generation |
-| P3 — Future | #72, #76, #63, #64, #75 | Low priority / research |
-| P3 — UX / Polish | #169, #170, #174 | UI tests, icon design, Keyboard tab UX |
-| Deferred | #115, #99, #78, #70, #74, #62 | Visualization (intentionally postponed) |
+| Closed | #72, #82–#90, #208, #209 | Phase 2: Optimization engine & training chain |
+| Closed | #62, #70, #74, #78, #99, #115 | Phase 3: Visualization |
+| Active — Analytics | #364, #365, #366, #367 | Finger load, SFB, per-app ergonomics, distance gamification |
+| Active — UI / Charts | #337, #348, #353 | Key Swap Simulator, per-device chart, weekly summary cleanup |
+| Active — Bug | #343 | Modifier Keys by Finger row height |
+| Active — Refactor | #330, #331, #332 | BaseWindowController, ChartDataModel split, KLEProfileManager |
+| Future | #63, #64, #75, #76 | ML, iCloud sync, integrations |
 
 ---
 
@@ -43,27 +44,19 @@ Establish accurate and reproducible keystroke logging.
 
 * Bigram / Trigram (done)
   Measures how often two- or three-key sequences appear in typing. The basis for identifying patterns and evaluating layout efficiency.
-  2〜3キーの連続打鍵パターンの出現頻度を計測する。配列効率の評価における統計的な基盤となる。
   > Dvorak and Colemak were both built around bigram frequency data. Common pairs belong on strong fingers and the home row.
-  > Dvorak・Colemakなど主要な配列研究はすべてビグラム頻度分析を基礎としており、頻出ペアを強い指・ホームロウに集中させることが設計の核心となっている。
 
 * Same-finger repetition (done)
   Tracks how often consecutive keystrokes land on the same finger. High rates increase fatigue and errors.
-  同じ指で連続してキーを打つ頻度を追跡する。頻度が高いほど疲労とミスタイプのリスクが上がる。
   > A same-finger bigram forces one finger to lift, reposition, and press again immediately. It's consistently the most taxing motion in typing.
-  > 同指ビグラムは、持ち上げ・移動・押下を1本の指で連続して行うため、生体力学的に最も負荷が高く、快適性評価でも一貫して最低スコアを記録する。
 
 * Hand alternation (done)
   Measures how often typing switches between hands. More alternation means faster, less tiring typing.
-  左右の手が交互に使われる割合を計測する。交互打鍵が多いほど、速く疲れにくいタイピングに近づく。
   > While one hand presses a key, the other is already moving to the next. That overlap is why high alternation helps both speed and endurance.
-  > 片方の手がキーを押している間、もう一方は次のキーへ移動できる。この並列動作が速度と持久性を同時に高める理由である。
 
 * Time-window transitions / IKI (done)
   Analyzes key transition timing within short windows. Captures typing rhythm and surfaces high-speed sequences that cause strain.
-  短い時間窓内のキー遷移パターンを分析する。打鍵リズムを捉え、負荷の高い高速連打を検出する。
   > The same sequence typed slowly is harmless; at high speed it becomes repetitive strain. Count data alone can't tell you which.
-  > 同じキー列でも、ゆっくり打てば問題なく、高速で打てば反復性ストレスになる。打鍵間隔は、累積カウントだけでは見えない疲労の変数である。
 
 ### Additional
 
@@ -83,27 +76,19 @@ Build a unified ergonomic scoring engine.
 
 * Ergonomic score formula (done)
   Combines finger load, alternation, and same-finger rate into a single number for comparing layouts.
-  指の負荷・交互打鍵率・同指連打率などを統合し、配列の良し悪しを単一の数値で比較できるようにする。
   > Without a single score, individual metrics point in different directions and you can't weigh one against another.
-  > 統一スコアがなければ各指標がバラバラに主張するだけで、配列間の客観比較ができない。数値化によって初めて、どちらが良いか、を論拠を持って判断できる。
 
 * Finger load weighting (done)
   Assigns different weights to each finger based on strength and reach.
-  各指の自然な強さと可動域に基づいて、キー割り当ての重み付けを行う。
   > Index fingers are roughly twice as capable as pinkies. Treating all fingers equally produces layouts that overload weak fingers.
-  > 人差し指は小指に比べて強さ・横方向のリーチともに約2倍の能力がある。均等に扱うと弱い指に過負荷がかかる配列になる。
 
 * Thumb imbalance detection (done)
   Measures whether thumb usage is evenly split between left and right.
-  左右の親指キーの使用量が偏っていないかを計測する。
   > Standard layouts hide this imbalance. On split keyboards it shows up clearly — an overloaded thumb is a common source of long-term strain.
-  > スプリットキーボードは、標準配列では見えない親指の偏りを顕在化する。片側の親指への集中は長期的な疲労の起点になりやすい。
 
 * High-strain sequence detection (done)
   Identifies sequences that stack poor alternation, same-finger use, and lateral stretch at once.
-  交互打鍵の乏しさ・同指連打・横方向の指の伸びが重なる、特に負荷の高いキー列を検出する。
   > Each metric looks fine on its own, but when all three stress factors land on the same sequence, the cumulative load is much worse than any single metric shows.
-  > 各指標を個別に見ても複合的な負荷は見えない。3つのストレス要因が同時に重なるパターンは、パターン単位の分析でしか検出できない。
 
 ### Completed — P1 issues
 
@@ -117,80 +102,90 @@ Build a unified ergonomic scoring engine.
 
 * Thumb efficiency coefficient
   Measures how well thumb keys are actually reducing load on the other eight fingers.
-  親指キーが他の8本の指の負荷をどれだけ効果的に軽減しているかを定量化する。
   > Thumb keys are the most flexible positions on a split keyboard. This coefficient checks whether that flexibility is being used.
-  > 親指キーはスプリットキーボード上で最も価値の高い配置領域である。この係数によって、その価値が実際の打鍵習慣で活かされているかを測定する。
 
 * Same-finger penalty weighting (done)
   Applies non-linear penalties based on how far the finger must travel between same-finger keys.
-  同指ビグラムに対し、指が移動しなければならない距離に応じた非線形ペナルティを適用する。
   > Adjacent-key same-finger bigrams are annoying; two-row stretches are genuinely painful. A linear penalty misses that difference.
-  > 隣接キーの同指ビグラムは不快な程度だが、2行をまたぐものは負荷が格段に大きい。線形ペナルティでは長距離同指伸びのコストを過小評価してしまう。
 
 * Alternation reward coefficient (done)
   Adds a score bonus for sequences with smooth hand alternation.
-  連続打鍵で滑らかな左右交互が実現されている場合に、スコアへのボーナスを付与する。
   > Rewarding alternation — rather than only penalizing same-hand use — gives the optimizer a positive target, not just a cost to avoid.
-  > 同手使用にペナルティを与えるだけでなく交互打鍵を積極的に報酬として扱うことで、両手並列動作の利点を最大化する配列へと最適化エンジンを誘導できる。
 
 Phase 1 done. Layout comparisons are now objective.
 
 ---
 
-# Phase 2 – Optimization engine
+# Phase 2 – Optimization engine (done)
 
 ## Goal
 
 Complete the automated key relocation logic.
 
-### Required
+### Completed
 
-* Thumb recommendation engine — [#208]
-* Key relocation simulation — [#72]
-* Before/After comparison — [#84]
-
-### Should add
-
-* Constraint solver (preserve fixed keys)
-* Travel distance estimation
-* Same-finger minimization optimizer
-* Layer key usage analyzer — [#209]
+* Thumb recommendation engine — [#208] (done)
+* Key relocation simulation — [#72] (done)
+* Before/After comparison — [#84] (done)
+* Layer key usage analyzer — [#209] (done)
   User registers a Layer Mapping Table (layer key + finger assignment, output key → layer key + base key). KeyLens re-interprets captured key events at analysis time, enabling correct same-finger, hand load, and ergonomic scoring for layer-based input. IKI for layer combos is estimated (OS only exposes output event timestamps).
 
-### Training chain (implement in order after #85)
+### Training chain (done)
 
-`#83 → #87 → #86 → #84 → #90 → #89 → #88 → #82`
+* [#83] Phase 1: Generate bigram-based typing drills from slow combinations (done)
+* [#87] Build practice sequence generator for ranked bigrams (done)
+* [#86] Design training session format and repetition rules (done)
+* [#84] Add before/after measurement for trained combinations (done)
+* [#90] Add UI for generated training drills (done)
+* [#89] Phase 2: Expand training targets from bigrams to trigrams (done)
+* [#88] Store training results and progress history (done)
+* [#82] Add personalized typing training courses based on slow key combinations (done)
 
-* [#83] Phase 1: Generate bigram-based typing drills from slow combinations
-* [#87] Build practice sequence generator for ranked bigrams
-* [#86] Design training session format and repetition rules
-* [#84] Add before/after measurement for trained combinations
-* [#90] Add UI for generated training drills
-* [#89] Phase 2: Expand training targets from bigrams to trigrams
-* [#88] Store training results and progress history
-* [#82] Add personalized typing training courses based on slow key combinations
+Phase 2 done. Optimization engine and training chain complete.
 
 ---
 
-# Phase 3 – Visualization & behavioral feedback (deferred)
+# Phase 3 – Visualization & behavioral feedback (done)
 
-Intentionally postponed. Implement Phase 1 & 2 first.
+### Completed
 
-### Deferred issues
+* [#115] Real-time typing speedometer — analog gauge for live WPM (done)
+* [#99] Speed analysis UI: bigram IKI heatmap and slow bigrams chart (done)
+* [#78] Interactive 2D Heatmap (Day of Week × Hour of Day) (done)
+* [#74] Annual 'Year in Review' statistics report (done)
+* [#70] Auto-generate weekly summary card as shareable PNG (done)
+* [#62] Period comparison mode — compare any two date ranges side by side (done)
 
-* [#115] Real-time typing speedometer — analog gauge for live WPM
-* [#99] Speed analysis UI: bigram IKI heatmap and slow bigrams chart
-* [#78] Interactive 2D Heatmap (Day of Week × Hour of Day)
-* [#74] Annual 'Year in Review' statistics report
-* [#70] Auto-generate weekly summary card as shareable PNG
-* [#62] Period comparison mode — compare any two date ranges side by side
+Phase 3 done. Core visualization suite complete.
 
-### Features (when resumed)
+---
 
-* Ergonomic heatmap
-* Learning curve
-* Weekly delta report
-* Layout comparison dashboard
+# Current work
+
+Active issues as of v0.97.
+
+### Ergonomic analytics
+
+* [#364] Finger load % chart — each finger's share of total keystrokes
+* [#365] Per-finger SFB ranking — break down same-finger bigrams by finger
+* [#366] Per-app ergonomic pattern breakdown — SFB rate, hand alternation, modifier share per app
+* [#367] Gamified daily finger travel distance — "your fingers walked X meters today"
+
+### UI / Charts
+
+* [#337] Expand Key Swap Simulator to full keyboard (navigation, modifier, function keys)
+* [#348] Per-device daily keystroke time-series chart
+* [#353] Consolidate Weekly Summary and Weekly Report sections — remove redundant numbers
+
+### Bugs
+
+* [#343] Modifier Keys by Finger chart: row height inconsistent with other charts
+
+### Refactors
+
+* [#330] Add BaseWindowController to eliminate NSWindowController boilerplate
+* [#331] Split ChartDataModel into domain-specific @Published models
+* [#332] Extract KLEProfileManager from KeyboardHeatmapView
 
 ---
 
