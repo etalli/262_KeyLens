@@ -67,7 +67,9 @@ struct MenuView: View {
                 case .recordingSince:
                     infoRow(l.recordingSince(store.startedAt), icon: "calendar")
                 case .todayTotal:
-                    infoRow(String(format: l.todayFormat, store.todayCount.formatted()))
+                    menuRow(String(format: l.todayFormat, store.todayCount.formatted()), icon: "keyboard") {
+                        appDelegate.showCharts(tab: .summary)
+                    }
                 case .avgInterval:
                     if let avgMs = store.averageIntervalMs {
                         infoRow(String(format: l.avgIntervalFormat, avgMs), icon: "timer")
