@@ -1,5 +1,9 @@
 # KeyLens optimization roadmap
 
+[日本語](Roadmap.ja.md)
+
+---
+
 ## Vision
 
 KeyLens started as a keystroke counter. The long-term goal is layout optimization: take the actual typing data and turn it into concrete recommendations for where keys should go.
