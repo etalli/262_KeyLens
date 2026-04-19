@@ -24,6 +24,12 @@ extension AppDelegate {
         ChartsWindowController.shared.showWindow()
     }
 
+    func showChartsAtSessions() {
+        UserDefaults.standard.set(ChartTab.typing.rawValue, forKey: UDKeys.selectedChartTab)
+        UserDefaults.standard.set(ActivitySubTab.volume.rawValue, forKey: UDKeys.selectedActivitySubTab)
+        ChartsWindowController.shared.showWindow()
+    }
+
     func toggleOverlay() {
         KeystrokeOverlayController.shared.isEnabled.toggle()
         objectWillChange.send()

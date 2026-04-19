@@ -85,9 +85,13 @@ struct MenuView: View {
                     let streak = KeyCountStore.shared.currentStreak()
                     let today  = KeyCountStore.shared.todayCount
                     if goal > 0 {
-                        infoRow(l.streakCompact(streak: streak, today: today, goal: goal))
+                        menuRow(l.streakCompact(streak: streak, today: today, goal: goal)) {
+                            appDelegate.showChartsAtSessions()
+                        }
                     } else {
-                        infoRow(l.streakNoGoalHint)
+                        menuRow(l.streakNoGoalHint) {
+                            appDelegate.showChartsAtSessions()
+                        }
                     }
                 case .shortcutEfficiency:
                     if let pct = KeyCountStore.shared.shortcutEfficiencyToday() {
