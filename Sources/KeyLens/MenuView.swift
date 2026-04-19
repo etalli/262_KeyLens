@@ -31,17 +31,19 @@ struct MenuView: View {
     private var statusRow: some View {
         let l = L10n.shared
         let isRunning = appDelegate.isMonitoring
-        return HStack(spacing: 6) {
+        return HStack(spacing: 8) {
             if isRunning {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 8, height: 8)
+                    .frame(width: 16)
                 Text(l.monitoringActive.dropFirst(2))
                     .font(.system(size: 13, weight: .medium))
             } else {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 12))
                     .foregroundColor(.orange)
+                    .frame(width: 16)
                 Button(l.monitoringStopped.dropFirst(2)) {
                     appDelegate.openAccessibilitySettings()
                 }
