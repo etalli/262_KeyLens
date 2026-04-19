@@ -67,7 +67,7 @@ struct MenuView: View {
                 case .recordingSince:
                     infoRow(l.recordingSince(store.startedAt), icon: "calendar")
                 case .todaySummary:
-                    menuRow(l.todaySummaryDisplay(keys: store.todayCount, mousePts: MouseStore.shared.distanceToday()), icon: "figure.typing") {
+                    menuRow(l.todaySummaryDisplay(keys: store.todayCount, mousePts: MouseStore.shared.distanceToday()), icon: "keyboard.fill") {
                         appDelegate.showChartsAtSessions()
                     }
                 case .avgInterval:
