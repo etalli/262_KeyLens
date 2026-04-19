@@ -60,7 +60,7 @@ final class L10n {
         let keysStr = keys.formatted()
         if let pts = mousePts {
             let dist = mouseDistanceString(pts)
-            return ja("本日: \(keysStr) 打鍵, \(dist) 移動", en: "Today: \(keysStr) keys, \(dist) move")
+            return ja("本日: \(keysStr) 打鍵, \(dist) 移動", en: "Today: \(keysStr) keys, \(dist) mouse")
         }
         return ja("本日: \(keysStr) 打鍵", en: "Today: \(keysStr) keys")
     }
@@ -1570,18 +1570,8 @@ final class L10n {
     // MARK: - Mouse Distance
 
     func mouseDistanceString(_ pts: Double) -> String {
-        let mmPerPt: Double
-        if let screen = NSScreen.main,
-           let res = screen.deviceDescription[NSDeviceDescriptionKey("NSDeviceResolution")] as? NSSize,
-           res.width > 0 {
-            mmPerPt = 25.4 / res.width
-        } else {
-            mmPerPt = 0.264
-        }
-        let meters = pts * mmPerPt / 1000.0
-        return meters >= 1000
-            ? String(format: "%.2f km", meters / 1000)
-            : String(format: "%.0f m", meters)
+        let px = Int(pts)
+        return NumberFormatter.localizedString(from: NSNumber(value: px), number: .decimal) + " px"
     }
 
     func mouseDistanceDisplay(_ pts: Double) -> String {
