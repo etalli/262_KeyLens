@@ -6,15 +6,17 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 
 | Item | Description |
 |------|-------------|
-| **Today / Total** | Keystroke count for today and all time |
-| **Avg interval** | Running average time between keystrokes (ms) |
-| **Top keys** | Most-pressed keys with counts |
-| **Top app today** | Frontmost application with the most keystrokes today |
-| **Show All** | Opens a ranked table of every key and mouse button |
-| **Charts** | Opens the full analytics window |
-| **Overlay** | Toggles the real-time keystroke overlay (also: global hotkey ⌃⌥O, configurable) |
-| **WPM Gauge (floating)** | Toggles a floating analog WPM speedometer panel; right-click to set size (Small / Medium / Large) |
-| **Settings…** | Customize menu display, language, notifications, Advanced Mode toggle, reset, export CSV, export weekly summary card (PNG), export Year in Review card (PNG), backup/restore data, open log folder |
+| **● Recording** | Green dot = monitoring active; orange warning = accessibility permission needed |
+| **Today: N keys, N px** | Today's keystroke count and cursor travel in pixels — click to open Charts → Activity → Volume |
+| **Charts…** | Opens the full analytics window |
+| **Data…** | Export CSV, SQLite, summary card, Year in Review card, daily note, save/restore backup |
+| **Settings…** | Customize menu widgets, language, notifications, Advanced Mode, overlay, WPM gauge |
+| **About KeyLens** | Version info |
+| **Check for Updates…** | Check for a newer release on GitHub |
+| **Help** | Opens the help popover |
+| **Quit** | Quits the app and flushes all pending data |
+
+Widgets (the stats rows above **Charts…**) are toggleable and reorderable via **Settings… > Customize Menu**. Available widgets: Today Summary, WPM, Mini Chart, Avg Interval, Shortcut Efficiency, Streak, Recording Since, Slow Events.
 
 ### Charts window
 
@@ -87,10 +89,12 @@ Toggle via **Overlay** in the menu, or press **⌃⌥O** from anywhere. It shows
 
 ---
 
-## Data file
+## Data files
 
 ```
-~/Library/Application Support/KeyLens/counts.json
+~/Library/Application Support/KeyLens/keylens.db   — keystroke data (SQLite)
+~/Library/Application Support/KeyLens/mouse.db     — cursor travel data (SQLite)
+~/Library/Application Support/KeyLens/counts.json  — scalar totals (legacy, kept for migration)
 ```
 
-Use **Settings… > Open Log Folder** to open the directory in Finder. See [Architecture](Architecture.md) for the schema.
+Use **Data… > Open Save Folder** to open the directory in Finder. See [Architecture](Architecture.md) for the schema.
