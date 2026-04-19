@@ -224,7 +224,7 @@ final class L10n {
     }
 
     var chartsMenuItem: String {
-        ja("グラフ表示…", en: "Show Charts…")
+        ja("グラフ…", en: "Charts…")
     }
 
     var last7Days: String {
