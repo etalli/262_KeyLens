@@ -25,7 +25,7 @@ struct ChartsView: View {
     /// Active sub-tab within the Live tab (Issue #271).
     @State var liveSubTab: LiveSubTab = .monitor
     /// Active sub-tab within the Activity tab (Issue #272).
-    @State var activitySubTab: ActivitySubTab = .speed
+    @AppStorage(UDKeys.selectedActivitySubTab) var activitySubTab: ActivitySubTab = .speed
     /// Active sub-tab within the Keyboard tab (Issue #277).
     @State var keyboardSubTab: KeyboardSubTab = .heatmap
     /// Active sub-tab within the Training tab (Issue #276).

@@ -20,6 +20,7 @@ enum UDKeys {
     static let milestoneInterval           = "milestoneInterval"
     static let perfProfilingEnabled        = "perfProfilingEnabled"
     static let selectedChartTab            = "selectedChartTab"
+    static let selectedActivitySubTab      = "selectedActivitySubTab"
     static let selectedMouseSubTab         = "selectedMouseSubTab"
     static let speedometerSize             = "speedometerSize"
     static let thumbOptimizationEnabled    = "thumbOptimizationEnabled"
