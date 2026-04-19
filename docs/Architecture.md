@@ -32,7 +32,7 @@ graph TD
     V -->|widget config| MW[MenuWidgetStore]
     J -->|reads counts| E
     J -->|theme| TS[ThemeStore]
-    J --> L[ChartsView (4 tabs) / KeyboardHeatmapView / ActivityCalendarView]
+    J --> L["ChartsView (4 tabs) / KeyboardHeatmapView / ActivityCalendarView"]
     M[AIPromptStore] -->|currentPrompt| B
     M -->|reads language| H
 ```
