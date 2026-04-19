@@ -60,7 +60,7 @@ final class L10n {
         let keysStr = keys.formatted()
         if let pts = mousePts {
             let dist = mouseDistanceString(pts)
-            return ja("本日: \(keysStr) keys, \(dist)", en: "Today: \(keysStr) keys, \(dist)")
+            return ja("本日: \(keysStr) keys, \(dist) move", en: "Today: \(keysStr) keys, \(dist) move")
         }
         return ja("本日: \(keysStr) keys", en: "Today: \(keysStr) keys")
     }
