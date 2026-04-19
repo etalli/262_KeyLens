@@ -12,7 +12,7 @@ struct ChartsView: View {
     @AppStorage(UDKeys.frequentChartsSortDescending) var sortDescending: Bool = true
     @AppStorage(UDKeys.advancedMode) var advancedMode: Bool = false
     /// Active sub-tab within the Typing tab (#311).
-    @State var typingSubTab: TypingSubTab = .live
+    @AppStorage(UDKeys.selectedTypingSubTab) var typingSubTab: TypingSubTab = .live
 
     /// Title of the section whose clipboard copy just succeeded (cleared after 1.5 s).
     @State var copiedSection: String? = nil

@@ -22,6 +22,7 @@ enum UDKeys {
     static let selectedChartTab            = "selectedChartTab"
     static let selectedActivitySubTab      = "selectedActivitySubTab"
     static let selectedMouseSubTab         = "selectedMouseSubTab"
+    static let selectedTypingSubTab        = "selectedTypingSubTab"
     static let speedometerSize             = "speedometerSize"
     static let thumbOptimizationEnabled    = "thumbOptimizationEnabled"
     static let trainingSessionLength       = "trainingSessionLength"
