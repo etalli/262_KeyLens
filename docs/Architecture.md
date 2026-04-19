@@ -235,7 +235,7 @@ On launch, calls `detectHardware()` which reads connected keyboard device names 
 
 ### [AppDelegate+Actions.swift](Sources/KeyLens/AppDelegate+Actions.swift)
 
-Extension on `AppDelegate` containing all user-initiated actions triggered from `MenuView`: showing windows, toggling the overlay, exporting CSV, copying data to clipboard, editing the AI prompt, changing language, resetting counts, etc.
+Extension on `AppDelegate` containing all user-initiated actions triggered from `MenuView`: showing windows (including deep-link navigation to specific tabs via `showCharts(tab:)`, `showChartsAtSessions()`), toggling the overlay, exporting CSV/SQLite, copying data to clipboard, editing the AI prompt, changing language, resetting counts, backup/restore (`keylens.db` via GRDB backup API), etc.
 
 ---
 
@@ -659,7 +659,7 @@ Singleton that manages the active `ChartTheme` (blue / teal / purple / orange / 
 
 ### [MenuWidgetStore.swift](Sources/KeyLens/MenuWidgetStore.swift)
 
-Persists the user's widget selection and ordering for the `MenuView` popover. Defines the `MenuWidget` enum (recording since, today total, WPM, backspace rate, mini chart, streak, shortcut efficiency, mouse distance, ergonomic recommendations) and `MenuWidgetStore` singleton backed by `UserDefaults`.
+Persists the user's widget selection and ordering for the `MenuView` popover. Defines the `MenuWidget` enum (today summary, WPM, mini chart, avg interval, streak, shortcut efficiency, recording since, slow events) and `MenuWidgetStore` singleton backed by `UserDefaults`. The `todaySummary` widget shows today's keystroke count and cursor travel distance (px) on a single row.
 
 ---
 
