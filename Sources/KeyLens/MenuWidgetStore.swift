@@ -6,14 +6,13 @@ import Combine
 /// Represents a toggleable stat widget shown in the menu bar popover.
 /// メニューバーポップオーバーに表示する統計ウィジェットを定義する列挙型。
 enum MenuWidget: String, CaseIterable, Identifiable {
-    case recordingSince = "recordingSince"
-    case todayTotal     = "todayTotal"
-    case avgInterval    = "avgInterval"
-    case estimatedWPM   = "estimatedWPM"
+    case recordingSince  = "recordingSince"
+    case todaySummary    = "todaySummary"
+    case avgInterval     = "avgInterval"
+    case estimatedWPM    = "estimatedWPM"
     case miniChart            = "miniChart"
     case streak               = "streak"
     case shortcutEfficiency   = "shortcutEfficiency"
-    case mouseDistance        = "mouseDistance"
     case slowEvents           = "slowEvents"
 
     var id: String { rawValue }
@@ -42,7 +41,7 @@ final class MenuWidgetStore: ObservableObject {
     /// Default order matching current hardcoded behaviour.
     /// 既存の表示順と一致するデフォルト順序。
     static let defaultOrder: [MenuWidget] = [
-        .todayTotal, .miniChart, .estimatedWPM, .mouseDistance,
+        .todaySummary, .miniChart, .estimatedWPM,
         .avgInterval, .shortcutEfficiency, .streak,
         .recordingSince, .slowEvents
     ]

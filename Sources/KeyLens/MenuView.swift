@@ -66,8 +66,8 @@ struct MenuView: View {
                 switch widget {
                 case .recordingSince:
                     infoRow(l.recordingSince(store.startedAt), icon: "calendar")
-                case .todayTotal:
-                    menuRow(String(format: l.todayFormat, store.todayCount.formatted()), icon: "keyboard") {
+                case .todaySummary:
+                    menuRow(l.todaySummaryDisplay(keys: store.todayCount, mousePts: MouseStore.shared.distanceToday()), icon: "figure.typing") {
                         appDelegate.showChartsAtSessions()
                     }
                 case .avgInterval:
@@ -100,16 +100,6 @@ struct MenuView: View {
                         infoRow(l.shortcutEfficiencyDisplay(pct))
                     } else {
                         infoRow(l.shortcutEfficiencyNoData)
-                    }
-                case .mouseDistance:
-                    if let pts = MouseStore.shared.distanceToday() {
-                        menuRow(l.mouseDistanceDisplay(pts)) {
-                            appDelegate.showMouseDistanceChart()
-                        }
-                    } else {
-                        menuRow(l.mouseDistanceNoData) {
-                            appDelegate.showMouseDistanceChart()
-                        }
                     }
                 case .slowEvents:
                     let count = KeyCountStore.shared.slowEventCount

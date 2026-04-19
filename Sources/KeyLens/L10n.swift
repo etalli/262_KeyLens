@@ -56,6 +56,15 @@ final class L10n {
         ja("本日: %@", en: "Today: %@")
     }
 
+    func todaySummaryDisplay(keys: Int, mousePts: Double?) -> String {
+        let keysStr = keys.formatted()
+        if let pts = mousePts {
+            let dist = mouseDistanceString(pts)
+            return ja("本日: \(keysStr) · \(dist)", en: "Today: \(keysStr) · \(dist)")
+        }
+        return ja("本日: \(keysStr)", en: "Today: \(keysStr)")
+    }
+
     var noInput: String {
         ja("（まだ入力なし）", en: "(no input yet)")
     }
@@ -1461,13 +1470,12 @@ final class L10n {
     func widgetDisplayName(_ widget: MenuWidget) -> String {
         switch widget {
         case .recordingSince: return ja("記録開始日", en: "Recording Since")
-        case .todayTotal:     return ja("本日", en: "Today")
+        case .todaySummary:   return ja("本日サマリー", en: "Today Summary")
         case .avgInterval:    return ja("平均打鍵間隔", en: "Avg Interval")
         case .estimatedWPM:   return ja("WPM", en: "WPM")
         case .miniChart:      return ja("直近7日グラフ", en: "Last 7 Days Chart")
         case .streak:                     return ja("ストリーク", en: "Streak")
         case .shortcutEfficiency:         return ja("ショートカット効率", en: "Shortcut Efficiency")
-        case .mouseDistance:              return ja("マウス移動距離", en: "Mouse Distance")
         case .slowEvents:                 return ja("低速イベント数", en: "Slow Events")
         }
     }
@@ -1561,30 +1569,24 @@ final class L10n {
 
     // MARK: - Mouse Distance
 
-    /// Mouse distance display string. Shows raw screen points and physical distance.
-    /// Physical distance uses NSScreen.main for accuracy, falling back to 96 dpi baseline.
-    func mouseDistanceDisplay(_ pts: Double) -> String {
-        // Derive mm/pt from screen DPI; fall back to 96 dpi baseline (0.264 mm/pt)
+    func mouseDistanceString(_ pts: Double) -> String {
         let mmPerPt: Double
         if let screen = NSScreen.main,
            let res = screen.deviceDescription[NSDeviceDescriptionKey("NSDeviceResolution")] as? NSSize,
            res.width > 0 {
-            mmPerPt = 25.4 / res.width  // 25.4 mm per inch / dpi
+            mmPerPt = 25.4 / res.width
         } else {
             mmPerPt = 0.264
         }
-
         let meters = pts * mmPerPt / 1000.0
+        return meters >= 1000
+            ? String(format: "%.2f km", meters / 1000)
+            : String(format: "%.0f m", meters)
+    }
 
-        let distStr: String
-        if meters >= 1000 {
-            distStr = String(format: "%.2f km", meters / 1000)
-        } else {
-            distStr = String(format: "%.0f m", meters)
-        }
-
-        return ja("🖱 本日: \(distStr)",
-                  en: "🖱 Today: \(distStr)")
+    func mouseDistanceDisplay(_ pts: Double) -> String {
+        let distStr = mouseDistanceString(pts)
+        return ja("🖱 本日: \(distStr)", en: "🖱 Today: \(distStr)")
     }
 
     var mouseDistanceNoData: String {
