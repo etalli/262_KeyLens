@@ -64,7 +64,7 @@ KeyLens はどのキーをどれだけ、どの指で押しているかを記録
 
 ## ドキュメント
 
-- [HowToUse](HowToUse.md) — 使い方ガイド
+- [HowToUse](HowToUse.ja.md) — 使い方ガイド
 - [Architecture](Architecture.md) — 内部設計とセキュリティモデル
 - [HowToBuild](HowToBuild.md) — ビルド・テスト・ログ
 - [Roadmap](Roadmap.md) — 開発ロードマップ
