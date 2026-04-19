@@ -1584,8 +1584,8 @@ final class L10n {
             distStr = String(format: "%.0f m", meters)
         }
 
-        return ja("🖱 移動距離: \(pxFormatted) px (\(distStr))",
-                  en: "🖱 Travel: \(pxFormatted) px (\(distStr))")
+        return ja("🖱 本日: \(pxFormatted) px (\(distStr))",
+                  en: "🖱 Today: \(pxFormatted) px (\(distStr))")
     }
 
     var mouseDistanceNoData: String {
