@@ -622,6 +622,10 @@ final class L10n {
         ja("復元", en: "Restore")
     }
 
+    var restoreFailedAlert: String {
+        ja("バックアップからの復元に失敗しました", en: "Failed to restore from backup")
+    }
+
     var copyDataMenuItem: String {
         ja("データをコピー", en: "Copy Data to Clipboard")
     }
