@@ -53,7 +53,7 @@ final class L10n {
     }
 
     var todayFormat: String {
-        ja("本日: %@ 入力", en: "Today: %@ inputs")
+        ja("本日: %@", en: "Today: %@")
     }
 
     var noInput: String {
@@ -1575,7 +1575,6 @@ final class L10n {
         }
 
         let meters = pts * mmPerPt / 1000.0
-        let pxFormatted = NumberFormatter.localizedString(from: NSNumber(value: Int(pts)), number: .decimal)
 
         let distStr: String
         if meters >= 1000 {
@@ -1584,8 +1583,8 @@ final class L10n {
             distStr = String(format: "%.0f m", meters)
         }
 
-        return ja("🖱 本日: \(pxFormatted) px (\(distStr))",
-                  en: "🖱 Today: \(pxFormatted) px (\(distStr))")
+        return ja("🖱 本日: \(distStr)",
+                  en: "🖱 Today: \(distStr)")
     }
 
     var mouseDistanceNoData: String {
