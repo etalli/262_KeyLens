@@ -11,9 +11,9 @@
 	<key>CFBundleName</key>
 	<string>KeyLens</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.97.1</string>
+	<string>0.97.2</string>
 	<key>CFBundleVersion</key>
-	<string>0.97.1</string>
+	<string>0.97.2</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
