@@ -1109,6 +1109,22 @@ final class L10n {
            en: "No data yet — type for a while to accumulate per-finger IKI data.")
     }
 
+    var fingerSFBTitle: String {
+        ja("指ごとの同指ビグラム数", en: "SFB Count per Finger")
+    }
+
+    var helpFingerSFB: String {
+        ja(
+            "同指ビグラム (SFB) の件数を指ごとにランキング表示します。同指ビグラムとは、同じ指で連続して2つのキーを押す組み合わせです（例: 右人差し指の \"ed\"、\"un\" など）。\n\n件数が多い指ほど、同指連打による疲労や速度低下のリスクが高くなります。最も件数の多い指がレイアウト変更の最優先ターゲットになります。\n\n青=左手、オレンジ=右手。",
+            en: "Ranks each finger by total same-finger bigram (SFB) count. An SFB is any pair of consecutive keystrokes pressed by the same finger (e.g. \"ed\" or \"un\" on the right index).\n\nThe higher the count, the more strain and speed loss that finger causes. The top-ranked finger is the highest-priority target for layout changes.\n\nBlue = left hand, orange = right hand."
+        )
+    }
+
+    var fingerSFBNoData: String {
+        ja("データなし — しばらく入力すると同指ビグラムデータが蓄積されます。",
+           en: "No data yet — type for a while to accumulate same-finger bigram data.")
+    }
+
     var fingerLoadTitle: String {
         ja("指ごとの打鍵負荷", en: "Finger Load %")
     }

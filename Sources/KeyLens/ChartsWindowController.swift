@@ -57,6 +57,8 @@ final class ChartDataModel: ObservableObject {
     @Published var fingerIKI:            [FingerIKIEntry]       = []
     // Issue #364: per-finger keystroke share (%)
     @Published var fingerLoad:           [FingerLoadEntry]      = []
+    // Issue #365: per-finger SFB count ranking
+    @Published var fingerSFB:            [FingerSFBEntry]       = []
     // Issue #98: key transition analysis — incoming and outgoing transitions for the selected key
     @Published var keyTransitionIncoming: [KeyTransitionEntry]  = []
     @Published var keyTransitionOutgoing: [KeyTransitionEntry]  = []
@@ -194,6 +196,8 @@ final class ChartDataModel: ObservableObject {
             let fingerIKI          = store.ikiPerFinger().map(FingerIKIEntry.init)
             // Issue #364: per-finger keystroke share
             let fingerLoad         = store.keystrokeSharePerFinger()
+            // Issue #365: per-finger SFB ranking
+            let fingerSFB          = store.sfbPerFinger()
             // Issue #61: layout efficiency comparison
             let layoutEfficiency   = store.layoutEfficiencyScores()
             // Issue #60: session detection
@@ -298,6 +302,7 @@ final class ChartDataModel: ObservableObject {
                 self.slowBigrams          = slowBigrams
                 self.fingerIKI            = fingerIKI
                 self.fingerLoad           = fingerLoad
+                self.fingerSFB            = fingerSFB
                 self.layoutEfficiency     = layoutEfficiency
                 self.sessionSummaries      = sessionSummaries
                 self.sessionHeatmapCells   = sessionHeatmapCells

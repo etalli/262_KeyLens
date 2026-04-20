@@ -37,6 +37,7 @@ extension ChartsView {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 40) {
                         chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
+                        chartSection(L10n.shared.fingerSFBTitle, helpText: L10n.shared.helpFingerSFB) { fingerSFBChart }
                         chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
                         chartSection(L10n.shared.fingerLoadTitle, helpText: L10n.shared.helpFingerLoad) { fingerLoadChart }
                         if advancedMode {
@@ -77,6 +78,34 @@ extension ChartsView {
             case .comparison:
                 comparisonTab
             }
+        }
+    }
+
+    @ViewBuilder
+    var fingerSFBChart: some View {
+        if model.fingerSFB.isEmpty {
+            Text(L10n.shared.fingerSFBNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            let labelOrder = model.fingerSFB.map(\.label)
+            Chart(model.fingerSFB) { item in
+                BarMark(
+                    x: .value("SFBs", item.count),
+                    y: .value("Finger", item.label)
+                )
+                .foregroundStyle(item.hand == "left" ? Color.blue.opacity(0.75) : Color.orange.opacity(0.75))
+                .cornerRadius(3)
+                .annotation(position: .trailing) {
+                    Text(item.count.formatted())
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: labelOrder)
+            .chartXAxisLabel("SFBs", alignment: .trailing)
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.fingerSFB.count * 36 + 24))
         }
     }
 

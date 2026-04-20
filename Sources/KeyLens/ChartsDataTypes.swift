@@ -195,6 +195,14 @@ struct FingerLoadEntry: Identifiable {
     let share: Double    // fraction 0–1
 }
 
+/// One bar in the per-finger SFB ranking chart.
+struct FingerSFBEntry: Identifiable {
+    let id: String      // e.g. "left.index"
+    let label: String   // e.g. "L. Index"
+    let hand: String    // "left" | "right"
+    let count: Int      // total SFB occurrences for this finger
+}
+
 struct FingerIKIEntry: Identifiable {
     let id: String          // finger raw value e.g. "index"
     let finger: String      // display label e.g. "Index"

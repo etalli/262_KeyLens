@@ -437,6 +437,39 @@ extension KeyMetricsQuery {
         }
     }
 
+    func sfbPerFinger() -> [FingerSFBEntry] {
+        let registry = LayoutRegistry.shared
+        var sums: [String: Int] = [:] // "left.index" → SFB count
+
+        for (pair, count) in store.ergonomics.bigramCounts {
+            guard let bigram  = Bigram.parse(pair),
+                  let fingerA = registry.finger(for: bigram.from),
+                  let fingerB = registry.finger(for: bigram.to),
+                  let handA   = registry.hand(for: bigram.from),
+                  let handB   = registry.hand(for: bigram.to),
+                  fingerA == fingerB, handA == handB else { continue }
+            let k = "\(handB.rawValue).\(fingerB.rawValue)"
+            sums[k, default: 0] += count
+        }
+
+        let handLabels:   [String: String] = ["left": "L", "right": "R"]
+        let fingerLabels: [String: String] = [
+            "pinky": "Pinky", "ring": "Ring", "middle": "Middle",
+            "index": "Index", "thumb": "Thumb"
+        ]
+
+        return sums
+            .compactMap { k, count -> FingerSFBEntry? in
+                let parts  = k.split(separator: ".").map(String.init)
+                guard parts.count == 2 else { return nil }
+                let hand   = parts[0]
+                let finger = parts[1]
+                let label  = "\(handLabels[hand, default: hand]). \(fingerLabels[finger, default: finger])"
+                return FingerSFBEntry(id: k, label: label, hand: hand, count: count)
+            }
+            .sorted { $0.count > $1.count }
+    }
+
     func slowestBigrams(minCount: Int = 5, limit: Int = 20) -> [(bigram: String, avgIKI: Double)] {
         mergedBigramIKI()
             .compactMap { bigram, data -> (bigram: String, avgIKI: Double)? in
