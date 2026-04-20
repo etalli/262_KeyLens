@@ -38,6 +38,7 @@ extension ChartsView {
                     VStack(alignment: .leading, spacing: 40) {
                         chartSection(L10n.shared.chartTitleTopBigrams, helpText: L10n.shared.helpBigrams, showSort: true) { bigramChart }
                         chartSection(L10n.shared.fingerIKITitle, helpText: L10n.shared.helpFingerIKI) { fingerIKIChart }
+                        chartSection(L10n.shared.fingerLoadTitle, helpText: L10n.shared.helpFingerLoad) { fingerLoadChart }
                         if advancedMode {
                             chartSection(L10n.shared.bigramIKIHeatmapTitle, helpText: L10n.shared.helpBigramIKIHeatmap) {
                                 BigramHeatmapView(bigramIKIMap: model.bigramIKIMap, topKeyEntries: model.topKeys)
@@ -104,6 +105,34 @@ extension ChartsView {
             .chartXAxisLabel("ms", alignment: .trailing)
             .chartLegend(.hidden)
             .frame(height: CGFloat(model.fingerIKI.count * 36 + 24))
+        }
+    }
+
+    @ViewBuilder
+    var fingerLoadChart: some View {
+        if model.fingerLoad.isEmpty {
+            Text(L10n.shared.fingerLoadNoData)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+        } else {
+            let labelOrder = model.fingerLoad.map(\.label)
+            Chart(model.fingerLoad) { item in
+                BarMark(
+                    x: .value("%", item.share * 100),
+                    y: .value("Finger", item.label)
+                )
+                .foregroundStyle(item.hand == "left" ? Color.blue.opacity(0.75) : Color.orange.opacity(0.75))
+                .cornerRadius(3)
+                .annotation(position: .trailing) {
+                    Text(String(format: "%.1f%%", item.share * 100))
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartYScale(domain: labelOrder)
+            .chartXAxisLabel("%", alignment: .trailing)
+            .chartLegend(.hidden)
+            .frame(height: CGFloat(model.fingerLoad.count * 36 + 24))
         }
     }
 

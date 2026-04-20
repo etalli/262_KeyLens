@@ -398,6 +398,45 @@ extension KeyMetricsQuery {
             .sorted { $0.avgIKI > $1.avgIKI }
     }
 
+    func keystrokeSharePerFinger() -> [FingerLoadEntry] {
+        let registry = LayoutRegistry.shared
+        let total = store.counts.values.reduce(0, +)
+        guard total > 0 else { return [] }
+
+        var perKey: [(String, String, Int)] = [] // (hand, finger, count)
+        for (key, count) in store.counts {
+            guard let finger = registry.finger(for: key),
+                  let hand   = registry.hand(for: key) else { continue }
+            perKey.append((hand.rawValue, finger.rawValue, count))
+        }
+
+        var sums: [String: Int] = [:] // "left.index" → count
+        for (hand, finger, count) in perKey {
+            let k = "\(hand).\(finger)"
+            sums[k, default: 0] += count
+        }
+
+        // Canonical left→right, pinky-to-thumb order
+        let order: [String] = [
+            "left.pinky", "left.ring", "left.middle", "left.index", "left.thumb",
+            "right.thumb", "right.index", "right.middle", "right.ring", "right.pinky"
+        ]
+        let handLabels: [String: String] = ["left": "L", "right": "R"]
+        let fingerLabels: [String: String] = [
+            "pinky": "Pinky", "ring": "Ring", "middle": "Middle",
+            "index": "Index", "thumb": "Thumb"
+        ]
+
+        return order.compactMap { k -> FingerLoadEntry? in
+            guard let count = sums[k], count > 0 else { return nil }
+            let parts  = k.split(separator: ".").map(String.init)
+            let hand   = parts[0]
+            let finger = parts[1]
+            let label  = "\(handLabels[hand, default: hand]). \(fingerLabels[finger, default: finger])"
+            return FingerLoadEntry(id: k, label: label, hand: hand, share: Double(count) / Double(total))
+        }
+    }
+
     func slowestBigrams(minCount: Int = 5, limit: Int = 20) -> [(bigram: String, avgIKI: Double)] {
         mergedBigramIKI()
             .compactMap { bigram, data -> (bigram: String, avgIKI: Double)? in

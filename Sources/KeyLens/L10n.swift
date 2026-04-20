@@ -1109,6 +1109,22 @@ final class L10n {
            en: "No data yet — type for a while to accumulate per-finger IKI data.")
     }
 
+    var fingerLoadTitle: String {
+        ja("指ごとの打鍵負荷", en: "Finger Load %")
+    }
+
+    var helpFingerLoad: String {
+        ja(
+            "全打鍵数に占める各指の割合を示します。棒が長いほど、その指が多くのキーを担当していることを意味します。\n\n青 = 左手、オレンジ = 右手。左右対称に近いほど手のバランスが良好です。小指や薬指の負荷が高い場合は、キーボードレイアウトの変更を検討する指標になります。",
+            en: "Shows each finger's share of total keystrokes. A longer bar means that finger handles more of the typing workload.\n\nBlue = left hand, orange = right hand. Near-symmetry indicates good hand balance. High load on pinkies or ring fingers is a signal to consider layout changes."
+        )
+    }
+
+    var fingerLoadNoData: String {
+        ja("データなし — しばらく入力すると指ごとの負荷データが蓄積されます。",
+           en: "No data yet — type for a while to accumulate per-finger load data.")
+    }
+
     var slowBigramsNoData: String {
         ja("データなし — しばらく入力するとビグラムIKIデータが蓄積されます。",
            en: "No data yet — type for a while to accumulate bigram IKI data.")

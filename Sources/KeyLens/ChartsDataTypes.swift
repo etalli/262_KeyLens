@@ -187,6 +187,14 @@ struct IKIHistogramEntry: Identifiable {
     let percentage: Double  // count / total * 100
 }
 
+/// One bar in the Finger Load chart: per-finger share of total keystrokes.
+struct FingerLoadEntry: Identifiable {
+    let id: String       // e.g. "left.index"
+    let label: String    // e.g. "L. Index"
+    let hand: String     // "left" | "right"
+    let share: Double    // fraction 0–1
+}
+
 struct FingerIKIEntry: Identifiable {
     let id: String          // finger raw value e.g. "index"
     let finger: String      // display label e.g. "Index"

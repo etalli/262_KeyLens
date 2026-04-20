@@ -99,6 +99,10 @@ extension KeyCountStore {
         queue.sync { makeQuery().ikiPerFinger() }
     }
 
+    func keystrokeSharePerFinger() -> [FingerLoadEntry] {
+        queue.sync { makeQuery().keystrokeSharePerFinger() }
+    }
+
     func slowestBigrams(minCount: Int = 5, limit: Int = 20) -> [(bigram: String, avgIKI: Double)] {
         queue.sync { makeQuery().slowestBigrams(minCount: minCount, limit: limit) }
     }
