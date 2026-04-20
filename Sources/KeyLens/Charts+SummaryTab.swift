@@ -8,11 +8,6 @@ extension ChartsView {
             VStack(alignment: .leading, spacing: 40) {
                 allTimeTotalSection
                 chartSection(L10n.shared.chartTitleActivityCalendar, helpText: L10n.shared.helpActivityCalendar) { activityCalendarChart }
-                chartSection(L10n.shared.weeklySummaryCardTitle) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        WeeklySummaryCardView(data: model.weeklySummaryData, embedded: true)
-                    }
-                }
                 chartSection(L10n.shared.chartTitleWeeklyReport, helpText: L10n.shared.helpWeeklyReport) { weeklyDeltaSection }
             }
             .padding(24)
@@ -22,6 +17,7 @@ extension ChartsView {
     @ViewBuilder
     var allTimeTotalSection: some View {
         let l = L10n.shared
+        let summary = model.weeklySummaryData
         HStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(l.allTimeTotalLabel)
@@ -35,6 +31,14 @@ extension ChartsView {
                 Text(l.allTimeTodayLabel)
                     .font(.caption).foregroundStyle(.secondary)
                 Text(model.todayCount.formatted())
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+            Divider().frame(height: 40)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(l.weeklySummaryCardStreak)
+                    .font(.caption).foregroundStyle(.secondary)
+                Text(summary.goalIsSet ? "\(summary.streak)" : "—")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
             }
@@ -203,24 +207,34 @@ extension ChartsView {
     }
 
     func weeklyFormat(_ value: Double, metric: String) -> String {
-        if metric == "Keystrokes" {
+        switch metric {
+        case "Keystrokes", "WPM":
             return Int(value).formatted()
-        } else {
+        case "Ergo Score":
+            return String(format: "%.0f", value)
+        default:
             return "\(Int(value * 100))%"
         }
     }
 
     @ViewBuilder
     func deltaLabel(_ row: WeeklyDeltaRow) -> some View {
-        let threshold = row.metric == "Keystrokes" ? 0.01 : 0.005
+        let threshold: Double = {
+            switch row.metric {
+            case "Keystrokes": return 0.01
+            case "WPM", "Ergo Score": return 0.5
+            default: return 0.005
+            }
+        }()
         let isImprovement = row.lowerIsBetter ? row.delta < -threshold : row.delta > threshold
         let isRegression  = row.lowerIsBetter ? row.delta > threshold  : row.delta < -threshold
         let color: Color  = isImprovement ? .green : (isRegression ? .red : .secondary)
 
         let absStr: String = {
-            if row.metric == "Keystrokes" {
+            switch row.metric {
+            case "Keystrokes", "WPM", "Ergo Score":
                 return abs(Int(row.delta)).formatted()
-            } else {
+            default:
                 return "\(Int(abs(row.delta) * 100))pp"
             }
         }()

@@ -164,7 +164,8 @@ final class ChartDataModel: ObservableObject {
                     DailyErgonomicEntry(date: row.date, series: "High-strain",  rate: row.highStrainRate),
                 ]
             }
-            let weeklyDeltas = Self.computeWeeklyDeltas(ergRates: ergRates, rawDailyTotals: rawDailyTotals)
+            let rawDailyWPM   = store.dailyWPM()
+            let weeklyDeltas  = Self.computeWeeklyDeltas(ergRates: ergRates, rawDailyTotals: rawDailyTotals, rawDailyWPM: rawDailyWPM)
 
             // Issue #5: Activity Trends
             let hourlyDistribution = store.hourlyDistribution()
@@ -396,7 +397,8 @@ final class ChartDataModel: ObservableObject {
 
     private static func computeWeeklyDeltas(
         ergRates: [(date: String, sameFingerRate: Double, handAltRate: Double, highStrainRate: Double)],
-        rawDailyTotals: [(date: String, total: Int)]
+        rawDailyTotals: [(date: String, total: Int)],
+        rawDailyWPM: [(date: String, wpm: Double)]
     ) -> [WeeklyDeltaRow] {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
@@ -422,11 +424,35 @@ final class ChartDataModel: ObservableObject {
             return vals.isEmpty ? nil : vals.reduce(0, +) / Double(vals.count)
         }
 
+        // Average WPM over a set of dates
+        let wpmMap = Dictionary(uniqueKeysWithValues: rawDailyWPM.map { ($0.date, $0.wpm) })
+        func avgWPM(_ dates: Set<String>) -> Double? {
+            let vals = dates.compactMap { wpmMap[$0] }
+            return vals.isEmpty ? nil : vals.reduce(0, +) / Double(vals.count)
+        }
+
+        // Ergonomic score from averaged rates (thumb/reach components omitted — not per-day available)
+        let engine = LayoutRegistry.shared.ergonomicScoreEngine
+        func ergoScore(_ dates: Set<String>) -> Double? {
+            guard let sf  = avg(dates, { sf, _, _  in sf  }),
+                  let alt = avg(dates, { _, ha, _  in ha  }),
+                  let hs  = avg(dates, { _, _, hs  in hs  }) else { return nil }
+            return engine.score(sameFingerRate: sf, highStrainRate: hs,
+                                thumbImbalanceRatio: 0, rowReachScore: 0,
+                                handAlternationRate: alt, thumbEfficiencyCoefficient: 0)
+        }
+
         var rows: [WeeklyDeltaRow] = []
 
         // Always include keystrokes (even if last week is 0)
         if thisWeekKeys > 0 || lastWeekKeys > 0 {
-            rows.append(WeeklyDeltaRow(metric: "Keystrokes",      thisWeek: thisWeekKeys, lastWeek: lastWeekKeys, lowerIsBetter: false))
+            rows.append(WeeklyDeltaRow(metric: "Keystrokes",   thisWeek: thisWeekKeys, lastWeek: lastWeekKeys, lowerIsBetter: false))
+        }
+        if let tw = avgWPM(thisWeekDates), let lw = avgWPM(lastWeekDates) {
+            rows.append(WeeklyDeltaRow(metric: "WPM",          thisWeek: tw, lastWeek: lw, lowerIsBetter: false))
+        }
+        if let tw = ergoScore(thisWeekDates), let lw = ergoScore(lastWeekDates) {
+            rows.append(WeeklyDeltaRow(metric: "Ergo Score",   thisWeek: tw, lastWeek: lw, lowerIsBetter: false))
         }
         if let tw = avg(thisWeekDates, { sf, _, _ in sf }), let lw = avg(lastWeekDates, { sf, _, _ in sf }) {
             rows.append(WeeklyDeltaRow(metric: "Same-finger rate", thisWeek: tw, lastWeek: lw, lowerIsBetter: true))
