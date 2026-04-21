@@ -323,6 +323,21 @@ extension KeyMetricsQuery {
             for row in rows { bigrams[row["bigram"], default: 0] += (row["count"] as Int) }
         }
         for (b, v) in pending.dailyBigrams[todayKey, default: [:]] { bigrams[b, default: 0] += v }
+        // Issue #370: translate output keys to physical keys before estimating travel.
+        // Bigrams are stored using OS output key names; layer-mapped keys (e.g. "←" produced
+        // by Lower+J) must be resolved to their base key ("J") so ANSILayout returns the
+        // correct physical position instead of the arrow-cluster position.
+        let lookup = LayerMappingStore.shared.lookupTable
+        if !lookup.isEmpty {
+            var physical: [String: Int] = [:]
+            for (bigram, count) in bigrams {
+                guard let b = Bigram.parse(bigram) else { continue }
+                let from = lookup[b.from]?.baseKey ?? b.from
+                let to   = lookup[b.to]?.baseKey   ?? b.to
+                physical[Bigram(from: from, to: to).key, default: 0] += count
+            }
+            bigrams = physical
+        }
         let layout = ANSILayout()
         let gridUnits = TravelDistanceEstimator.default.totalTravel(counts: bigrams, layout: layout)
         return gridUnits * 0.019
