@@ -406,15 +406,15 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+ActivityTab.swift` | Typing › Activity | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
 | `Charts+KeyboardTab.swift` | Typing › Keyboard | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
 | `Charts+ShortcutsTab.swift` | Typing › Shortcuts | ⌘ Keyboard Shortcuts, All Keyboard Combos |
-| `Charts+AppsTab.swift` | Typing › Apps / Devices | Per-app and per-device keystroke bars + ergonomic score tables |
+| `Charts+AppsTab.swift` | Typing › Apps / Devices | Per-app and per-device keystroke bars + ergonomic score tables + per-device daily keystroke time-series line chart |
 | `Charts+MouseTab.swift` | Mouse | Mouse clicks, direction, daily distance (+ position heatmap in Advanced Mode) |
 | `Charts+MouseHeatmap.swift` | Mouse › Heatmap | Mouse position heatmap with log-scale normalization and inline color legend (blue=Low → red=High) |
-| `Charts+ErgonomicsTab.swift` | Ergonomics | Recommendations, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs |
+| `Charts+ErgonomicsTab.swift` | Ergonomics | Recommendations, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs + per-finger SFB ranking bar chart |
 | `Charts+ComparisonTab.swift` | Ergonomics › Compare | Side-by-side period comparison: two custom date ranges, stats table with delta column |
 | `Charts+TrainingTab.swift` | Ergonomics › Training (Advanced) | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 | `Charts+LayerEfficiency.swift` | Ergonomics › Layout | Layer key usage analysis for QMK/ZMK keyboards |
 
-Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, etc.) are defined in `ChartsDataTypes.swift`.
+Shared UI primitives (section headers, sort controls, help popovers) live in `ChartsComponents.swift`. Chart-specific data structs (`TopKeyEntry`, `DailyErgonomicEntry`, `WeeklyDeltaRow`, `FingerSFBEntry`, `DailyDeviceEntry`, etc.) are defined in `ChartsDataTypes.swift`.
 
 `ChartDataModel` (ObservableObject in `ChartsWindowController.swift`) holds all chart data and exposes `reload()` to refresh from `KeyCountStore`. All data fields are populated on a background thread; view bodies must not call `KeyCountStore` directly.
 
