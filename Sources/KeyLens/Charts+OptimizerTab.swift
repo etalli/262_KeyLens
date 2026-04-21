@@ -13,13 +13,35 @@ import KeyLensCore
 /// キースワップシミュレータの可変状態を管理する。スワップごとにバックグラウンドでスコアを再計算。
 final class OptimizerSimulatorState: ObservableObject {
 
-    // MARK: Keyboard rows (swappable alpha/symbol keys only)
-    // スワップ可能なアルファ/記号キーのみ（修飾キー・スペースを除く）
+    // MARK: Keyboard rows — full ANSI layout (Issue #337)
     static let keyRows: [[String]] = [
-        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
-        ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\"],
-        ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'"],
-        ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"]
+        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Delete"],
+        ["Tab", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\"],
+        ["CapsLock", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "Return"],
+        ["⇧Shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
+        ["⌃Ctrl", "⌥Option", "⌘Cmd", "Space"],
+    ]
+
+    /// Per-row leading offset to mimic ANSI stagger (pixels).
+    static let rowOffsets: [CGFloat] = [0, 10, 20, 0, 0]
+
+    /// Symbol labels for special keys shown on tiles.
+    static let displayLabels: [String: String] = [
+        "Delete":   "⌫",
+        "Tab":      "⇥",
+        "CapsLock": "⇪",
+        "Return":   "↩",
+        "⇧Shift":   "⇧",
+        "⌃Ctrl":    "⌃",
+        "⌥Option":  "⌥",
+        "⌘Cmd":     "⌘",
+        "Space":    "Spc",
+    ]
+
+    /// Slots that are modifier / special keys — rendered with a distinct tint.
+    static let modifierSlots: Set<String> = [
+        "Delete", "Tab", "CapsLock", "Return",
+        "⇧Shift", "⌃Ctrl", "⌥Option", "⌘Cmd", "Space",
     ]
 
     // MARK: Published state
@@ -481,9 +503,7 @@ extension ChartsView {
                                 optimizerKeyButton(physSlot: physSlot)
                             }
                         }
-                        // Stagger rows to mimic a real keyboard
-                        // 実際のキーボードに似せて各行をずらす
-                        .padding(.leading, CGFloat(rowIdx) * 10)
+                        .padding(.leading, rowIdx < OptimizerSimulatorState.rowOffsets.count ? OptimizerSimulatorState.rowOffsets[rowIdx] : 0)
                     }
                 }
             }
@@ -492,31 +512,37 @@ extension ChartsView {
 
     @ViewBuilder
     private func optimizerKeyButton(physSlot: String) -> some View {
-        let label     = optimizerState.displayAt[physSlot] ?? physSlot
-        let isSelected = optimizerState.selectedSlot == physSlot
-        let isLocked   = optimizerState.lockedSlots.contains(physSlot)
-        let isChanged  = label != physSlot
+        let keyName     = optimizerState.displayAt[physSlot] ?? physSlot
+        let displayText = OptimizerSimulatorState.displayLabels[keyName] ?? keyName
+        let isSelected  = optimizerState.selectedSlot == physSlot
+        let isLocked    = optimizerState.lockedSlots.contains(physSlot)
+        let isChanged   = keyName != physSlot
+        let isModifier  = OptimizerSimulatorState.modifierSlots.contains(physSlot)
+
+        let fillColor: Color = {
+            if isSelected { return Color.accentColor }
+            if isLocked   { return Color.secondary.opacity(0.12) }
+            if isChanged  { return Color.green.opacity(0.18) }
+            if isModifier { return Color.blue.opacity(0.08) }
+            return Color.secondary.opacity(0.1)
+        }()
+        let borderColor: Color = {
+            if isSelected { return Color.accentColor }
+            if isChanged  { return Color.green.opacity(0.5) }
+            if isModifier { return Color.blue.opacity(0.2) }
+            return Color.secondary.opacity(0.25)
+        }()
 
         ZStack {
             RoundedRectangle(cornerRadius: 5)
-                .fill(
-                    isSelected ? Color.accentColor :
-                    isLocked   ? Color.secondary.opacity(0.12) :
-                    isChanged  ? Color.green.opacity(0.18) :
-                                 Color.secondary.opacity(0.1)
-                )
+                .fill(fillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 5)
-                        .strokeBorder(
-                            isSelected  ? Color.accentColor :
-                            isChanged   ? Color.green.opacity(0.5) :
-                                         Color.secondary.opacity(0.25),
-                            lineWidth: 1
-                        )
+                        .strokeBorder(borderColor, lineWidth: 1)
                 )
 
             VStack(spacing: 1) {
-                Text(label)
+                Text(displayText)
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(isSelected ? .white : isLocked ? Color.secondary : Color.primary)
                 if isLocked {
@@ -528,7 +554,7 @@ extension ChartsView {
         }
         .frame(width: 34, height: 30)
         .accessibilityLabel(L10n.shared.accessibilityKeyLabel(
-            key: label,
+            key: keyName,
             isSelected: isSelected,
             isLocked: isLocked,
             originalSlot: physSlot
@@ -543,18 +569,16 @@ extension ChartsView {
             optimizerState.tapSlot(physSlot)
         }
         // Drag source: payload is the physical slot identifier
-        // ドラッグソース：ペイロードは物理スロット識別子
         .draggable(physSlot) {
             ZStack {
                 RoundedRectangle(cornerRadius: 5).fill(Color.accentColor)
-                Text(label)
+                Text(displayText)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
             }
             .frame(width: 34, height: 30)
         }
         // Drop target: swap the dragged slot with this slot
-        // ドロップターゲット：ドラッグされたスロットとこのスロットをスワップ
         .dropDestination(for: String.self) { items, _ in
             guard let sourceSlot = items.first, sourceSlot != physSlot else { return false }
             optimizerState.swapSlots(sourceSlot, physSlot)
