@@ -45,17 +45,6 @@ struct KeyDef {
     }
 }
 
-// MARK: - KLEProfile (Issue #318)
-
-struct KLEProfile: Codable, Identifiable {
-    var id: UUID = UUID()
-    var name: String
-    var keywords: String    // Comma-separated device match keywords
-    var url: String         // Source URL for reloading
-    var json: String        // Encoded [KLEAbsoluteKey] array
-    var fileName: String    // File or URL name shown in status
-}
-
 // MARK: - KeyboardHeatmapView
 
 struct KeyboardHeatmapView: View {
@@ -76,14 +65,8 @@ struct KeyboardHeatmapView: View {
     // @AppStorage so it survives view unmount — allows detecting disconnect while window was closed.
     @AppStorage(UDKeys.heatmapLastResolvedTemplate) private var lastResolvedTemplate: HeatmapTemplate = .ansi
     @AppStorage(UDKeys.heatmapTemplate) private var template: HeatmapTemplate = .ansi
-    // Issue #318: multiple KLE profiles (replaces single kleCustomLayout* keys)
-    @AppStorage(UDKeys.kleProfiles) private var kleProfilesJSON: String = "[]"
-    @AppStorage(UDKeys.kleSelectedProfileID) private var kleSelectedProfileIDString: String = ""
-    // Legacy keys — read only for one-time migration
-    @AppStorage(UDKeys.kleCustomLayoutJSON) private var legacyKLEJSON: String = ""
-    @AppStorage(UDKeys.kleCustomKeywords) private var legacyKLEKeywords: String = ""
-    @AppStorage(UDKeys.kleCustomLayoutFileName) private var legacyKLEFileName: String = ""
-    @AppStorage(UDKeys.kleCustomLayoutURL) private var legacyKLEURL: String = ""
+    // Issue #318 / #332: KLE profile management extracted to KLEProfileManager
+    @StateObject private var kleManager = KLEProfileManager()
     @State private var kleURLInput: String = ""
     @State private var kleURLLoading: Bool = false
     @State private var showRenameAlert: Bool = false
@@ -287,52 +270,13 @@ struct KeyboardHeatmapView: View {
         ],
     ]
 
-    // MARK: - KLE Profile helpers (Issue #318)
+    // MARK: - KLE view helpers (delegates to KLEProfileManager)
 
-    private var kleProfiles: [KLEProfile] {
-        guard let data = kleProfilesJSON.data(using: .utf8),
-              let profiles = try? JSONDecoder().decode([KLEProfile].self, from: data)
-        else { return [] }
-        return profiles
-    }
+    // Issue #284: refreshed on appear so layout changes are detected across window reopen
+    @State private var deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
 
-    private func setProfiles(_ profiles: [KLEProfile]) {
-        if let data = try? JSONEncoder().encode(profiles),
-           let str = String(data: data, encoding: .utf8) {
-            kleProfilesJSON = str
-        }
-    }
-
-    // The profile selected in the manual Custom picker
-    private var selectedProfile: KLEProfile? {
-        let profiles = kleProfiles
-        if let id = UUID(uuidString: kleSelectedProfileIDString),
-           let p = profiles.first(where: { $0.id == id }) {
-            return p
-        }
-        return profiles.first
-    }
-
-    // In Auto mode, find the first profile whose keywords match connected devices.
-    // Falls back to selectedProfile if no keyword match.
-    private func matchingProfile(for names: [String]) -> KLEProfile? {
-        let lower = names.map { $0.lowercased() }
-        for profile in kleProfiles {
-            let kws = profile.keywords
-                .split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
-                .filter { !$0.isEmpty }
-            if !kws.isEmpty && lower.contains(where: { n in kws.contains { n.contains($0) } }) {
-                return profile
-            }
-        }
-        return nil
-    }
-
-    // Returns the effective profile to use for display (manual or auto-matched)
     private var effectiveProfile: KLEProfile? {
-        guard template == .auto else { return selectedProfile }
-        return matchingProfile(for: deviceNames) ?? selectedProfile
+        kleManager.effectiveProfile(template: template, deviceNames: deviceNames)
     }
 
     // Decodes the active profile's JSON into absolute keys.
@@ -344,26 +288,11 @@ struct KeyboardHeatmapView: View {
         return keys
     }
 
-    // Migrate legacy single-slot data to profile list on first use.
-    private func migrateIfNeeded() {
-        guard kleProfiles.isEmpty, !legacyKLEJSON.isEmpty else { return }
-        let profile = KLEProfile(
-            name: legacyKLEFileName.isEmpty ? "Custom" : legacyKLEFileName,
-            keywords: legacyKLEKeywords,
-            url: legacyKLEURL,
-            json: legacyKLEJSON,
-            fileName: legacyKLEFileName
-        )
-        setProfiles([profile])
-        kleSelectedProfileIDString = profile.id.uuidString
-    }
-
-    // キーボードキー名をテンプレートに応じて動的に計算する（instance computed property）
     // Template-aware keyboard key names; computed per-render from effective template.
     private var keyboardKeyNames: Set<String> {
         let defs: [KeyDef]
         switch effectiveTemplate {
-        case .auto:        defs = Self.ansiRows.flatMap { $0 }           // unreachable; fallback
+        case .auto:        defs = Self.ansiRows.flatMap { $0 }
         case .ansi:        defs = Self.ansiRows.flatMap { $0 }
         case .pangaea:     defs = (Self.pangaeaLeftRows + Self.pangaeaRightRows).flatMap { $0 }
         case .ortholinear: defs = Self.ortholinearRows.flatMap { $0 }
@@ -373,44 +302,16 @@ struct KeyboardHeatmapView: View {
         return Set(defs.map(\.keyName)).subtracting(["_spacer_"])
     }
 
-    // Issue #284: refreshed on appear so layout changes are detected across window reopen
-    @State private var deviceNames: [String] = KeyboardDeviceInfo.connectedNames()
-
-    // Resolves a list of device names to a concrete layout.
-    // Priority: Profile keyword match → KLE import + split device → split/ergo (Pangaea) → JIS → ANSI
-    //
-    // With multiple profiles (Issue #318), the first profile whose keywords match is used.
-    // If any profile is imported and a split/ergo device connects, the first profile is used
-    // (KLE import + split device fallback, same as pre-#318 behaviour).
-    private func resolveTemplate(from names: [String]) -> HeatmapTemplate {
-        let lower = names.map { $0.lowercased() }
-        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
-        let jisKeywords   = ["jis", "japanese"]
-        let isSplitDevice = lower.contains(where: { n in splitKeywords.contains { n.contains($0) } })
-        let profiles = kleProfiles
-
-        if !profiles.isEmpty {
-            // Keyword match across all profiles
-            if matchingProfile(for: names) != nil { return .custom }
-            // Any profile imported + split/ergo device → use first profile
-            if isSplitDevice { return .custom }
-        }
-
-        if isSplitDevice { return .pangaea }
-        if lower.contains(where: { n in jisKeywords.contains { n.contains($0) } }) { return .jis }
-        return .ansi
-    }
-
     // Resolves the `auto` template to a concrete layout based on connected keyboard names.
     private var effectiveTemplate: HeatmapTemplate {
         guard template == .auto else { return template }
-        return resolveTemplate(from: deviceNames)
+        return kleManager.resolveTemplate(from: deviceNames)
     }
 
     // Returns the matched device name when `.auto` resolves to Custom via keyword match.
     private var autoMatchedCustomName: String? {
         guard template == .auto,
-              let profile = matchingProfile(for: deviceNames) else { return nil }
+              let profile = kleManager.matchingProfile(for: deviceNames) else { return nil }
         let kws = profile.keywords
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
@@ -421,11 +322,11 @@ struct KeyboardHeatmapView: View {
     // Returns the matched device name when `.auto` resolves to Custom via KLE import + split device
     // (no keyword match, but a profile is imported and a split/ergo keyboard is connected).
     private var autoKLEMatchedDeviceName: String? {
+        let splitKWs = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
         guard template == .auto,
-              !kleProfiles.isEmpty,
-              matchingProfile(for: deviceNames) == nil else { return nil }
-        let splitKeywords = ["split", "ergo", "moonlander", "advantage", "corne", "reviung", "pangaea"]
-        return deviceNames.first { n in splitKeywords.contains { n.lowercased().contains($0) } }
+              !kleManager.profiles.isEmpty,
+              kleManager.matchingProfile(for: deviceNames) == nil else { return nil }
+        return deviceNames.first { n in splitKWs.contains { n.lowercased().contains($0) } }
     }
 
     // The file/layout name for the effective auto-matched profile.
@@ -514,10 +415,10 @@ struct KeyboardHeatmapView: View {
                 .alert(L10n.shared.kleProfileRename, isPresented: $showRenameAlert) {
                     TextField(L10n.shared.kleProfileNamePlaceholder, text: $renameText)
                     Button(L10n.shared.kleProfileRenameConfirm) {
-                        var profiles = kleProfiles
-                        if let idx = profiles.firstIndex(where: { $0.id.uuidString == kleSelectedProfileIDString }) {
+                        var profiles = kleManager.profiles
+                        if let idx = profiles.firstIndex(where: { $0.id.uuidString == kleManager.selectedProfileIDString }) {
                             profiles[idx].name = renameText.trimmingCharacters(in: .whitespaces)
-                            setProfiles(profiles)
+                            kleManager.setProfiles(profiles)
                         }
                     }
                     Button(L10n.shared.cancel, role: .cancel) {}
@@ -602,9 +503,9 @@ struct KeyboardHeatmapView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: toastMessage)
         .onAppear {
-            migrateIfNeeded()
+            kleManager.migrateIfNeeded()
             vm.reload()
-            let initial = resolveTemplate(from: deviceNames)
+            let initial = kleManager.resolveTemplate(from: deviceNames)
             // lastResolvedTemplate persists via @AppStorage — compare to detect disconnects
             // that happened while the view was unmounted (e.g. window closed).
             if initial != lastResolvedTemplate {
@@ -641,17 +542,17 @@ struct KeyboardHeatmapView: View {
         }
         .onChange(of: deviceNames) { _, newNames in
             guard template == .auto else { return }
-            let resolved = resolveTemplate(from: newNames)
+            let resolved = kleManager.resolveTemplate(from: newNames)
             guard resolved != lastResolvedTemplate else { return }
             lastResolvedTemplate = resolved
             if resolved == .ansi {
                 showToast(L10n.shared.heatmapAutoSwitchedToANSI)
-            } else if resolved == .custom, !kleProfiles.isEmpty {
+            } else if resolved == .custom, !kleManager.profiles.isEmpty {
                 // KLE import path (Issue #288 / #318): toast includes device name + layout name
                 let splitKWs = ["split","ergo","moonlander","advantage","corne","reviung","pangaea"]
                 let kbName = newNames.first { n in splitKWs.contains { n.lowercased().contains($0) } }
                     ?? newNames.first ?? ""
-                let matched = matchingProfile(for: newNames)
+                let matched = kleManager.matchingProfile(for: newNames)
                 let fileName = matched?.fileName ?? matched?.name ?? autoKLEMatchedFileName
                 showToast(L10n.shared.heatmapAutoSwitchedToKLE(device: kbName, fileName: fileName))
             } else {
@@ -674,12 +575,12 @@ struct KeyboardHeatmapView: View {
 
     @ViewBuilder private var profileControls: some View {
         // Profile row: picker + add/rename/delete
-        let profiles = kleProfiles
+        let profiles = kleManager.profiles
         HStack(spacing: 6) {
             Text(L10n.shared.kleProfileLabel)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Picker("", selection: $kleSelectedProfileIDString) {
+            Picker("", selection: $kleManager.selectedProfileIDString) {
                 ForEach(profiles) { p in
                     Text(p.name).tag(p.id.uuidString)
                 }
@@ -690,38 +591,38 @@ struct KeyboardHeatmapView: View {
 
             Button {
                 let newProfile = KLEProfile(name: L10n.shared.kleProfileNewName, keywords: "", url: "", json: "", fileName: "")
-                var ps = kleProfiles
+                var ps = kleManager.profiles
                 ps.append(newProfile)
-                setProfiles(ps)
-                kleSelectedProfileIDString = newProfile.id.uuidString
+                kleManager.setProfiles(ps)
+                kleManager.selectedProfileIDString = newProfile.id.uuidString
                 kleURLInput = ""
             } label: { Image(systemName: "plus") }
             .buttonStyle(.bordered).controlSize(.small)
             .help(L10n.shared.kleProfileAdd)
 
             Button {
-                renameText = selectedProfile?.name ?? ""
+                renameText = kleManager.selectedProfile?.name ?? ""
                 showRenameAlert = true
             } label: { Image(systemName: "pencil") }
             .buttonStyle(.bordered).controlSize(.small)
-            .disabled(selectedProfile == nil)
+            .disabled(kleManager.selectedProfile == nil)
             .help(L10n.shared.kleProfileRename)
 
             Button {
-                var ps = kleProfiles
-                ps.removeAll { $0.id.uuidString == kleSelectedProfileIDString }
-                setProfiles(ps)
-                kleSelectedProfileIDString = ps.first?.id.uuidString ?? ""
+                var ps = kleManager.profiles
+                ps.removeAll { $0.id.uuidString == kleManager.selectedProfileIDString }
+                kleManager.setProfiles(ps)
+                kleManager.selectedProfileIDString = ps.first?.id.uuidString ?? ""
                 kleURLInput = ps.first?.url ?? ""
             } label: { Image(systemName: "minus") }
             .buttonStyle(.bordered).controlSize(.small)
-            .disabled(kleProfiles.count <= 1)
+            .disabled(kleManager.profiles.count <= 1)
             .help(L10n.shared.kleProfileDelete)
 
             Spacer()
         }
 
-        if let profile = selectedProfile {
+        if let profile = kleManager.selectedProfile {
             profileDetailControls(profile: profile)
         }
 
@@ -738,20 +639,20 @@ struct KeyboardHeatmapView: View {
                 profileID: profile.id.uuidString,
                 keywords: profile.keywords,
                 onCommit: { newKW in
-                    var ps = kleProfiles
-                    if let idx = ps.firstIndex(where: { $0.id.uuidString == kleSelectedProfileIDString }) {
+                    var ps = kleManager.profiles
+                    if let idx = ps.firstIndex(where: { $0.id.uuidString == kleManager.selectedProfileIDString }) {
                         ps[idx].keywords = newKW
-                        setProfiles(ps)
+                        kleManager.setProfiles(ps)
                     }
                 }
             )
             .frame(maxWidth: 200)
             if let connectedName = deviceNames.first {
                 Button(L10n.shared.kleUseConnectedKeyboard) {
-                    var ps = kleProfiles
-                    if let idx = ps.firstIndex(where: { $0.id.uuidString == kleSelectedProfileIDString }) {
+                    var ps = kleManager.profiles
+                    if let idx = ps.firstIndex(where: { $0.id.uuidString == kleManager.selectedProfileIDString }) {
                         ps[idx].keywords = connectedName
-                        setProfiles(ps)
+                        kleManager.setProfiles(ps)
                     }
                 }
                 .buttonStyle(.bordered).controlSize(.small)
@@ -761,8 +662,8 @@ struct KeyboardHeatmapView: View {
             TextField(L10n.shared.kleURLPlaceholder, text: $kleURLInput)
                 .font(.caption).textFieldStyle(.roundedBorder)
                 .onAppear { kleURLInput = profile.url }
-                .onChange(of: kleSelectedProfileIDString) { _, _ in
-                    kleURLInput = selectedProfile?.url ?? ""
+                .onChange(of: kleManager.selectedProfileIDString) { _, _ in
+                    kleURLInput = kleManager.selectedProfile?.url ?? ""
                 }
             if kleURLLoading {
                 ProgressView().controlSize(.small)
@@ -793,7 +694,7 @@ struct KeyboardHeatmapView: View {
     // MARK: - Profile summary table (Issue #323)
 
     @ViewBuilder private var profileSummaryTable: some View {
-        let profiles = kleProfiles
+        let profiles = kleManager.profiles
         if profiles.count > 1 {
             VStack(spacing: 0) {
                 // Header row
@@ -814,7 +715,7 @@ struct KeyboardHeatmapView: View {
                 Divider()
 
                 ForEach(profiles) { p in
-                    let isSelected = p.id.uuidString == kleSelectedProfileIDString
+                    let isSelected = p.id.uuidString == kleManager.selectedProfileIDString
                     HStack(spacing: 0) {
                         Text(p.name.isEmpty ? "—" : p.name)
                             .frame(width: 130, alignment: .leading)
@@ -833,7 +734,7 @@ struct KeyboardHeatmapView: View {
                     .background(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        kleSelectedProfileIDString = p.id.uuidString
+                        kleManager.selectedProfileIDString = p.id.uuidString
                         kleURLInput = p.url
                     }
                 }
@@ -866,19 +767,7 @@ struct KeyboardHeatmapView: View {
         panel.message = L10n.shared.importKLEButton
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
-            let data = try Data(contentsOf: url)
-            let rows = try KLEParser.parse(data)
-            let encoded = try JSONEncoder().encode(rows)
-            let jsonString = String(data: encoded, encoding: .utf8) ?? ""
-            let fileName = url.lastPathComponent
-            updateSelectedProfile { p in
-                p.json = jsonString
-                p.fileName = fileName
-                // Auto-name the profile after the file if it still has the default name
-                if p.name == L10n.shared.kleProfileNewName || p.name.isEmpty {
-                    p.name = fileName
-                }
-            }
+            try kleManager.importKLE(from: url)
         } catch {
             importErrorMessage = error.localizedDescription
             showImportError = true
@@ -896,79 +785,11 @@ struct KeyboardHeatmapView: View {
         kleURLLoading = true
         defer { kleURLLoading = false }
         do {
-            let (kleData, fileName) = try await fetchKLEData(from: urlString)
-            let rows = try KLEParser.parse(kleData)
-            let encoded = try JSONEncoder().encode(rows)
-            let jsonString = String(data: encoded, encoding: .utf8) ?? ""
-            updateSelectedProfile { p in
-                p.json = jsonString
-                p.fileName = fileName
-                p.url = urlString
-                if p.keywords.trimmingCharacters(in: .whitespaces).isEmpty {
-                    p.keywords = fileName
-                }
-                if p.name == L10n.shared.kleProfileNewName || p.name.isEmpty {
-                    p.name = fileName
-                }
-            }
+            try await kleManager.loadKLE(from: urlString)
         } catch {
             importErrorMessage = "\(L10n.shared.kleURLLoadError)\n\(error.localizedDescription)"
             showImportError = true
         }
-    }
-
-    // Mutates the currently selected profile in-place.
-    private func updateSelectedProfile(_ mutate: (inout KLEProfile) -> Void) {
-        var profiles = kleProfiles
-        if profiles.isEmpty {
-            // No profiles yet — create a default one
-            var p = KLEProfile(name: L10n.shared.kleProfileNewName, keywords: "", url: "", json: "", fileName: "")
-            mutate(&p)
-            setProfiles([p])
-            kleSelectedProfileIDString = p.id.uuidString
-            return
-        }
-        guard let idx = profiles.firstIndex(where: { $0.id.uuidString == kleSelectedProfileIDString })
-                ?? { profiles.firstIndex(where: { _ in true }) }() else { return }
-        mutate(&profiles[idx])
-        setProfiles(profiles)
-        kleSelectedProfileIDString = profiles[idx].id.uuidString
-    }
-
-    /// Fetches raw KLE JSON data from either a KLE page URL or a direct URL.
-    /// KLE page URLs (keyboard-layout-editor.com/#/gists/ID) are resolved via the GitHub Gist API.
-    private func fetchKLEData(from urlString: String) async throws -> (Data, String) {
-        // Detect KLE page URL and extract gist ID
-        if urlString.contains("keyboard-layout-editor.com"),
-           let range = urlString.range(of: "#/gists/") {
-            let gistID = String(urlString[range.upperBound...])
-                .components(separatedBy: CharacterSet(charactersIn: "/?#")).first ?? ""
-            guard !gistID.isEmpty,
-                  let apiURL = URL(string: "https://api.github.com/gists/\(gistID)") else {
-                throw URLError(.badURL)
-            }
-            var request = URLRequest(url: apiURL)
-            request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-            let (apiData, _) = try await URLSession.shared.data(for: request)
-            // Parse Gist API response: take content of the first file
-            guard let json = try JSONSerialization.jsonObject(with: apiData) as? [String: Any],
-                  let files = json["files"] as? [String: Any],
-                  let firstFile = files.values.first as? [String: Any],
-                  let content = firstFile["content"] as? String,
-                  let fileName = firstFile["filename"] as? String else {
-                throw URLError(.cannotParseResponse)
-            }
-            let kleData = Data(content.utf8)
-            let keyboardName = (json["description"] as? String)?.trimmingCharacters(in: .whitespaces).isEmpty == false
-                ? json["description"] as! String
-                : fileName
-            return (kleData, keyboardName)
-        }
-
-        // Direct URL: fetch as-is
-        guard let url = URL(string: urlString) else { throw URLError(.badURL) }
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return (data, url.lastPathComponent)
     }
 
 }
