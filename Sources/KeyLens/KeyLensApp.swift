@@ -20,16 +20,20 @@ enum KeyLens {
         return f
     }()
 
+    private static let logQueue = DispatchQueue(label: "com.keylens.log", qos: .background)
+
     static func log(_ message: String) {
         let line = "[\(logFormatter.string(from: Date()))] \(message)\n"
         print(line, terminator: "")
-        if let data = line.data(using: .utf8),
-           let handle = try? FileHandle(forWritingTo: logURL) {
-            handle.seekToEndOfFile()
-            handle.write(data)
-            try? handle.close()
-        } else {
-            try? line.data(using: .utf8)?.write(to: logURL, options: .atomic)
+        logQueue.async {
+            if let data = line.data(using: .utf8),
+               let handle = try? FileHandle(forWritingTo: logURL) {
+                handle.seekToEndOfFile()
+                handle.write(data)
+                try? handle.close()
+            } else {
+                try? line.data(using: .utf8)?.write(to: logURL, options: .atomic)
+            }
         }
     }
 }
