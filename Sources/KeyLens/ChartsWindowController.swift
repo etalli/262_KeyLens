@@ -37,6 +37,7 @@ final class ChartDataModel: ObservableObject {
     // Per-device counts
     @Published var topDevices:           [DeviceEntry]          = []
     @Published var todayTopDevices:      [DeviceEntry]          = []
+    @Published var dailyDeviceTotals:    [DailyDeviceEntry]     = []
     // Per-device ergonomic scores
     @Published var deviceErgScores:      [DeviceErgScoreEntry]  = []
     // Issue #59 Phase 2: daily WPM time-series
@@ -183,6 +184,7 @@ final class ChartDataModel: ObservableObject {
             // Per-device counts
             let topDevices         = store.topDevices(limit: 20).map(DeviceEntry.init)
             let todayTopDevices    = store.todayTopDevices(limit: 10).map(DeviceEntry.init)
+            let dailyDeviceTotals  = store.dailyDeviceTotals().map { DailyDeviceEntry(date: $0.date, device: $0.device, count: $0.count) }
             let deviceErgScores    = store.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
             // Issue #59 Phase 2: daily WPM
             let dailyWPM           = store.dailyWPM().map(DailyWPMEntry.init)
@@ -295,6 +297,7 @@ final class ChartDataModel: ObservableObject {
                 self.appErgScores         = appErgScores
                 self.topDevices           = topDevices
                 self.todayTopDevices      = todayTopDevices
+                self.dailyDeviceTotals    = dailyDeviceTotals
                 self.deviceErgScores      = deviceErgScores
                 self.dailyWPM             = dailyWPM
                 self.dailyAccuracy        = dailyAccuracy

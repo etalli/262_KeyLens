@@ -1237,6 +1237,15 @@ final class L10n {
             en: "Keystroke counts grouped by detected keyboard device name. Useful for comparing built-in and external keyboard usage."
         )
     }
+    var deviceDailyTrend: String {
+        ja("デバイス別日次打鍵数推移", en: "Daily Keystroke Trend by Device")
+    }
+    var helpDeviceDailyTrend: String {
+        ja(
+            "デバイスごとの日次打鍵数を折れ線グラフで表示します。内蔵キーボードと外付けキーボードの切り替えタイミングや、使用シフトの傾向を確認できます。",
+            en: "Daily keystroke counts per device as a line chart. Useful for spotting when you switched between built-in and external keyboards."
+        )
+    }
     var manageDevices: String        { ja("デバイスを管理", en: "Manage Devices") }
     var deleteDeviceTitle: String    { ja("デバイスを削除", en: "Delete Device") }
     var deleteDeviceMessage: String  { ja("このデバイスのすべての打鍵データが削除されます。この操作は取り消せません。", en: "All keystroke data for this device will be permanently deleted. This cannot be undone.") }

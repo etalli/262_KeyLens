@@ -31,6 +31,11 @@ extension ChartsView {
             VStack(alignment: .leading, spacing: 40) {
                 chartSection(L10n.shared.devicesAllTime, helpText: L10n.shared.helpDevices, showSort: true) { topDevicesChart }
                 chartSection(L10n.shared.devicesToday, helpText: L10n.shared.helpDevicesToday, showSort: true) { todayTopDevicesChart }
+                if !model.dailyDeviceTotals.isEmpty {
+                    chartSection(L10n.shared.deviceDailyTrend, helpText: L10n.shared.helpDeviceDailyTrend) {
+                        dailyDeviceChart
+                    }
+                }
                 if !model.deviceErgScores.isEmpty {
                     chartSection(L10n.shared.deviceErgScoreSection, helpText: L10n.shared.helpDeviceErgScore) {
                         deviceErgScoreTable
@@ -267,6 +272,55 @@ extension ChartsView {
             } message: { device in
                 Text("\"\(device)\"\n\(L10n.shared.deleteDeviceMessage)")
             }
+        }
+    }
+
+    // Issue #348: per-device daily keystroke time-series
+    @ViewBuilder
+    var dailyDeviceChart: some View {
+        let entries = model.dailyDeviceTotals
+        if entries.isEmpty {
+            emptyState
+        } else {
+            let devices = Array(Set(entries.map(\.device))).sorted()
+            let dates   = Array(Set(entries.map(\.date))).sorted()
+            let palette: [Color] = [.indigo, .orange, .teal, .pink, .green, .yellow, .purple, .cyan]
+            Chart(entries) { item in
+                LineMark(
+                    x: .value("Date", item.date),
+                    y: .value("Count", item.count),
+                    series: .value("Device", item.device)
+                )
+                .foregroundStyle(by: .value("Device", item.device))
+                .interpolationMethod(.catmullRom)
+                PointMark(
+                    x: .value("Date", item.date),
+                    y: .value("Count", item.count)
+                )
+                .foregroundStyle(by: .value("Device", item.device))
+            }
+            .chartForegroundStyleScale(
+                domain: devices,
+                range: devices.enumerated().map { palette[$0.offset % palette.count] }
+            )
+            .chartXAxis {
+                let stride = max(2, dates.count / 5)
+                AxisMarks(values: dates.enumerated()
+                    .filter { $0.offset % stride == 0 }
+                    .map { $0.element }
+                ) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let d = value.as(String.self) {
+                            Text(String(d.dropFirst(5)).replacingOccurrences(of: "-", with: "/"))
+                                .font(.footnote)
+                        }
+                    }
+                }
+            }
+            .chartYAxisLabel(L10n.shared.axisLabelKeys, alignment: .trailing)
+            .chartLegend(position: .bottom, alignment: .leading)
+            .frame(height: 200)
         }
     }
 

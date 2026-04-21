@@ -103,6 +103,17 @@ struct DeviceErgScoreEntry: Identifiable {
     }
 }
 
+// Issue #348: per-device daily keystroke time-series
+struct DailyDeviceEntry: Identifiable {
+    let id: String      // "\(date)-\(device)"
+    let date: String
+    let device: String
+    let count: Int
+    init(date: String, device: String, count: Int) {
+        id = "\(date)-\(device)"; self.date = date; self.device = device; self.count = count
+    }
+}
+
 // Issue #5: Hourly distribution entry (for Chart)
 // 時間帯別打鍵数チャート用エントリ
 struct HourEntry: Identifiable {
