@@ -338,7 +338,7 @@ extension KeyMetricsQuery {
             }
             bigrams = physical
         }
-        let layout = ANSILayout()
+        let layout = LayoutRegistry.shared.current
         let gridUnits = TravelDistanceEstimator.default.totalTravel(counts: bigrams, layout: layout)
         return gridUnits * 0.019
     }
@@ -413,7 +413,7 @@ extension KeyMetricsQuery {
     }
 
     func ikiPerFinger() -> [(finger: String, avgIKI: Double)] {
-        let layout = ANSILayout()
+        let layout = LayoutRegistry.shared.current
         var perFinger: [String: (sum: Double, count: Int)] = [:]
         for (bigramKey, data) in mergedBigramIKI() where data.count > 0 {
             guard let bigram = Bigram.parse(bigramKey),
