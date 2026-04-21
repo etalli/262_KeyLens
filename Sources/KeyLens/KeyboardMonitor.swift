@@ -73,6 +73,9 @@ final class KeyboardMonitor {
     private let breakManager: BreakReminderManaging
     private let notificationManager: NotificationManaging
 
+    /// Counts consecutive tapDisabledByTimeout events for exponential backoff.
+    private var consecutiveTapTimeouts = 0
+
     init(
         store: KeyEventHandling = KeyCountStore.shared,
         breakManager: BreakReminderManaging = BreakReminderManager.shared,
@@ -264,11 +267,22 @@ extension KeyboardMonitor {
         event: CGEvent
     ) -> Unmanaged<CGEvent>? {
         let handlerStartedAt = CFAbsoluteTimeGetCurrent()
-        // タイムアウトで無効化された場合は即座に再有効化
+        // Tap disabled by macOS timeout: re-enable with exponential backoff after repeated failures.
         if type == .tapDisabledByTimeout {
-            KeyLens.log("⚠️ CGEventTap disabled by timeout — re-enabling (possible blocking work in tap callback)")
             store.recordSlowEvent()
-            if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
+            consecutiveTapTimeouts += 1
+            let delayMs = min(100 * consecutiveTapTimeouts, 2000)
+            KeyLens.log("⚠️ CGEventTap disabled by timeout — re-enabling in \(delayMs)ms (attempt \(consecutiveTapTimeouts))")
+            if let tap = eventTap {
+                if delayMs <= 100 {
+                    CGEvent.tapEnable(tap: tap, enable: true)
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(delayMs)) { [weak self] in
+                        guard let tap = self?.eventTap else { return }
+                        CGEvent.tapEnable(tap: tap, enable: true)
+                    }
+                }
+            }
             return nil
         }
 
@@ -375,6 +389,7 @@ extension KeyboardMonitor {
                 NotificationCenter.default.post(name: .keystrokeInput, object: evt)
             }
         }
+        consecutiveTapTimeouts = 0
         let handlerMs = (CFAbsoluteTimeGetCurrent() - handlerStartedAt) * 1000
         if handlerMs > kHandleEventSlowThresholdMs {
             KeyLens.log("⚠️ handleEvent took \(String(format: "%.1f", handlerMs))ms — exceeds \(kHandleEventSlowThresholdMs)ms threshold")

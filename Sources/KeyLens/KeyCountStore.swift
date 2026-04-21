@@ -372,10 +372,15 @@ final class KeyCountStore {
         let today = todayKey
         let hour  = Calendar.current.component(.hour, from: timestamp)
         let deviceName = LayoutRegistry.shared.currentDeviceLabel
-        let incrementStart = Date()
+        let enqueueTime = Date()
 
         queue.async { [weak self] in
+            let queueWaitMs = Date().timeIntervalSince(enqueueTime) * 1000
+            if queueWaitMs > 20.0 {
+                KeyLens.log("[perf] store.increment queue-wait: \(String(format: "%.1f", queueWaitMs))ms (key: \(key))")
+            }
             guard let self else { return }
+            let execStart = Date()
             var count: Int = 0
             do {
             // All-time per-key count (in-memory; persisted via scalars table)
@@ -587,10 +592,10 @@ final class KeyCountStore {
 
             count = store.counts[key, default: 0]
             }
-            let elapsedMs = Date().timeIntervalSince(incrementStart) * 1000
-            PerformanceProfiler.shared.record(metric: "store.increment", ms: elapsedMs)
-            if elapsedMs > 5.0 {
-                KeyLens.log("[perf] store.increment slow: \(String(format: "%.1f", elapsedMs))ms (key: \(key))")
+            let execMs = Date().timeIntervalSince(execStart) * 1000
+            PerformanceProfiler.shared.record(metric: "store.increment", ms: execMs)
+            if execMs > 5.0 {
+                KeyLens.log("[perf] store.increment slow: \(String(format: "%.1f", execMs))ms (key: \(key))")
                 self.slowEventCount += 1
             }
             self.scheduleSave()
@@ -816,40 +821,40 @@ final class KeyCountStore {
     // MARK: - Persistence (SQLite scalars)
 
     /// Debounces SQLite scalar writes: schedules a save 2 seconds after the last call.
+    /// Runs on saveQueue (not the keystroke queue) so the O(n) snapshot copy never blocks increment().
     private func scheduleSave() {
         saveWorkItem?.cancel()
         let item = DispatchWorkItem { [weak self] in self?.snapshotAndSave() }
         saveWorkItem = item
-        queue.asyncAfter(deadline: .now() + 2.0, execute: item)
+        saveQueue.asyncAfter(deadline: .now() + 2.0, execute: item)
     }
 
-    // Captures a snapshot of `store` on `queue`, then writes scalars to SQLite on `saveQueue`.
-    // This prevents serialization (O(store size)) from blocking `queue.sync` in increment().
+    // Runs on saveQueue. Captures a thread-safe snapshot via queue.sync, then writes to SQLite.
+    // queue never dispatches to saveQueue, so queue.sync here is deadlock-free.
     private func snapshotAndSave() {
+        var snapshot: CountData? = nil
         let snapshotStart = CFAbsoluteTimeGetCurrent()
-        let snapshot = store
+        queue.sync { [self] in snapshot = store }
         PerformanceProfiler.shared.record(
             metric: "store.snapshot.capture",
             ms: (CFAbsoluteTimeGetCurrent() - snapshotStart) * 1000
         )
-        guard let db = dbQueue else { return }
-        saveQueue.async {
-            let writeStart = CFAbsoluteTimeGetCurrent()
-            do {
-                try db.write { db in
-                    for (key, value) in snapshot.toScalars() {
-                        try db.execute(
-                            sql: "INSERT OR REPLACE INTO scalars (key, value) VALUES (?, ?)",
-                            arguments: [key, value])
-                    }
+        guard let snap = snapshot, let db = dbQueue else { return }
+        let writeStart = CFAbsoluteTimeGetCurrent()
+        do {
+            try db.write { db in
+                for (key, value) in snap.toScalars() {
+                    try db.execute(
+                        sql: "INSERT OR REPLACE INTO scalars (key, value) VALUES (?, ?)",
+                        arguments: [key, value])
                 }
-                PerformanceProfiler.shared.record(
-                    metric: "store.snapshot.sqliteWrite",
-                    ms: (CFAbsoluteTimeGetCurrent() - writeStart) * 1000
-                )
-            } catch {
-                KeyLens.log("KeyCountStore: scalars write error: \(error)")
             }
+            PerformanceProfiler.shared.record(
+                metric: "store.snapshot.sqliteWrite",
+                ms: (CFAbsoluteTimeGetCurrent() - writeStart) * 1000
+            )
+        } catch {
+            KeyLens.log("KeyCountStore: scalars write error: \(error)")
         }
     }
 
