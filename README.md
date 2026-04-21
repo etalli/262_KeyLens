@@ -1,4 +1,4 @@
-# KeyLens
+# KeyLens Apr 22, 2026
 
 English | [日本語](docs/README.ja.md)
 
