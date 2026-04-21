@@ -25,6 +25,29 @@ final class OptimizerSimulatorState: ObservableObject {
     /// Per-row leading offset to mimic ANSI stagger (pixels).
     static let rowOffsets: [CGFloat] = [0, 10, 20, 0, 0]
 
+    /// Base unit width and spacing used to derive pixel widths.
+    static let unitWidth:  CGFloat = 34
+    static let keySpacing: CGFloat = 4
+
+    /// ANSI key widths in U units (1U = unitWidth px). Missing keys default to 1U.
+    static let keyWidths: [String: Double] = [
+        "Delete":   2.0,
+        "Tab":      1.5,
+        "CapsLock": 1.75,
+        "Return":   2.25,
+        "⇧Shift":   2.25,
+        "⌃Ctrl":    1.25,
+        "⌥Option":  1.25,
+        "⌘Cmd":     1.25,
+        "Space":    6.25,
+    ]
+
+    /// Converts a key slot name to its pixel width.
+    static func pixelWidth(for key: String) -> CGFloat {
+        let r = CGFloat(keyWidths[key] ?? 1.0)
+        return r * unitWidth + (r - 1) * keySpacing
+    }
+
     /// Symbol labels for special keys shown on tiles.
     static let displayLabels: [String: String] = [
         "Delete":   "⌫",
@@ -500,7 +523,10 @@ extension ChartsView {
                     ) { rowIdx, row in
                         HStack(spacing: 4) {
                             ForEach(row, id: \.self) { physSlot in
-                                optimizerKeyButton(physSlot: physSlot)
+                                optimizerKeyButton(
+                                    physSlot: physSlot,
+                                    width: OptimizerSimulatorState.pixelWidth(for: physSlot)
+                                )
                             }
                         }
                         .padding(.leading, rowIdx < OptimizerSimulatorState.rowOffsets.count ? OptimizerSimulatorState.rowOffsets[rowIdx] : 0)
@@ -511,7 +537,7 @@ extension ChartsView {
     }
 
     @ViewBuilder
-    private func optimizerKeyButton(physSlot: String) -> some View {
+    private func optimizerKeyButton(physSlot: String, width: CGFloat) -> some View {
         let keyName     = optimizerState.displayAt[physSlot] ?? physSlot
         let displayText = OptimizerSimulatorState.displayLabels[keyName] ?? keyName
         let isSelected  = optimizerState.selectedSlot == physSlot
@@ -552,7 +578,7 @@ extension ChartsView {
                 }
             }
         }
-        .frame(width: 34, height: 30)
+        .frame(width: width, height: 30)
         .accessibilityLabel(L10n.shared.accessibilityKeyLabel(
             key: keyName,
             isSelected: isSelected,
@@ -576,7 +602,7 @@ extension ChartsView {
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
             }
-            .frame(width: 34, height: 30)
+            .frame(width: width, height: 30)
         }
         // Drop target: swap the dragged slot with this slot
         .dropDestination(for: String.self) { items, _ in
