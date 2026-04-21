@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KeyLens — Keyboard layout optimizer for macOS</title>
+    <meta name="description"
+        content="KeyLens tracks keystrokes locally to recommend ergonomic layout changes based on your actual typing patterns.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        .icon-green  { background: rgba(34, 197, 94, 0.15);  color: #22c55e; }
+        .icon-orange { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+        .icon-red    { background: rgba(239, 68, 68, 0.15);  color: #ef4444; }
+    </style>
+</head>
+
+<body>
+    <nav class="glass">
+        <div class="container nav-content">
+            <div class="logo">
+                <span class="logo-accent">Key</span>Lens
+            </div>
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12" class="line1"></line>
+                    <line x1="3" y1="6" x2="21" y2="6" class="line2"></line>
+                    <line x1="3" y1="18" x2="21" y2="18" class="line3"></line>
+                </svg>
+            </button>
+            <ul id="main-nav" class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#screenshots">Screenshots</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="https://github.com/etalli/262_KeyLens/releases/latest" class="btn btn-primary">Download</a></li>
+                <li><a href="https://github.com/etalli/262_KeyLens" class="btn btn-secondary">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+
+    <header class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <h1 class="reveal-text">Optimize your layout with <span class="gradient-text">your own typing
+                        data</span></h1>
+                <p class="hero-subtitle">KeyLens tracks your keystrokes locally and recommends layout changes based on
+                    how you actually type.</p>
+            </div>
+            <div class="hero-image-wrapper">
+                <div class="hero-glow"></div>
+                <img src="hero.png" alt="KeyLens Hero Interface" class="hero-img floating">
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="features container">
+        <div class="section-title">
+            <h2>Why KeyLens?</h2>
+            <p>Most ergonomic advice is generic. KeyLens is based on how <em>you</em> actually type.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card glass">
+                <div class="feature-icon icon-blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M21 12V7H5a2 2 0 010-4h14v4"></path>
+                        <path d="M3 5v14c0 1.1.9 2 2 2h16v-5"></path>
+                        <path d="M18 12a2 2 0 000 4h4v-4h-4z"></path>
+                    </svg>
+                </div>
+                <h3>Keystroke Tracking</h3>
+                <p>Records bigrams, trigrams, and modifier usage locally to build a precise map of your typing behavior.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-cyan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M18 20V10M12 20V4M6 20v-6"></path>
+                    </svg>
+                </div>
+                <h3>Heatmap Visualization</h3>
+                <p>Keyboard heatmaps and bigram frequency charts show exactly where your fingers spend their time.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"></path>
+                    </svg>
+                </div>
+                <h3>Layout Simulators</h3>
+                <p>Simulate how Colemak, Dvorak, or a custom layout would change your travel distance and finger load — before you commit.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <h3>WPM &amp; Fatigue Tracking</h3>
+                <p>Monitor typing speed, keystroke rhythm, and ergonomic score over days and weeks to see if your habits are improving.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-orange">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
+                <h3>Per-App Analysis</h3>
+                <p>See which apps drive the most keystrokes and ergonomic strain so you can focus layout changes where they matter most.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
+                </div>
+                <h3>Shortcuts &amp; Modifiers</h3>
+                <p>Identify which key combinations you rely on most and whether your modifier layout is causing hand strain.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon icon-cyan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </div>
+                <h3>Mouse Movement Tracking</h3>
+                <p>Track daily cursor travel distance and compare your mouse load against your keyboard usage over time.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="screenshots" class="screenshots">
+        <div class="container">
+            <div class="section-title">
+                <h2>See It in Action</h2>
+                <p>Real screenshots from the app — your data, visualized.</p>
+            </div>
+            <div class="screenshot-tabs" role="tablist" aria-label="Screenshots">
+                <button class="ss-tab active" data-tab="overview" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview">Overview</button>
+                <button class="ss-tab" data-tab="heatmap-layout" role="tab" aria-selected="false" aria-controls="panel-heatmap-layout" id="tab-heatmap-layout">Heatmap &amp; Layout</button>
+                <button class="ss-tab" data-tab="ergonomics" role="tab" aria-selected="false" aria-controls="panel-ergonomics" id="tab-ergonomics">Ergonomics</button>
+                <button class="ss-tab" data-tab="keys-timing" role="tab" aria-selected="false" aria-controls="panel-keys-timing" id="tab-keys-timing">Keys &amp; Timing</button>
+                <button class="ss-tab" data-tab="activity" role="tab" aria-selected="false" aria-controls="panel-activity" id="tab-activity">Activity</button>
+                <button class="ss-tab" data-tab="training" role="tab" aria-selected="false" aria-controls="panel-training" id="tab-training">Training</button>
+                <button class="ss-tab" data-tab="mouse" role="tab" aria-selected="false" aria-controls="panel-mouse" id="tab-mouse">Mouse</button>
+            </div>
+
+            <div class="screenshot-panel active" data-panel="overview" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Typing Profile.png" alt="Typing Profile" class="ss-img">
+                    <img src="../images/Weekly Summary.png" alt="Weekly Summary" class="ss-img">
+                    <img src="../images/Weekly Report.png" alt="Weekly Report" class="ss-img">
+                    <img src="../images/Today's Fatigue Curve.png" alt="Today's Fatigue Curve" class="ss-img">
+                    <img src="../images/Sessions.png" alt="Sessions" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="heatmap-layout" role="tabpanel" id="panel-heatmap-layout" aria-labelledby="tab-heatmap-layout" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Keyboard Heatmap.png" alt="Keyboard Heatmap" class="ss-img">
+                    <img src="../images/Layout Efficiency Comparison.png" alt="Layout Efficiency Comparison" class="ss-img">
+                    <img src="../images/Layout Comparison.png" alt="Layout Comparison" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="ergonomics" role="tabpanel" id="panel-ergonomics" aria-labelledby="tab-ergonomics" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Layer Efficiency.png" alt="Layer Efficiency" class="ss-img">
+                    <img src="../images/Key Swap Simulator.png" alt="Key Swap Simulator" class="ss-img">
+                    <img src="../images/Ergonomic Learning Curve.png" alt="Ergonomic Learning Curve" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="keys-timing" role="tabpanel" id="panel-keys-timing" aria-labelledby="tab-keys-timing" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Top 20 Keys — All Time.png" alt="Top 20 Keys" class="ss-img">
+                    <img src="../images/Top 20 Bigrams.png" alt="Top 20 Bigrams" class="ss-img">
+                    <img src="../images/All Keyboard Combos.png" alt="All Keyboard Combos" class="ss-img">
+                    <img src="../images/⌘ Keyboard Shortcuts.png" alt="Keyboard Shortcuts" class="ss-img">
+                    <img src="../images/Key Transition Analysis.png" alt="Key Transition Analysis" class="ss-img">
+                    <img src="../images/Slow Bigrams (Avg IKI).png" alt="Slow Bigrams" class="ss-img">
+                    <img src="../images/Avg IKI per Finger.png" alt="Avg IKI per Finger" class="ss-img">
+                    <img src="../images/Recent 20 Keystrokes — Timing.png" alt="Recent Keystrokes Timing" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="activity" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Activity Calendar.png" alt="Activity Calendar" class="ss-img">
+                    <img src="../images/Daily Totals.png" alt="Daily Totals" class="ss-img">
+                    <img src="../images/Hourly Distribution.png" alt="Hourly Distribution" class="ss-img">
+                    <img src="../images/Weekly Activity Heatmap.png" alt="Weekly Activity Heatmap" class="ss-img">
+                    <img src="../images/Session Rhythm.png" alt="Session Rhythm" class="ss-img">
+                    <img src="../images/Compare.png" alt="Compare" class="ss-img">
+                    <img src="../images/Top Apps — All Time.png" alt="Top Apps All Time" class="ss-img">
+                    <img src="../images/Top Devices — All Time.png" alt="Top Devices All Time" class="ss-img">
+                    <img src="../images/Top Devices — Today.png" alt="Top Devices Today" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="training" role="tabpanel" id="panel-training" aria-labelledby="tab-training" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Typing Speed (WPM).png" alt="Typing Speed WPM" class="ss-img">
+                </div>
+            </div>
+
+            <div class="screenshot-panel" data-panel="mouse" role="tabpanel" id="panel-mouse" aria-labelledby="tab-mouse" hidden>
+                <div class="ss-grid ss-grid-auto">
+                    <img src="../images/Daily Mouse Travel (Last 30 Days).png" alt="Daily Mouse Travel" class="ss-img">
+                    <img src="../images/Hourly Mouse Activity.png" alt="Hourly Mouse Activity" class="ss-img">
+                    <img src="../images/Mouse Click Count.png" alt="Mouse Click Count" class="ss-img">
+                    <img src="../images/Mouse vs Keyboard Balance.png" alt="Mouse vs Keyboard Balance" class="ss-img">
+                    <img src="../images/Daily Direction Breakdown.png" alt="Daily Direction Breakdown" class="ss-img">
+                    <img src="../images/Direction Breakdown.png" alt="Direction Breakdown" class="ss-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </main>
+
+    <section id="security" class="security container">
+        <div class="security-card glass">
+            <div class="security-content">
+                <h2>Privacy <span class="gradient-text">Focused</span></h2>
+                <p>KeyLens records anonymous frequency counts for keys, pairs (bigrams), and triples (trigrams). It
+                    <strong>never</strong> records full text or passwords. All data is stored locally on your machine.
+                    Zero cloud sync. Zero telemetry.</p>
+                <div class="security-features">
+                    <div class="s-feat"><span>Local Storage Only</span></div>
+                    <div class="s-feat"><span>Open Source Engine</span></div>
+                    <div class="s-feat"><span>Anonymous Frequency Counts</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-left">
+                <div class="logo"><span class="logo-accent">Key</span>Lens</div>
+                <p>© 2026 KeyLens Project. Open source under Apache 2.0.</p>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/etalli/262_KeyLens">Documentation</a>
+                <a href="https://github.com/etalli/262_KeyLens/releases">Releases</a>
+                <a href="https://github.com/etalli/262_KeyLens/issues">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

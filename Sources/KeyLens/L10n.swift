@@ -1028,6 +1028,10 @@ final class L10n {
            en: "Press Start, type freely, then press Stop to see your WPM.")
     }
 
+    var wpmTypingAreaPlaceholder: String {
+        ja("ここで入力してください…", en: "Start typing here…")
+    }
+
     func wpmMeasureResult(wpm: Double, duration: TimeInterval, keystrokes: Int) -> String {
         let mins = Int(duration) / 60
         let secs = Int(duration) % 60

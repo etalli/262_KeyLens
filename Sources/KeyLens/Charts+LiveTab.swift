@@ -151,10 +151,13 @@ extension ChartsView {
                     if isMeasuringWPM {
                         wpmResult = KeyCountStore.shared.stopWPMMeasurement()
                         isMeasuringWPM = false
+                        wpmTextFocused = false
                     } else {
                         KeyCountStore.shared.startWPMMeasurement()
                         wpmResult = nil
+                        wpmTypedText = ""
                         isMeasuringWPM = true
+                        wpmTextFocused = true
                     }
                 } label: {
                     Label(
@@ -172,6 +175,29 @@ extension ChartsView {
                         .foregroundStyle(.red)
                 }
             }
+
+            // Typing area — visible input field during measurement
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(isMeasuringWPM ? Color.accentColor.opacity(0.6) : Color.secondary.opacity(0.3), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
+                TextEditor(text: $wpmTypedText)
+                    .focused($wpmTextFocused)
+                    .font(.body)
+                    .scrollContentBackground(.hidden)
+                    .padding(8)
+                    .disabled(!isMeasuringWPM)
+                if wpmTypedText.isEmpty {
+                    Text(L10n.shared.wpmTypingAreaPlaceholder)
+                        .font(.body)
+                        .foregroundStyle(.secondary.opacity(0.6))
+                        .padding(.top, 16)
+                        .padding(.leading, 12)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(height: 120)
+            .animation(.easeInOut(duration: 0.15), value: isMeasuringWPM)
 
             // Result
             if let r = wpmResult {
@@ -211,10 +237,13 @@ extension ChartsView {
         // Sync UI when hotkey toggles measurement from outside the window
         .onReceive(NotificationCenter.default.publisher(for: .wpmMeasurementStarted)) { _ in
             wpmResult = nil
+            wpmTypedText = ""
             isMeasuringWPM = true
+            wpmTextFocused = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .wpmMeasurementStopped)) { note in
             isMeasuringWPM = false
+            wpmTextFocused = false
             wpmResult = note.object as? (wpm: Double, duration: TimeInterval, keystrokes: Int)
         }
     }

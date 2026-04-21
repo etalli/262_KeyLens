@@ -52,6 +52,10 @@ struct ChartsView: View {
     @State var isMeasuringWPM: Bool = false
     /// Result of the last completed WPM session.
     @State var wpmResult: (wpm: Double, duration: TimeInterval, keystrokes: Int)? = nil
+    /// Text typed in the WPM test text area.
+    @State var wpmTypedText: String = ""
+    /// Focus state for the WPM typing area.
+    @FocusState var wpmTextFocused: Bool
     /// Current hotkey display string (Issue #151).
     @State var wpmHotkeyDisplay: String = WPMHotkeyManager.shared.displayString
     /// Whether the app is waiting for the user to press a new hotkey.
