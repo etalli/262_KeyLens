@@ -13,58 +13,58 @@ import KeyLensCore
 /// キースワップシミュレータの可変状態を管理する。スワップごとにバックグラウンドでスコアを再計算。
 final class OptimizerSimulatorState: ObservableObject {
 
-    // MARK: Keyboard rows — full ANSI layout (Issue #337)
-    static let keyRows: [[String]] = [
-        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Delete"],
-        ["Tab", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\"],
-        ["CapsLock", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "Return"],
-        ["⇧Shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
-        ["⌃Ctrl", "⌥Option", "⌘Cmd", "Space"],
+    // MARK: Built-in ANSI KLE layout
+
+    /// Standard ANSI layout in KLE format. Key labels are slot IDs used throughout the simulator.
+    static let ansiKLEJSON = #"""
+    [
+      ["`","1","2","3","4","5","6","7","8","9","0","-","=",{"w":2},"Delete"],
+      [{"w":1.5},"Tab","Q","W","E","R","T","Y","U","I","O","P","[","]",{"w":1.5},"\\"],
+      [{"w":1.75},"CapsLock","A","S","D","F","G","H","J","K","L",";","'",{"w":2.25},"Return"],
+      [{"w":2.25},"⇧Shift","Z","X","C","V","B","N","M",",",".","/",{"w":2.75},"⇧Shift_R"],
+      [{"w":1.5},"⌃Ctrl",{"w":1.5},"⌥Option",{"w":1.5},"⌘Cmd",{"w":6},"Space",{"w":1.5},"⌘Cmd_R",{"w":1.5},"⌥Option_R",{"w":1.5},"⌃Ctrl_R"]
     ]
+    """#
 
-    /// Per-row leading offset to mimic ANSI stagger (pixels).
-    static let rowOffsets: [CGFloat] = [0, 10, 20, 0, 0]
+    /// Parsed key list — evaluated once at first access.
+    static let ansiKeys: [KLEAbsoluteKey] = {
+        guard let data = ansiKLEJSON.data(using: .utf8),
+              let keys = try? KLEParser.parse(data) else { return [] }
+        return keys
+    }()
 
-    /// Base unit width and spacing used to derive pixel widths.
-    static let unitWidth:  CGFloat = 34
-    static let keySpacing: CGFloat = 4
-
-    /// ANSI key widths in U units (1U = unitWidth px). Missing keys default to 1U.
-    static let keyWidths: [String: Double] = [
-        "Delete":   2.0,
-        "Tab":      1.5,
-        "CapsLock": 1.75,
-        "Return":   2.25,
-        "⇧Shift":   2.25,
-        "⌃Ctrl":    1.25,
-        "⌥Option":  1.25,
-        "⌘Cmd":     1.25,
-        "Space":    6.25,
-    ]
-
-    /// Converts a key slot name to its pixel width.
-    static func pixelWidth(for key: String) -> CGFloat {
-        let r = CGFloat(keyWidths[key] ?? 1.0)
-        return r * unitWidth + (r - 1) * keySpacing
-    }
+    /// Width-to-height aspect ratio of the ANSI layout (used to size the keyboard grid).
+    static let ansiAspectRatio: CGFloat = {
+        let maxX = ansiKeys.map { $0.cx + $0.w / 2 }.max() ?? 15
+        let maxY = ansiKeys.map { $0.cy + $0.h / 2 }.max() ?? 5
+        return CGFloat(maxX / maxY)
+    }()
 
     /// Symbol labels for special keys shown on tiles.
     static let displayLabels: [String: String] = [
-        "Delete":   "⌫",
-        "Tab":      "⇥",
-        "CapsLock": "⇪",
-        "Return":   "↩",
-        "⇧Shift":   "⇧",
-        "⌃Ctrl":    "⌃",
-        "⌥Option":  "⌥",
-        "⌘Cmd":     "⌘",
-        "Space":    "Spc",
+        "Delete":      "⌫",
+        "Tab":         "⇥",
+        "CapsLock":    "⇪",
+        "Return":      "↩",
+        "⇧Shift":      "⇧",
+        "⇧Shift_R":    "⇧",
+        "⌃Ctrl":       "⌃",
+        "⌃Ctrl_R":     "⌃",
+        "⌥Option":     "⌥",
+        "⌥Option_R":   "⌥",
+        "⌘Cmd":        "⌘",
+        "⌘Cmd_R":      "⌘",
+        "Space":       "Spc",
     ]
 
     /// Slots that are modifier / special keys — rendered with a distinct tint.
     static let modifierSlots: Set<String> = [
         "Delete", "Tab", "CapsLock", "Return",
-        "⇧Shift", "⌃Ctrl", "⌥Option", "⌘Cmd", "Space",
+        "⇧Shift", "⇧Shift_R",
+        "⌃Ctrl",  "⌃Ctrl_R",
+        "⌥Option","⌥Option_R",
+        "⌘Cmd",   "⌘Cmd_R",
+        "Space",
     ]
 
     // MARK: Published state
@@ -114,10 +114,8 @@ final class OptimizerSimulatorState: ObservableObject {
         }
         // Slots not targeted by any relocation show their original key.
         // どのリロケーションにも対応していないスロットは元のキーを表示。
-        for row in Self.keyRows {
-            for k in row where d[k] == nil {
-                d[k] = k
-            }
+        for key in Self.ansiKeys where d[key.keyName] == nil && !key.keyName.isEmpty {
+            d[key.keyName] = key.keyName
         }
         return d
     }
@@ -516,28 +514,40 @@ extension ChartsView {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(
-                        Array(OptimizerSimulatorState.keyRows.enumerated()),
-                        id: \.offset
-                    ) { rowIdx, row in
-                        HStack(spacing: 4) {
-                            ForEach(row, id: \.self) { physSlot in
-                                optimizerKeyButton(
-                                    physSlot: physSlot,
-                                    width: OptimizerSimulatorState.pixelWidth(for: physSlot)
-                                )
+                // KLE absolute-position rendering — same approach as heatmap custom template
+                let keys       = OptimizerSimulatorState.ansiKeys
+                let aspect     = OptimizerSimulatorState.ansiAspectRatio
+                let maxX       = CGFloat(keys.map { $0.cx + $0.w / 2 }.max() ?? 15)
+
+                Color.clear
+                    .aspectRatio(aspect, contentMode: .fit)
+                    .overlay(
+                        GeometryReader { geo in
+                            let unitW = geo.size.width / maxX
+                            ZStack(alignment: .topLeading) {
+                                ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
+                                    let cellW = max(4,  CGFloat(key.w) * unitW - 4)
+                                    let cellH = max(16, CGFloat(key.h) * unitW - 4)
+                                    optimizerKeyButton(
+                                        physSlot: key.keyName,
+                                        width: cellW,
+                                        height: cellH
+                                    )
+                                    .rotationEffect(.degrees(key.r))
+                                    .offset(
+                                        x: CGFloat(key.cx) * unitW - cellW / 2,
+                                        y: CGFloat(key.cy) * unitW - cellH / 2
+                                    )
+                                }
                             }
                         }
-                        .padding(.leading, rowIdx < OptimizerSimulatorState.rowOffsets.count ? OptimizerSimulatorState.rowOffsets[rowIdx] : 0)
-                    }
-                }
+                    )
             }
         }
     }
 
     @ViewBuilder
-    private func optimizerKeyButton(physSlot: String, width: CGFloat) -> some View {
+    private func optimizerKeyButton(physSlot: String, width: CGFloat, height: CGFloat) -> some View {
         let keyName     = optimizerState.displayAt[physSlot] ?? physSlot
         let displayText = OptimizerSimulatorState.displayLabels[keyName] ?? keyName
         let isSelected  = optimizerState.selectedSlot == physSlot
@@ -578,7 +588,7 @@ extension ChartsView {
                 }
             }
         }
-        .frame(width: width, height: 30)
+        .frame(width: width, height: height)
         .accessibilityLabel(L10n.shared.accessibilityKeyLabel(
             key: keyName,
             isSelected: isSelected,
@@ -602,7 +612,7 @@ extension ChartsView {
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
             }
-            .frame(width: width, height: 30)
+            .frame(width: width, height: height)
         }
         // Drop target: swap the dragged slot with this slot
         .dropDestination(for: String.self) { items, _ in
