@@ -46,6 +46,11 @@ extension ChartsView {
             case .volume:
                 ScrollView {
                     VStack(alignment: .leading, spacing: 40) {
+                        if model.todayTravelMeters > 0 {
+                            chartSection(L10n.shared.fingerTravelSectionTitle, helpText: L10n.shared.helpFingerTravel) {
+                                fingerTravelCard
+                            }
+                        }
                         chartSection(L10n.shared.chartTitleDailyTotals, helpText: L10n.shared.helpDailyTotals) { dailyTotalsChart }
                         chartSection(L10n.shared.chartTitleMonthlyTotals, helpText: L10n.shared.helpMonthlyTotals) { monthlyTotalsChart }
                         chartSection(L10n.shared.chartTitleKeyAccumulation, helpText: L10n.shared.helpKeyAccumulation) { keyAccumulationChart }
@@ -55,6 +60,27 @@ extension ChartsView {
                 }
             }
         }
+    }
+
+    // Issue #367: gamified finger travel distance card
+    var fingerTravelCard: some View {
+        HStack(spacing: 12) {
+            Text("👣")
+                .font(.system(size: 32))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.shared.fingerTravelLabel(meters: model.todayTravelMeters))
+                    .font(.title3.bold())
+                let km = model.todayTravelMeters / 1000
+                if km >= 0.4 {
+                    Text(String(format: km >= 1 ? "🏃 That's %.1f laps around a 400 m track!" : "🚶 That's %.0f%% of a 400 m lap!", km >= 1 ? km * 1000 / 400 : km * 1000 / 4))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color.indigo.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
     }
 
     @ViewBuilder

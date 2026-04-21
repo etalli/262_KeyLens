@@ -105,8 +105,9 @@ final class ChartDataModel: ObservableObject {
     @Published var isLoading: Bool = false
 
     // Summary tab scalars — computed on background thread during reload() to avoid main-thread DB calls in view bodies.
-    @Published var totalCount:       Int          = 0
-    @Published var todayCount:       Int          = 0
+    @Published var totalCount:           Int          = 0
+    @Published var todayCount:           Int          = 0
+    @Published var todayTravelMeters:    Double       = 0
     @Published var typingStyle:      TypingStyle  = .prose
     @Published var fatigueLevel:     FatigueLevel = .low
     @Published var typingRhythm:     TypingRhythm = .balanced
@@ -231,8 +232,9 @@ final class ChartDataModel: ObservableObject {
             let shortcutStrain = store.shortcutStrain()
 
             // Summary tab scalars (moved from view bodies to avoid main-thread DB calls)
-            let totalCount       = store.totalCount
-            let todayCount       = store.todayCount
+            let totalCount           = store.totalCount
+            let todayCount           = store.todayCount
+            let todayTravelMeters    = store.todayTravelDistanceMeters()
             let typingStyle      = store.currentTypingStyle
             let fatigueLevel     = store.currentFatigueLevel
             let typingRhythm     = store.currentTypingRhythm
@@ -326,6 +328,7 @@ final class ChartDataModel: ObservableObject {
                 self.heatmapGrid                = heatmapGrid
                 self.totalCount                 = totalCount
                 self.todayCount                 = todayCount
+                self.todayTravelMeters          = todayTravelMeters
                 self.typingStyle                = typingStyle
                 self.fatigueLevel               = fatigueLevel
                 self.typingRhythm               = typingRhythm

@@ -1304,6 +1304,31 @@ final class L10n {
         )
     }
 
+    // Issue #367: gamified finger travel distance
+    var fingerTravelSectionTitle: String {
+        ja("本日の指の移動距離", en: "Today's Finger Travel")
+    }
+    var helpFingerTravel: String {
+        ja(
+            "本日のバイグラムデータとキー座標から推定した指の総移動距離です。標準ANSIキーボードのキーピッチ（約19mm）を基準に計算しています。",
+            en: "Estimated total finger travel distance for today, computed from bigram data and key coordinates. Based on standard ANSI key pitch (~19 mm)."
+        )
+    }
+    func fingerTravelLabel(meters: Double) -> String {
+        if meters >= 1000 {
+            let km = meters / 1000
+            return ja(
+                String(format: "今日の指は %.2f km 歩きました", km),
+                en: String(format: "Your fingers walked %.2f km today", km)
+            )
+        } else {
+            return ja(
+                String(format: "今日の指は %.0f m 歩きました", meters),
+                en: String(format: "Your fingers walked %.0f m today", meters)
+            )
+        }
+    }
+
     var helpDailyTotals: String {
         ja(
             "日別の総打鍵数を棒グラフで表示します。曜日ごとの入力量の傾向や、作業が多い日・少ない日を把握できます。",

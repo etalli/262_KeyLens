@@ -312,6 +312,22 @@ extension KeyMetricsQuery {
         return topEntries(result, limit: limit)
     }
 
+    // Issue #367: today's total finger travel distance in metres
+    // 1 grid unit = 1 key pitch ≈ 19 mm on a standard ANSI keyboard.
+    func todayTravelDistanceMeters() -> Double {
+        var bigrams: [String: Int] = [:]
+        if let db = dbQueue,
+           let rows = try? db.read({ db in
+               try Row.fetchAll(db, sql: "SELECT bigram, count FROM daily_bigrams WHERE date = ?", arguments: [todayKey])
+           }) {
+            for row in rows { bigrams[row["bigram"], default: 0] += (row["count"] as Int) }
+        }
+        for (b, v) in pending.dailyBigrams[todayKey, default: [:]] { bigrams[b, default: 0] += v }
+        let layout = ANSILayout()
+        let gridUnits = TravelDistanceEstimator.default.totalTravel(counts: bigrams, layout: layout)
+        return gridUnits * 0.019
+    }
+
     func topTrigrams(limit: Int = 20) -> [(pair: String, count: Int)] {
         topEntries(store.ergonomics.trigramCounts, limit: limit)
     }

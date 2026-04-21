@@ -121,6 +121,10 @@ extension KeyCountStore {
 
 extension KeyCountStore {
 
+    func todayTravelDistanceMeters() -> Double {
+        queue.sync { makeQuery().todayTravelDistanceMeters() }
+    }
+
     func layoutEfficiencyScores() -> [LayoutEfficiencyEntry] {
         // Capture the snapshot inside the queue, then compute outside (expensive layout simulation).
         let q = queue.sync { makeQuery() }
