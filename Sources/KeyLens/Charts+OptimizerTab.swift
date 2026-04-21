@@ -263,13 +263,13 @@ extension ChartsView {
     var optimizerTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                optimizerScorePanel
                 chartSection(
                     L10n.shared.optimizerTitle,
                     helpText: L10n.shared.optimizerHelpText
                 ) {
                     optimizerKeyboardGrid
                 }
+                optimizerScorePanel
                 if !optimizerState.swapHistory.isEmpty {
                     optimizerSwapHistoryView
                 }
