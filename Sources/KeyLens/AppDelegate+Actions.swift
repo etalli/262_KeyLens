@@ -24,6 +24,13 @@ extension AppDelegate {
         ChartsWindowController.shared.showWindow()
     }
 
+    func showChartsAtActivitySpeed() {
+        UserDefaults.standard.set(ChartTab.typing.rawValue, forKey: UDKeys.selectedChartTab)
+        UserDefaults.standard.set(TypingSubTab.activity.rawValue, forKey: UDKeys.selectedTypingSubTab)
+        UserDefaults.standard.set(ActivitySubTab.speed.rawValue, forKey: UDKeys.selectedActivitySubTab)
+        ChartsWindowController.shared.showWindow()
+    }
+
     func showChartsAtSessions() {
         UserDefaults.standard.set(ChartTab.typing.rawValue, forKey: UDKeys.selectedChartTab)
         UserDefaults.standard.set(TypingSubTab.activity.rawValue, forKey: UDKeys.selectedTypingSubTab)

@@ -79,7 +79,7 @@ struct MenuView: View {
                 case .estimatedWPM:
                     if let wpm = store.estimatedWPM {
                         menuRow(String(format: l.estimatedWPMFormat, wpm), icon: "speedometer") {
-                            appDelegate.showCharts(tab: .typing)
+                            appDelegate.showChartsAtActivitySpeed()
                         }
                     }
                 case .miniChart:
