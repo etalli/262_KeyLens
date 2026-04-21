@@ -301,7 +301,7 @@ struct OverlaySettingsView: View {
 
 // MARK: - OverlaySettingsController
 
-final class OverlaySettingsController: NSWindowController {
+final class OverlaySettingsController: BaseWindowController {
     static let shared = OverlaySettingsController()
 
     private init() {
@@ -318,9 +318,7 @@ final class OverlaySettingsController: NSWindowController {
     required init?(coder: NSCoder) { fatalError() }
 
     func showWindow() {
-        if !(window?.isVisible ?? false) { window?.center() }
-        showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        showAndActivate()
     }
 }
 

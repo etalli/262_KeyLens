@@ -5,7 +5,7 @@ import SwiftUI
 
 /// NSWindowController that hosts the Customize Menu SwiftUI panel.
 /// カスタマイズメニューの SwiftUI パネルをホストする NSWindowController。
-final class MenuCustomizeWindowController: NSWindowController {
+final class MenuCustomizeWindowController: BaseWindowController {
     static let shared = MenuCustomizeWindowController()
 
     private init() {
@@ -29,11 +29,9 @@ final class MenuCustomizeWindowController: NSWindowController {
 
     func showWindow() {
         // Refresh title in case language changed.
-        // 言語が変わっている場合のためにタイトルを更新する。
         window?.title = L10n.shared.customizeMenuTitle
-        NSApp.activate(ignoringOtherApps: true)
-        showWindow(nil)
         window?.center()
+        showAndActivate()
     }
 }
 

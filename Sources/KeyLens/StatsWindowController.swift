@@ -3,7 +3,7 @@ import AppKit
 // MARK: - StatsWindowController
 
 /// 全キー・マウスボタンの入力統計を一覧表示するウィンドウ
-final class StatsWindowController: NSWindowController {
+final class StatsWindowController: BaseWindowController {
 
     static let shared = StatsWindowController()
 
@@ -32,11 +32,7 @@ final class StatsWindowController: NSWindowController {
 
     func showWindow() {
         reload()
-        if !(window?.isVisible ?? false) {
-            window?.center()
-        }
-        showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        showAndActivate()
     }
 
     func reload() {

@@ -486,7 +486,7 @@ final class ChartDataModel: ObservableObject {
 // MARK: - ChartsWindowController
 
 /// Swift Charts を NSHostingController で包んで表示するウィンドウ
-final class ChartsWindowController: NSWindowController {
+final class ChartsWindowController: BaseWindowController {
     static let shared = ChartsWindowController()
     private let model = ChartDataModel()
     private var liveTimer:    Timer?
@@ -515,9 +515,7 @@ final class ChartsWindowController: NSWindowController {
             )
             self?.startUIJankProbe()
         }
-        if !(window?.isVisible ?? false) { window?.center() }
-        showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        showAndActivate()
         startLiveTimer()
     }
 
