@@ -905,6 +905,23 @@ final class L10n {
            en: "Speed mode: each key is colored by its average inter-keystroke interval (IKI) across related bigrams. Red = slowest key. Requires at least 3 bigrams of data per key.")
     }
 
+    var heatmapEffortLow: String {
+        ja("楽", en: "Easy")
+    }
+
+    var heatmapEffortHigh: String {
+        ja("きつい", en: "Hard")
+    }
+
+    var helpHeatmapEffort: String {
+        ja("負担モード：各キーの位置的な押しにくさを0〜10で表示します。ホームロウからの行距離と指の強さから算出されます。緑がやさしいキー、赤がきついキーです。",
+           en: "Effort mode: each key is colored by its positional effort score (0–10), computed from home-row distance and finger capability. Green = easy (home row, strong finger); red = hard (top row, weak finger).")
+    }
+
+    func heatmapEffortTooltip(_ score: Double) -> String {
+        ja(String(format: "負担スコア: %.1f / 10", score), en: String(format: "Effort: %.1f / 10", score))
+    }
+
     func heatmapSpeedTooltip(_ ms: Double) -> String {
         ja(String(format: "平均IKI: %.0f ms", ms), en: String(format: "Avg IKI: %.0f ms", ms))
     }
