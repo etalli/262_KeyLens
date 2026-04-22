@@ -862,14 +862,28 @@ struct HeatmapExportView: View {
     // Static positional effort scores (0–10) keyed by key name.
     // Formula: row distance from home row (row 2) contributes up to 8 points;
     // finger weakness (1 - capability weight) contributes up to 2 points.
+    // Shifted symbols (e.g. "@" for "2") are aliased to the same score as their base key
+    // so custom KLE layouts whose primary legend is the shifted symbol still get scored.
     static let effortScores: [String: Double] = {
-        ANSILayout.positionNameTable.reduce(into: [:]) { result, pair in
-            let pos = pair.value
+        var scores: [String: Double] = [:]
+        for (name, pos) in ANSILayout.positionNameTable {
             let rowDiff = min(abs(pos.row - 2), 4)
             let rowPart = Double(rowDiff) / 2.0 * 8.0
             let fingerPenalty = (1.0 - FingerLoadWeight.default.weight(for: pos.finger)) / 0.5 * 2.0
-            result[pair.key] = min(rowPart + fingerPenalty, 10.0)
+            scores[name] = min(rowPart + fingerPenalty, 10.0)
         }
+        let shiftedToBase: [String: String] = [
+            "~": "`",  "!": "1",  "@": "2",  "#": "3",  "$": "4",
+            "%": "5",  "^": "6",  "&": "7",  "*": "8",  "(": "9",
+            ")": "0",  "_": "-",  "+": "=",
+            "{": "[",  "}": "]",  "|": "\\",
+            ":": ";",  "\"": "'",
+            "<": ",",  ">": ".",  "?": "/",
+        ]
+        for (shifted, base) in shiftedToBase {
+            if let s = scores[base] { scores[shifted] = s }
+        }
+        return scores
     }()
 
     // HeatmapExportView always receives an already-resolved template from the parent.
