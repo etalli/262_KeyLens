@@ -458,7 +458,7 @@ struct KeyboardHeatmapView: View {
                             )
                             .font(.callout)
                             .padding(10)
-                            .frame(width: 280)
+                            .frame(width: mode == .effort ? 340 : 280)
                             .fixedSize(horizontal: false, vertical: true)
                         }
 

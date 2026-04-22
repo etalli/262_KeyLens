@@ -914,8 +914,26 @@ final class L10n {
     }
 
     var helpHeatmapEffort: String {
-        ja("負担モード：各キーの位置的な押しにくさを0〜10で表示します。ホームロウからの行距離と指の強さから算出されます。緑がやさしいキー、赤がきついキーです。",
-           en: "Effort mode: each key is colored by its positional effort score (0–10), computed from home-row distance and finger capability. Green = easy (home row, strong finger); red = hard (top row, weak finger).")
+        ja("""
+           負担モード：各キーの位置的な押しにくさを0〜10のスコアで色付けします。
+
+           スコア = 行距離 (0〜8) + 指の弱さ (0〜2)
+
+           行距離：ホームロウ(0pt) → 上/下段(4pt) → 数字段(8pt)
+           指の弱さ：人差し指(0pt)・中指(0.4pt)・薬指(1.6pt)・小指(2pt)
+
+           例：A = ホームロウ+小指 → 2.0 / F = ホームロウ+人差し指 → 0.0
+           """,
+           en: """
+           Effort mode: each key is colored by its positional effort score (0–10).
+
+           Score = row distance (0–8) + finger weakness (0–2)
+
+           Row distance: home row (0pt) → top/bottom row (4pt) → number row (8pt)
+           Finger weakness: index (0pt) · middle (0.4pt) · ring (1.6pt) · pinky (2pt)
+
+           e.g. A = home row + pinky → 2.0 / F = home row + index → 0.0
+           """)
     }
 
     func heatmapEffortTooltip(_ score: Double) -> String {
