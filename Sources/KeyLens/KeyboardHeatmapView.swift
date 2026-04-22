@@ -359,8 +359,10 @@ struct KeyboardHeatmapView: View {
             let maxMs = vm.speedScores.values.max() ?? 1.0
             return (Int(ms * 100), Int(maxMs * 100))
         case .effort:
-            let score = HeatmapExportView.effortScores[keyName] ?? 0
-            return (Int(score * 10), 100)
+            if let score = HeatmapExportView.effortScores[keyName] {
+                return (Int(score * 10) + 1, 101)
+            }
+            return (0, 101)
         }
     }
 
@@ -914,8 +916,12 @@ struct HeatmapExportView: View {
             let ms = speedScores[keyName] ?? 0
             return (Int(ms * 100), Int(maxSpeedScore * 100))
         case .effort:
-            let score = Self.effortScores[keyName] ?? 0
-            return (Int(score * 10), 100)
+            // Shift by 1 so score=0 (easiest key) → count=1, not 0.
+            // count=0 is reserved for keys not in the ANSI table (→ gray).
+            if let score = Self.effortScores[keyName] {
+                return (Int(score * 10) + 1, 101)
+            }
+            return (0, 101)
         }
     }
 
@@ -927,8 +933,7 @@ struct HeatmapExportView: View {
 
     // Returns effort score tooltip text, or nil if not in effort mode.
     private func effortTooltipText(for keyName: String) -> String? {
-        guard mode == .effort else { return nil }
-        let score = Self.effortScores[keyName] ?? 0
+        guard mode == .effort, let score = Self.effortScores[keyName] else { return nil }
         return L10n.shared.heatmapEffortTooltip(score)
     }
 
