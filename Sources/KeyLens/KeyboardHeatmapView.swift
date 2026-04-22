@@ -869,7 +869,9 @@ struct HeatmapExportView: View {
     static let effortScores: [String: Double] = {
         var scores: [String: Double] = [:]
         for (name, pos) in ANSILayout.positionNameTable {
-            let rowDiff = min(abs(pos.row - 2), 4)
+            // Row 4 is the thumb row (Space, modifiers). Thumb reach is natural,
+            // so row distance is treated as 0 — only finger weakness applies.
+            let rowDiff = pos.row == 4 ? 0 : min(abs(pos.row - 2), 4)
             let rowPart = Double(rowDiff) / 2.0 * 8.0
             let fingerPenalty = (1.0 - FingerLoadWeight.default.weight(for: pos.finger)) / 0.5 * 2.0
             scores[name] = min(rowPart + fingerPenalty, 10.0)

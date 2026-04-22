@@ -919,7 +919,7 @@ final class L10n {
 
            スコア = 行距離 (0〜8) + 指の弱さ (0〜2)
 
-           行距離：ホームロウ(0pt) → 上/下段(4pt) → 数字段(8pt)
+           行距離：ホームロウ(0pt) → 上/下段(4pt) → 数字段(8pt) · 親指段(0pt)
            指の弱さ：人差し指(0pt)・中指(0.4pt)・薬指(1.6pt)・小指(2pt)
 
            例：A = ホームロウ+小指 → 2.0 / F = ホームロウ+人差し指 → 0.0
@@ -929,7 +929,7 @@ final class L10n {
 
            Score = row distance (0–8) + finger weakness (0–2)
 
-           Row distance: home row (0pt) → top/bottom row (4pt) → number row (8pt)
+           Row distance: home row (0pt) → top/bottom row (4pt) → number row (8pt) · thumb row (0pt)
            Finger weakness: index (0pt) · middle (0.4pt) · ring (1.6pt) · pinky (2pt)
 
            e.g. A = home row + pinky → 2.0 / F = home row + index → 0.0
