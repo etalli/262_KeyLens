@@ -869,13 +869,19 @@ struct HeatmapExportView: View {
     static let effortScores: [String: Double] = {
         var scores: [String: Double] = [:]
         for (name, pos) in ANSILayout.positionNameTable {
-            // Row 4 is the thumb row (Space, modifiers). Thumb reach is natural,
-            // so row distance is treated as 0 — only finger weakness applies.
-            let rowDiff = pos.row == 4 ? 0 : min(abs(pos.row - 2), 4)
+            let rowDiff = min(abs(pos.row - 2), 4)
             let rowPart = Double(rowDiff) / 2.0 * 8.0
             let fingerPenalty = (1.0 - FingerLoadWeight.default.weight(for: pos.finger)) / 0.5 * 2.0
             scores[name] = min(rowPart + fingerPenalty, 10.0)
         }
+        // Thumb cluster overrides — formula overestimates modifier difficulty
+        // because thumb reach varies per key. Tune these values as needed.
+        let thumbOverrides: [String: Double] = [
+            "Space":    1.0,  // natural thumb press, very easy
+            "⌘Cmd":     4.0,  // thumb shifts inward slightly
+            "⌥Option":  6.0,  // larger thumb shift, less natural
+        ]
+        for (name, score) in thumbOverrides { scores[name] = score }
         let shiftedToBase: [String: String] = [
             "~": "`",  "!": "1",  "@": "2",  "#": "3",  "$": "4",
             "%": "5",  "^": "6",  "&": "7",  "*": "8",  "(": "9",
