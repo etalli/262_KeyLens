@@ -12,6 +12,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var hidManager: IOHIDManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        KeyLens.log("=== KeyLens \(version) (build \(build)) started ===")
         _ = NotificationManager.shared
         _ = KeystrokeOverlayController.shared
         ThemeStore.shared.appearance.apply()
