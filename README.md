@@ -37,10 +37,7 @@ KeyLens changes that. It records which keys you press, how often, and with which
 - See which fingers are overloaded and how the load is distributed across both hands
 - Simulate how Colemak, Dvorak, or a custom layout would affect your travel distance, using your actual data
 - Track WPM, keystroke rhythm, and fatigue over days and weeks
-- Break down keystrokes by app — useful for knowing where to focus changes first
 - See which shortcuts you use most and whether your modifier placement is costing you
-- Track daily cursor distance alongside your keyboard data
-- A floating overlay shows your last few keystrokes live, useful for learning a new layout
 
 ---
 

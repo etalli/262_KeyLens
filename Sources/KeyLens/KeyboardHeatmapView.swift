@@ -7,6 +7,7 @@ enum HeatmapMode: String, CaseIterable {
     case frequency = "Frequency"
     case strain    = "Strain"
     case speed     = "Speed"
+    case effort    = "Effort"
 }
 
 // MARK: - HeatmapTemplate
@@ -357,6 +358,11 @@ struct KeyboardHeatmapView: View {
             let ms = vm.speedScores[keyName] ?? 0
             let maxMs = vm.speedScores.values.max() ?? 1.0
             return (Int(ms * 100), Int(maxMs * 100))
+        case .effort:
+            if let score = HeatmapExportView.effortScores[keyName] {
+                return (Int(score * 10) + 1, 101)
+            }
+            return (0, 101)
         }
     }
 
@@ -435,7 +441,7 @@ struct KeyboardHeatmapView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .frame(maxWidth: 220)
+                    .frame(maxWidth: 290)
 
                     Image(systemName: "info.circle")
                         .font(.body)
@@ -446,11 +452,13 @@ struct KeyboardHeatmapView: View {
                                 ? L10n.shared.helpHeatmapStrain
                                 : mode == .speed
                                     ? L10n.shared.helpHeatmapSpeed
-                                    : L10n.shared.helpHeatmapFrequency
+                                    : mode == .effort
+                                        ? L10n.shared.helpHeatmapEffort
+                                        : L10n.shared.helpHeatmapFrequency
                             )
                             .font(.callout)
                             .padding(10)
-                            .frame(width: 280)
+                            .frame(width: mode == .effort ? 340 : 280)
                             .fixedSize(horizontal: false, vertical: true)
                         }
 
@@ -853,6 +861,41 @@ struct HeatmapExportView: View {
     private var maxStrainScore: Int { strainScores.values.max() ?? 1 }
     private var maxSpeedScore: Double { speedScores.values.max() ?? 1.0 }
 
+    // Static positional effort scores (0–10) keyed by key name.
+    // Formula: row distance from home row (row 2) contributes up to 8 points;
+    // finger weakness (1 - capability weight) contributes up to 2 points.
+    // Shifted symbols (e.g. "@" for "2") are aliased to the same score as their base key
+    // so custom KLE layouts whose primary legend is the shifted symbol still get scored.
+    static let effortScores: [String: Double] = {
+        var scores: [String: Double] = [:]
+        for (name, pos) in ANSILayout.positionNameTable {
+            let rowDiff = min(abs(pos.row - 2), 4)
+            let rowPart = Double(rowDiff) / 2.0 * 8.0
+            let fingerPenalty = (1.0 - FingerLoadWeight.default.weight(for: pos.finger)) / 0.5 * 2.0
+            scores[name] = min(rowPart + fingerPenalty, 10.0)
+        }
+        // Thumb cluster overrides — formula overestimates modifier difficulty
+        // because thumb reach varies per key. Tune these values as needed.
+        let thumbOverrides: [String: Double] = [
+            "Space":    1.0,  // natural thumb press, very easy
+            "⌘Cmd":     4.0,  // thumb shifts inward slightly
+            "⌥Option":  6.0,  // larger thumb shift, less natural
+        ]
+        for (name, score) in thumbOverrides { scores[name] = score }
+        let shiftedToBase: [String: String] = [
+            "~": "`",  "!": "1",  "@": "2",  "#": "3",  "$": "4",
+            "%": "5",  "^": "6",  "&": "7",  "*": "8",  "(": "9",
+            ")": "0",  "_": "-",  "+": "=",
+            "{": "[",  "}": "]",  "|": "\\",
+            ":": ";",  "\"": "'",
+            "<": ",",  ">": ".",  "?": "/",
+        ]
+        for (shifted, base) in shiftedToBase {
+            if let s = scores[base] { scores[shifted] = s }
+        }
+        return scores
+    }()
+
     // HeatmapExportView always receives an already-resolved template from the parent.
     // This alias exists so the internal switches read identically to KeyboardHeatmapView.
     private var effectiveTemplate: HeatmapTemplate { template }
@@ -880,6 +923,13 @@ struct HeatmapExportView: View {
         case .speed:
             let ms = speedScores[keyName] ?? 0
             return (Int(ms * 100), Int(maxSpeedScore * 100))
+        case .effort:
+            // Shift by 1 so score=0 (easiest key) → count=1, not 0.
+            // count=0 is reserved for keys not in the ANSI table (→ gray).
+            if let score = Self.effortScores[keyName] {
+                return (Int(score * 10) + 1, 101)
+            }
+            return (0, 101)
         }
     }
 
@@ -887,6 +937,12 @@ struct HeatmapExportView: View {
     private func speedTooltipText(for keyName: String) -> String? {
         guard mode == .speed, let ms = speedScores[keyName] else { return nil }
         return L10n.shared.heatmapSpeedTooltip(ms)
+    }
+
+    // Returns effort score tooltip text, or nil if not in effort mode.
+    private func effortTooltipText(for keyName: String) -> String? {
+        guard mode == .effort, let score = Self.effortScores[keyName] else { return nil }
+        return L10n.shared.heatmapEffortTooltip(score)
     }
 
     // Returns the row definitions for the current template.
@@ -962,7 +1018,7 @@ struct HeatmapExportView: View {
                                         width: cellW,
                                         height: cellH,
                                         tooltipStyle: mode == .strain ? .strain : .count,
-                                        tooltipOverride: speedTooltipText(for: key.keyName)
+                                        tooltipOverride: speedTooltipText(for: key.keyName) ?? effortTooltipText(for: key.keyName)
                                     )
                                     .rotationEffect(.degrees(key.r))
                                     .offset(x: CGFloat(key.cx) * unitW - cellW / 2,
@@ -1000,7 +1056,7 @@ struct HeatmapExportView: View {
                         max: displayMax,
                         width: unitWidth * CGFloat(key.widthRatio),
                         tooltipStyle: mode == .strain ? .strain : .count,
-                        tooltipOverride: speedTooltipText(for: key.keyName)
+                        tooltipOverride: speedTooltipText(for: key.keyName) ?? effortTooltipText(for: key.keyName)
                     )
                 }
             }
@@ -1171,8 +1227,8 @@ struct HeatmapExportView: View {
 
     private var legend: some View {
         let l = L10n.shared
-        let lowLabel  = mode == .strain ? "Low strain"  : mode == .speed ? l.heatmapSpeedLow  : l.heatmapLow
-        let highLabel = mode == .strain ? "High strain" : mode == .speed ? l.heatmapSpeedHigh : l.heatmapHigh
+        let lowLabel  = mode == .strain ? "Low strain"  : mode == .speed ? l.heatmapSpeedLow  : mode == .effort ? l.heatmapEffortLow  : l.heatmapLow
+        let highLabel = mode == .strain ? "High strain" : mode == .speed ? l.heatmapSpeedHigh : mode == .effort ? l.heatmapEffortHigh : l.heatmapHigh
         return HStack(spacing: 6) {
             Text(lowLabel).font(.caption2).foregroundStyle(.secondary)
             LinearGradient(
