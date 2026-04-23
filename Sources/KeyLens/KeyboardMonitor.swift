@@ -64,8 +64,25 @@ private let kHandleEventSlowThresholdMs: Double = 5.0
 final class KeyboardMonitor {
     private(set) var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-    /// Cached frontmost app name, updated via NSWorkspace notification instead of per-keystroke IPC.
-    private var cachedAppName: String?
+
+    // Dedicated background thread and its run loop for the CGEventTap.
+    // Isolates the tap from all main-thread work (SwiftUI renders, timers) so
+    // macOS never disables it due to the ~1 s tapDisabledByTimeout threshold.
+    private var tapThread: Thread?
+    private var tapRunLoop: CFRunLoop?
+
+    // Thread-safe cached app name: written on main (workspace notification),
+    // read on the tap background thread.
+    private let appNameLock = NSLock()
+    private var _cachedAppName: String?
+    private var cachedAppName: String? {
+        get { appNameLock.withLock { _cachedAppName } }
+        set { appNameLock.withLock { _cachedAppName = newValue } }
+    }
+
+    // Observer token to avoid duplicate workspace registrations across start() calls.
+    private var appNameObserver: Any?
+
     /// Counter for throttling heatmap position sampling (sample every 5th mouseMoved event).
     private var mouseSampleCounter: Int = 0
 
@@ -99,18 +116,33 @@ final class KeyboardMonitor {
         KeyLens.log("start() called — AXIsProcessTrusted: \(trusted)")
         guard trusted else { return false }
 
-        // 既存タップの再有効化を先に試みる（権限再付与後の高速復帰）
+        // Fast path: re-enable an existing tap without recreating the thread.
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: true)
             if CGEvent.tapIsEnabled(tap: tap) {
                 KeyLens.log("Existing tap re-enabled successfully")
                 return true
             }
-            // 再有効化できなかった場合は破棄して新規作成
             KeyLens.log("Existing tap could not be re-enabled — recreating")
             stop()
         }
 
+        // Seed app name cache (main thread; safe here since tap thread not yet running).
+        _cachedAppName = NSWorkspace.shared.frontmostApplication?.localizedName
+
+        // Register workspace observer once; keep token to avoid duplicates.
+        if appNameObserver == nil {
+            appNameObserver = NotificationCenter.default.addObserver(
+                forName: NSWorkspace.didActivateApplicationNotification,
+                object: NSWorkspace.shared,
+                queue: .main
+            ) { [weak self] note in
+                let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+                self?.cachedAppName = app?.localizedName
+            }
+        }
+
+        // Build event mask once so the closure captures only a value type.
         var mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.keyUp.rawValue)
         mask |= CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
@@ -118,49 +150,75 @@ final class KeyboardMonitor {
         mask |= CGEventMask(1 << CGEventType.otherMouseDown.rawValue)
         mask |= CGEventMask(1 << CGEventType.mouseMoved.rawValue)
 
-        // .listenOnly + .tailAppendEventTap = 最小権限での監視
-        // userInfo に self を渡すことで、コールバックが AppDelegate に依存せず tap を再有効化できる
-        let tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap,
-            place: .tailAppendEventTap,
-            options: .listenOnly,
-            eventsOfInterest: mask,
-            callback: inputTapCallback,
-            userInfo: Unmanaged.passUnretained(self).toOpaque()
-        )
-        KeyLens.log("CGEvent.tapCreate result: \(tap != nil ? "success" : "nil (FAILED)")")
-        guard let tap else { return false }
+        // Semaphore to wait for the background thread to finish tap setup.
+        let setupDone = DispatchSemaphore(value: 0)
+        var tapCreated = false
 
-        eventTap = tap
-        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
-        runLoopSource = source
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-        CGEvent.tapEnable(tap: tap, enable: true)
+        let thread = Thread { [weak self] in
+            guard let self else { setupDone.signal(); return }
 
-        // Seed the cache immediately, then keep it fresh via notification.
-        cachedAppName = NSWorkspace.shared.frontmostApplication?.localizedName
-        NotificationCenter.default.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification,
-            object: NSWorkspace.shared,
-            queue: .main
-        ) { [weak self] note in
-            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-            self?.cachedAppName = app?.localizedName
+            // Capture this thread's run loop before signalling.
+            let rl = CFRunLoopGetCurrent()!
+            self.tapRunLoop = rl
+
+            // Create and attach the tap here so its run loop source lives on this thread.
+            let tap = CGEvent.tapCreate(
+                tap: .cgSessionEventTap,
+                place: .tailAppendEventTap,
+                options: .listenOnly,
+                eventsOfInterest: mask,
+                callback: inputTapCallback,
+                userInfo: Unmanaged.passUnretained(self).toOpaque()
+            )
+            KeyLens.log("CGEvent.tapCreate result: \(tap != nil ? "success" : "nil (FAILED)")")
+
+            if let tap {
+                self.eventTap = tap
+                let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+                self.runLoopSource = source
+                CFRunLoopAddSource(rl, source, .commonModes)
+                CGEvent.tapEnable(tap: tap, enable: true)
+                tapCreated = true
+            }
+            setupDone.signal()
+
+            // Run the run loop until stop() calls CFRunLoopStop.
+            if tapCreated { CFRunLoopRun() }
+
+            self.tapRunLoop = nil
+        }
+        thread.name = "com.keylens.eventtap"
+        thread.qualityOfService = .userInteractive
+        tapThread = thread
+        thread.start()
+
+        // Block until tap is set up (or fails). 2 s timeout is generous for system calls.
+        let waitResult = setupDone.wait(timeout: .now() + 2.0)
+        if waitResult == .timedOut {
+            KeyLens.log("⚠️ Tap thread setup timed out")
+            return false
         }
 
-        KeyLens.log("Monitoring started successfully")
-        return true
+        if tapCreated {
+            KeyLens.log("Monitoring started successfully")
+        }
+        return tapCreated
     }
 
     func stop() {
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
         }
-        if let src = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), src, .commonModes)
+        if let src = runLoopSource, let rl = tapRunLoop {
+            CFRunLoopRemoveSource(rl, src, .commonModes)
+        }
+        if let rl = tapRunLoop {
+            CFRunLoopStop(rl)
         }
         eventTap = nil
         runLoopSource = nil
+        // tapRunLoop is cleared by the background thread after CFRunLoopRun() returns.
+        tapThread = nil
     }
 
     /// CGKeyCode → 表示用キー名
@@ -260,7 +318,7 @@ private func inputTapCallback(
 
 extension KeyboardMonitor {
     /// Handles a single CGEventTap event. Called from the global trampoline via refcon.
-    /// グローバルトランポリンから refcon 経由で呼ばれるイベントハンドラ。
+    /// Runs on the dedicated tap background thread — never on the main thread.
     func handleEvent(
         proxy: CGEventTapProxy,
         type: CGEventType,
@@ -277,7 +335,8 @@ extension KeyboardMonitor {
                 if delayMs <= 100 {
                     CGEvent.tapEnable(tap: tap, enable: true)
                 } else {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(delayMs)) { [weak self] in
+                    // Use a global queue — no longer safe to dispatch to main for tap re-enable.
+                    DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + .milliseconds(delayMs)) { [weak self] in
                         guard let tap = self?.eventTap else { return }
                         CGEvent.tapEnable(tap: tap, enable: true)
                     }
@@ -298,6 +357,7 @@ extension KeyboardMonitor {
 
         // Mouse movement: accumulate distance and sample position for heatmap.
         // Position is sampled every 5th event to keep overhead minimal.
+        // NSScreen.screens must be called on the main thread — dispatch the lookup async.
         if type == .mouseMoved {
             let dx = event.getDoubleValueField(.mouseEventDeltaX)
             let dy = event.getDoubleValueField(.mouseEventDeltaY)
@@ -307,14 +367,13 @@ extension KeyboardMonitor {
             if mouseSampleCounter >= 5 {
                 mouseSampleCounter = 0
                 let loc = event.location
-                // Find the screen that contains the cursor and normalize within its bounds.
-                // This handles multi-display setups correctly — each screen gets its own 0–99 grid.
-                if let screen = NSScreen.screens.first(where: { $0.frame.contains(loc) }) {
-                    let frame = screen.frame
-                    let relX = loc.x - frame.minX
-                    // NSScreen uses bottom-left origin; invert Y so top=0, bottom=99
-                    let relY = frame.maxY - loc.y
-                    MouseStore.shared.addPosition(x: relX, y: relY, screenSize: frame.size)
+                DispatchQueue.main.async {
+                    if let screen = NSScreen.screens.first(where: { $0.frame.contains(loc) }) {
+                        let frame = screen.frame
+                        let relX = loc.x - frame.minX
+                        let relY = frame.maxY - loc.y
+                        MouseStore.shared.addPosition(x: relX, y: relY, screenSize: frame.size)
+                    }
                 }
             }
             return Unmanaged.passRetained(event)
@@ -342,7 +401,7 @@ extension KeyboardMonitor {
             DispatchQueue.main.async { WPMHotkeyManager.shared.toggle() }
         }
 
-        // Check Overlay hotkey (Issue #179)
+        // Check Overlay hotkey (Issue #179); toggle() already dispatches to main internally.
         if type == .keyDown, OverlayHotkeyManager.shared.matches(event: event) {
             OverlayHotkeyManager.shared.toggle()
         }
@@ -354,7 +413,10 @@ extension KeyboardMonitor {
             guard let self, milestone else { return }
             self.notificationManager.notify(key: captureName, count: count)
         }
-        breakManager.didType()
+
+        // BreakReminderManager accesses its own internal state; dispatch to main for safety.
+        let bm = breakManager
+        DispatchQueue.main.async { bm.didType() }
 
         if type == .keyDown {
             let modifierKeyCodes: Set<CGKeyCode> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
