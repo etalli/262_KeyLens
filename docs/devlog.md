@@ -1,8 +1,20 @@
 # KeyLens Dev Log
 
 Daily summaries of development activity, generated from git history.
+Each entry includes a **Time:** field for session duration. Running total is tracked at the top.
+
+**Total time (macOS):** 0h (update manually each session)
 
 ---
+
+## 2026-05-01
+
+- **tooling:** deployed `/log`, `/analyze-issue`, and `/cloc` skills to global `~/.claude/` so they work across all projects, not just KeyLens; made repo and source-dir detection dynamic
+
+## 2026-04-28
+
+- **analysis:** audited codebase for bugs — found HID usage table off-by-one for digits 1–9, wrong mapping for `0`/`\` keys, and missing entries for `'`/`;`/`` ` `` keys in Key Inspector (#378)
+- **analysis:** identified TOCTOU race in WPM session toggle — `isWPMMeasuring` check and `start`/`stopWPMMeasurement` are two separate `queue.sync` calls; concurrent hotkey + UI button trigger can corrupt session (#379)
 
 ## 2026-04-11
 

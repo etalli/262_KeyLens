@@ -86,9 +86,12 @@ graph TD
 │   │   ├── Charts+LayerEfficiency.swift
 │   │   ├── Charts+LiveTab.swift
 │   │   ├── Charts+MouseTab.swift
+│   │   ├── Charts+MouseHeatmap.swift
 │   │   ├── Charts+TrainingTab.swift
 │   │   ├── Charts+TypingTab.swift
+│   │   ├── Charts+InspectorTab.swift
 │   │   ├── Charts+ComparisonTab.swift
+│   │   ├── Charts+OptimizerTab.swift
 │   │   ├── ActivityCalendarView.swift
 │   │   ├── BigramHeatmapView.swift
 │   │   ├── KeyboardHeatmapView.swift
@@ -166,7 +169,7 @@ Key press
   |
   v
 CGEventTap  (OS-level event hook)
-  |  KeyboardMonitor.swift
+  |  KeyboardMonitor.swift — runs on dedicated background thread "com.keylens.eventtap"
   |  inputTapCallback()  <-- file-scope global function (@convention(c) compatible)
   |
   +-- post Notification(.keystrokeInput)  --> KeystrokeOverlayController
@@ -275,6 +278,14 @@ CGEvent.tapCreate(callback: inputTapCallback, userInfo: Unmanaged.passUnretained
 ```
 
 The file-scope `inputTapCallback` is a minimal trampoline (~3 lines). All event-handling logic lives in the `handleEvent` instance method, which has direct access to `self.eventTap` and other instance state.
+
+**Dedicated background thread:** The event tap runs on a dedicated `Thread` named `"com.keylens.eventtap"` (`.userInteractive` QoS) with its own `CFRunLoop`, completely isolated from the main thread. `start()` spawns the thread, captures `CFRunLoopGetCurrent()` inside it, creates the tap, adds the run loop source, and blocks on a `DispatchSemaphore` (2 s timeout) until setup completes. `stop()` calls `CFRunLoopStop` on the stored background run loop reference — it never touches `CFRunLoopGetMain()`.
+
+**Thread-safety within `handleEvent`:** Because `handleEvent` runs on the tap thread, all accesses to main-thread-only APIs are dispatched explicitly:
+- `NSScreen.screens` (mouse position sampling) → `DispatchQueue.main.async`
+- `BreakReminderManager.didType()` → `DispatchQueue.main.async`
+- `cachedAppName` (written by `NSWorkspace` notification on main, read on tap thread) → protected by `NSLock`
+- Tap re-enable after `.tapDisabledByTimeout` → `DispatchQueue.global(qos: .userInteractive).async`
 
 **Tap recovery:** If the tap is disabled by system timeout (`.tapDisabledByTimeout`), `handleEvent` immediately re-enables it via `self.eventTap`.
 
@@ -404,12 +415,13 @@ Displays a ranked table of all keys and mouse buttons with total and today's cou
 | `Charts+TypingTab.swift` | Typing | Sub-tab router: Live, Activity, Keyboard, Shortcuts, Apps, Devices |
 | `Charts+LiveTab.swift` | Typing › Live | Recent IKI bar chart, manual WPM measurement, AI Intelligence |
 | `Charts+ActivityTab.swift` | Typing › Activity | Daily WPM chart, Daily Totals line chart, IKI Distribution histogram, 2D Weekly Activity Heatmap |
-| `Charts+KeyboardTab.swift` | Typing › Keyboard | Keyboard Heatmap (Frequency / Strain), Top 20 Keys, Key Categories, Top 10 per Day |
+| `Charts+KeyboardTab.swift` | Typing › Keyboard | Keyboard Heatmap (Frequency / Strain / Speed / Effort), Top 20 Keys, Key Categories, Top 10 per Day |
 | `Charts+ShortcutsTab.swift` | Typing › Shortcuts | ⌘ Keyboard Shortcuts, All Keyboard Combos |
 | `Charts+AppsTab.swift` | Typing › Apps / Devices | Per-app and per-device keystroke bars + ergonomic score tables + per-device daily keystroke time-series line chart |
 | `Charts+MouseTab.swift` | Mouse | Mouse clicks, direction, daily distance (+ position heatmap in Advanced Mode) |
 | `Charts+MouseHeatmap.swift` | Mouse › Heatmap | Mouse position heatmap with log-scale normalization and inline color legend (blue=Low → red=High) |
 | `Charts+ErgonomicsTab.swift` | Ergonomics | Recommendations, Bigrams, Layout, Fatigue, Optimizer, Compare sub-tabs + per-finger SFB ranking bar chart |
+| `Charts+OptimizerTab.swift` | Ergonomics › Optimizer | Key swap simulator: drag-to-swap ANSI layout with live ergonomic score preview; respects `LayoutConstraints` (Issue #235) |
 | `Charts+ComparisonTab.swift` | Ergonomics › Compare | Side-by-side period comparison: two custom date ranges, stats table with delta column |
 | `Charts+TrainingTab.swift` | Ergonomics › Training (Advanced) | Bigram-based typing drill UI (slowest bigrams, practice sessions) |
 | `Charts+LayerEfficiency.swift` | Ergonomics › Layout | Layer key usage analysis for QMK/ZMK keyboards |
@@ -626,12 +638,14 @@ Hill-climb optimizer that proposes key swaps maximising the integrated ergonomic
 
 ### [KeyboardHeatmapView.swift](Sources/KeyLens/KeyboardHeatmapView.swift)
 
-SwiftUI view that renders the physical ANSI keyboard layout. Supports two display modes via a segmented `Picker`:
+SwiftUI view that renders the physical ANSI keyboard layout. Supports four display modes via a segmented `Picker`:
 
 - **Frequency** — each key coloured by total keystroke count (red = most pressed)
 - **Strain** — each key coloured by its cumulative high-strain bigram involvement score (red = frequent culprit)
+- **Speed** — each key coloured by average inter-key interval (IKI); slower keys appear warmer
+- **Effort** — each key coloured by a static ergonomic effort score based on finger/row/column position
 
-A hover-triggered popover (ⓘ icon) explains the active mode. Strain scores are computed from `KeyCountStore.shared.topHighStrainBigrams(limit: 1000)` by summing bigram counts for each participating key. Used inside `ChartsView` as the first chart section.
+A hover-triggered popover (ⓘ icon) explains the active mode. Strain scores are computed from `KeyCountStore.shared.topHighStrainBigrams(limit: 1000)` by summing bigram counts for each participating key. Speed and Effort scores are computed asynchronously in `HeatmapViewModel` via `Task.detached` and published to `@Published` properties. Used inside `ChartsView` as the first chart section.
 
 Custom KLE layouts use `kleHeatCell` instead of `heatCell`. `kleHeatCell` renders a 3×3 legend grid (Top-Left/Center/Right, Center-Left/Center/Right, Bottom-Left/Center/Right) from `KLEAbsoluteKey.legendSlots`. Save/Copy export is handled by the `chartSection` header icons — no export buttons are embedded in the view itself.
 
@@ -771,7 +785,7 @@ ensuring forward/backward compatibility when new fields are added.
 
 ### Event pipeline hot path
 
-- The main hot path is `CGEventTap` → `KeyboardMonitor.handleEvent` → `KeyCountStore.increment`.
+- The main hot path is `CGEventTap` → `KeyboardMonitor.handleEvent` → `KeyCountStore.increment`. `handleEvent` runs on the dedicated `"com.keylens.eventtap"` background thread, not the main thread, so it cannot be starved by SwiftUI rendering or timer callbacks.
 - `KeyCountStore.increment` performs all mutations on a serial `queue` and pushes time-series updates into a `PendingStore` that is flushed to SQLite asynchronously.
 - Slow event handling is already monitored: if `handleEvent` takes longer than `kHandleEventSlowThresholdMs` (~5 ms) for a single event, the app logs a `[perf] handleEvent slow` line and increments `KeyCountStore.slowEventCount` via `recordSlowEvent()`.
 - SQLite scalar writes are debounced: `scheduleSave()` captures a snapshot of `CountData` on the store queue and serializes it on a separate `saveQueue`, keeping serialization work off the keystroke hot path.
