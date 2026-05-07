@@ -292,11 +292,12 @@ final class KeyCountStore {
     private let rhythmIKICapacity = 50
 
     // In-memory slow-event counter (resets on app relaunch, not persisted).
-    private(set) var slowEventCount: Int = 0
+    private var _slowEventCount: Int = 0
+    var slowEventCount: Int { queue.sync { _slowEventCount } }
 
     /// Increments the slow-event counter. Thread-safe: must be called from outside the store queue.
     func recordSlowEvent() {
-        queue.async { self.slowEventCount += 1 }
+        queue.async { [weak self] in self?._slowEventCount += 1 }
     }
 
     // Manual WPM measurement session (Issue #150). All access on `queue`.
@@ -596,7 +597,7 @@ final class KeyCountStore {
             PerformanceProfiler.shared.record(metric: "store.increment", ms: execMs)
             if execMs > 5.0 {
                 KeyLens.log("[perf] store.increment slow: \(String(format: "%.1f", execMs))ms (key: \(key))")
-                self.slowEventCount += 1
+                self._slowEventCount += 1
             }
             self.scheduleSave()
             if let completion {
