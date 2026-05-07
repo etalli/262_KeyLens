@@ -37,3 +37,11 @@ log.txt
 scc_log.txt
 tmp/
 KeyLens.dmg.zip
+scripts/TTS/audio/slide_1.mp3
+scripts/TTS/audio/slide_2.mp3
+scripts/TTS/audio/slide_3.mp3
+scripts/TTS/output.mp3
+scripts/TTS/output_with_audio.pptx
+scripts/TTS/ppt_with_audio.py
+scripts/TTS/slides.csv
+scripts/TTS/slides.ja.csv
