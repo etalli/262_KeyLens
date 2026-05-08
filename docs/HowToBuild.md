@@ -22,10 +22,13 @@ cd 262_KeyLens
 
 | Command | What it does |
 |---|---|
-| `./build.sh` | Build only |
-| `./build.sh --run` | Build and launch |
-| `./build.sh --install` | Build, install, sign, reset TCC, launch ← recommended |
-| `./build.sh --dmg` | Build distributable DMG |
+| `./build.sh` | Build only (debug) |
+| `./build.sh --run` | Build (debug) and launch |
+| `./build.sh --install` | Build (debug), install, sign, reset TCC, launch ← recommended |
+| `./build.sh --dmg` | Build (release) and create distributable DMG + ZIP |
+| `./build.sh --release` | Build DMG/ZIP and create a draft GitHub Release |
+| `./build.sh --release --publish` | Same, but publish immediately |
+| `./build.sh --clean` | Remove all build artifacts (`.build`, app, dmg, zip) |
 
 ## First-launch permissions
 
