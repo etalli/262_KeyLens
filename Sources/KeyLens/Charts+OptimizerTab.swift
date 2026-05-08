@@ -362,6 +362,7 @@ extension ChartsView {
                 Button(L10n.shared.optimizerExportButton) {
                     optimizerState.exportLayout()
                 }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
                 .disabled(optimizerState.relocationMap.isEmpty)
 
                 if let fname = optimizerState.exportedFileName {
