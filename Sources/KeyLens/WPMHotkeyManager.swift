@@ -12,9 +12,9 @@ final class WPMHotkeyManager {
     private static let keyCodeKey   = "wpmHotkeyKeyCode"
     private static let modifiersKey = "wpmHotkeyModifiers"
 
-    // Default: ⌃⌥M
+    // Default: ⌃⇧M
     private static let defaultKeyCode: UInt16 = 46  // 'm'
-    private static let defaultModifiers: CGEventFlags = [.maskControl, .maskAlternate]
+    private static let defaultModifiers: CGEventFlags = [.maskControl, .maskShift]
 
     var keyCode: UInt16 {
         get {
@@ -48,12 +48,10 @@ final class WPMHotkeyManager {
 
     /// Toggles WPM measurement and posts the appropriate notification.
     func toggle() {
-        let store = KeyCountStore.shared
-        if store.isWPMMeasuring {
-            let result = store.stopWPMMeasurement()
+        let result = KeyCountStore.shared.toggleWPMMeasurement()
+        if let result {
             NotificationCenter.default.post(name: .wpmMeasurementStopped, object: result)
         } else {
-            store.startWPMMeasurement()
             NotificationCenter.default.post(name: .wpmMeasurementStarted, object: nil)
         }
     }

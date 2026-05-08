@@ -183,6 +183,27 @@ extension KeyCountStore {
         }
     }
 
+    /// Atomically checks and toggles WPM measurement in a single queue.sync.
+    /// Returns the result tuple if measurement was stopped, nil if it was started.
+    /// Use this instead of separate isWPMMeasuring + start/stop calls to avoid TOCTOU races.
+    @discardableResult
+    func toggleWPMMeasurement() -> (wpm: Double, duration: TimeInterval, keystrokes: Int)? {
+        queue.sync {
+            if let start = wpmSessionStart {
+                let duration = Date().timeIntervalSince(start)
+                let ks = wpmSessionKeystrokes
+                wpmSessionStart = nil
+                wpmSessionKeystrokes = 0
+                guard duration > 0, ks > 0 else { return nil }
+                return (wpm: (Double(ks) / 5.0) / (duration / 60.0), duration: duration, keystrokes: ks)
+            } else {
+                wpmSessionStart = Date()
+                wpmSessionKeystrokes = 0
+                return nil
+            }
+        }
+    }
+
     var isWPMMeasuring: Bool {
         queue.sync { makeQuery().isWPMMeasuring }
     }
