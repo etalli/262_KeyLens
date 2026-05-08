@@ -17,6 +17,7 @@ enum UDKeys {
     static let kleCustomLayoutURL          = "kleCustomLayoutURL"
     static let kleProfiles                 = "kleProfiles"
     static let kleSelectedProfileID        = "kleSelectedProfileID"
+    static let optimizerLayoutID           = "optimizerLayoutID"
     static let milestoneInterval           = "milestoneInterval"
     static let perfProfilingEnabled        = "perfProfilingEnabled"
     static let selectedChartTab            = "selectedChartTab"

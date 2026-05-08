@@ -69,6 +69,17 @@ final class OptimizerSimulatorState: ObservableObject {
 
     // MARK: Published state
 
+    /// Active key list used for rendering. Defaults to ANSI; updated by applyLayout().
+    @Published var activeKeys: [KLEAbsoluteKey] = OptimizerSimulatorState.ansiKeys
+
+    /// Aspect ratio of the active layout grid.
+    @Published var activeAspectRatio: CGFloat = OptimizerSimulatorState.ansiAspectRatio
+
+    /// ID of the selected KLE profile, persisted across restarts. Empty = Built-in ANSI.
+    @Published var optimizerLayoutID: String = UserDefaults.standard.string(forKey: UDKeys.optimizerLayoutID) ?? "" {
+        didSet { UserDefaults.standard.set(optimizerLayoutID, forKey: UDKeys.optimizerLayoutID) }
+    }
+
     /// Accumulated key relocation map (label → physical slot).
     /// 蓄積されたリロケーションマップ (ラベル → 物理スロット)。
     @Published var relocationMap: [String: String] = [:]
@@ -114,7 +125,7 @@ final class OptimizerSimulatorState: ObservableObject {
         }
         // Slots not targeted by any relocation show their original key.
         // どのリロケーションにも対応していないスロットは元のキーを表示。
-        for key in Self.ansiKeys where d[key.keyName] == nil && !key.keyName.isEmpty {
+        for key in activeKeys where d[key.keyName] == nil && !key.keyName.isEmpty {
             d[key.keyName] = key.keyName
         }
         return d
@@ -204,6 +215,26 @@ final class OptimizerSimulatorState: ObservableObject {
         lockedSlots      = []
         currentSnapshot  = baseSnapshot
         exportedFileName = nil
+    }
+
+    /// Switches the visual layout to a KLE profile (or back to built-in ANSI if nil).
+    /// Resets swap history since slot identities change with a new layout.
+    func applyLayout(_ profile: KLEProfile?) {
+        if let profile,
+           let data = profile.json.data(using: .utf8),
+           let keys = try? JSONDecoder().decode([KLEAbsoluteKey].self, from: data),
+           !keys.isEmpty {
+            activeKeys = keys
+            let maxX = keys.map { $0.cx + $0.w / 2 }.max() ?? 15
+            let maxY = keys.map { $0.cy + $0.h / 2 }.max() ?? 5
+            activeAspectRatio = CGFloat(maxX / maxY)
+            optimizerLayoutID = profile.id.uuidString
+        } else {
+            activeKeys = Self.ansiKeys
+            activeAspectRatio = Self.ansiAspectRatio
+            optimizerLayoutID = ""
+        }
+        reset()
     }
 
     /// Exports the current relocation map as a JSON preset to ~/Documents.
@@ -526,9 +557,31 @@ extension ChartsView {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
+                // Layout picker — only shown when custom KLE profiles are available
+                if !optimizerKLEManager.profiles.isEmpty {
+                    HStack(spacing: 8) {
+                        Text(L10n.shared.optimizerLayoutPickerLabel)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Picker("", selection: Binding(
+                            get: { optimizerState.optimizerLayoutID },
+                            set: { id in
+                                let profile = optimizerKLEManager.profiles.first { $0.id.uuidString == id }
+                                optimizerState.applyLayout(profile)
+                            }
+                        )) {
+                            Text(L10n.shared.optimizerLayoutBuiltinANSI).tag("")
+                            ForEach(optimizerKLEManager.profiles) { profile in
+                                Text(profile.name).tag(profile.id.uuidString)
+                            }
+                        }
+                        .frame(maxWidth: 200)
+                    }
+                }
+
                 // KLE absolute-position rendering — same approach as heatmap custom template
-                let keys       = OptimizerSimulatorState.ansiKeys
-                let aspect     = OptimizerSimulatorState.ansiAspectRatio
+                let keys       = optimizerState.activeKeys
+                let aspect     = optimizerState.activeAspectRatio
                 let maxX       = CGFloat(keys.map { $0.cx + $0.w / 2 }.max() ?? 15)
 
                 Color.clear
