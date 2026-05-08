@@ -12,9 +12,9 @@ final class WPMHotkeyManager {
     private static let keyCodeKey   = "wpmHotkeyKeyCode"
     private static let modifiersKey = "wpmHotkeyModifiers"
 
-    // Default: ⌃⌥M
+    // Default: ⌃⇧M
     private static let defaultKeyCode: UInt16 = 46  // 'm'
-    private static let defaultModifiers: CGEventFlags = [.maskControl, .maskAlternate]
+    private static let defaultModifiers: CGEventFlags = [.maskControl, .maskShift]
 
     var keyCode: UInt16 {
         get {
