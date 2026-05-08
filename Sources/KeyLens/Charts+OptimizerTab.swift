@@ -371,6 +371,17 @@ extension ChartsView {
                         .foregroundStyle(.green)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    Button {
+                        let url = FileManager.default.homeDirectoryForCurrentUser
+                            .appendingPathComponent("Documents")
+                            .appendingPathComponent(fname)
+                        NSWorkspace.shared.activateFileViewerSelecting([url])
+                    } label: {
+                        Label(L10n.shared.optimizerShowInFinder, systemImage: "folder")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
                 }
             }
         }

@@ -2404,6 +2404,7 @@ final class L10n {
     var optimizerExportButton: String  { ja("レイアウトを保存",  en: "Export Layout") }
     var optimizerSwapCount: String     { ja("スワップ",          en: "swap(s)") }
     var optimizerExported: String      { ja("保存済み: ",        en: "Saved: ") }
+    var optimizerShowInFinder: String  { ja("Finderで表示",      en: "Show in Finder") }
     var optimizerNoData: String        {
         ja("データ不足。しばらくタイプしてからお試しください。",
            en: "Not enough data yet. Type for a while first.")
