@@ -585,6 +585,28 @@ extension ChartsView {
                     }
                 }
 
+                if showCostOverlay {
+                    HStack(spacing: 6) {
+                        Text(L10n.shared.optimizerCostEasy)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        LinearGradient(
+                            stops: [
+                                .init(color: Color(hue: 0.6, saturation: 0.65, brightness: 0.9), location: 0),
+                                .init(color: Color(hue: 0.3, saturation: 0.65, brightness: 0.9), location: 0.5),
+                                .init(color: Color(hue: 0.0, saturation: 0.65, brightness: 0.9), location: 1),
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(height: 8)
+                        .clipShape(Capsule())
+                        Text(L10n.shared.optimizerCostHard)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 // KLE absolute-position rendering — same approach as heatmap custom template
                 let keys       = optimizerState.activeKeys
                 let aspect     = optimizerState.activeAspectRatio

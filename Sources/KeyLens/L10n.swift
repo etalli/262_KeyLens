@@ -2408,6 +2408,8 @@ final class L10n {
     var optimizerLayoutPickerLabel: String  { ja("レイアウト",        en: "Layout") }
     var optimizerLayoutBuiltinANSI: String  { ja("内蔵 ANSI",         en: "Built-in ANSI") }
     var optimizerShowCostOverlay: String    { ja("コスト表示",        en: "Show Cost") }
+    var optimizerCostEasy: String           { ja("楽",               en: "Easy") }
+    var optimizerCostHard: String           { ja("難",               en: "Hard") }
     var optimizerNoData: String        {
         ja("データ不足。しばらくタイプしてからお試しください。",
            en: "Not enough data yet. Type for a while first.")
