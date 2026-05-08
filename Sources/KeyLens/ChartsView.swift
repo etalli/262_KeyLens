@@ -40,6 +40,8 @@ struct ChartsView: View {
     @State var showThumbClusterConfig: Bool = false
     /// State object for the Key Swap Optimizer (Issue #235).
     @StateObject var optimizerState = OptimizerSimulatorState()
+    /// KLE profile manager for the Optimizer layout picker (Issue #373).
+    @StateObject var optimizerKLEManager = KLEProfileManager()
     /// Saved drill presets stored as JSON (Issue #278).
     @AppStorage(UDKeys.drillPresets) var drillPresetsJSON: String = "[]"
     /// Selected finger filter for the Slow Bigrams chart. nil = All (Issue #153).
