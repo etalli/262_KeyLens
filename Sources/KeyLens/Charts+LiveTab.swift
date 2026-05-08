@@ -148,12 +148,12 @@ extension ChartsView {
             // Start / Stop button
             HStack(spacing: 12) {
                 Button {
-                    if isMeasuringWPM {
-                        wpmResult = KeyCountStore.shared.stopWPMMeasurement()
+                    let result = KeyCountStore.shared.toggleWPMMeasurement()
+                    if let result {
+                        wpmResult = result
                         isMeasuringWPM = false
                         wpmTextFocused = false
                     } else {
-                        KeyCountStore.shared.startWPMMeasurement()
                         wpmResult = nil
                         wpmTypedText = ""
                         isMeasuringWPM = true

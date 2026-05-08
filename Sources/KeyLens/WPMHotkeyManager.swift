@@ -48,12 +48,10 @@ final class WPMHotkeyManager {
 
     /// Toggles WPM measurement and posts the appropriate notification.
     func toggle() {
-        let store = KeyCountStore.shared
-        if store.isWPMMeasuring {
-            let result = store.stopWPMMeasurement()
+        let result = KeyCountStore.shared.toggleWPMMeasurement()
+        if let result {
             NotificationCenter.default.post(name: .wpmMeasurementStopped, object: result)
         } else {
-            store.startWPMMeasurement()
             NotificationCenter.default.post(name: .wpmMeasurementStarted, object: nil)
         }
     }
