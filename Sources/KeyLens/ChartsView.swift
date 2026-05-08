@@ -81,6 +81,8 @@ struct ChartsView: View {
     /// Set of section titles that are currently collapsed (Issue #251).
     /// 折りたたまれているセクションのタイトルセット。
     @State var collapsedSections: Set<String> = []
+    /// Whether the static effort cost overlay is shown on Optimizer key tiles (#384).
+    @State var showCostOverlay: Bool = false
 
     /// Fixed width keeps the live IKI snapshot compact when copying to the clipboard.
     /// 最新20打鍵グラフのコピーサイズを安定させるための固定幅。

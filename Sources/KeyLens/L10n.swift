@@ -2407,6 +2407,7 @@ final class L10n {
     var optimizerShowInFinder: String       { ja("Finderで表示",      en: "Show in Finder") }
     var optimizerLayoutPickerLabel: String  { ja("レイアウト",        en: "Layout") }
     var optimizerLayoutBuiltinANSI: String  { ja("内蔵 ANSI",         en: "Built-in ANSI") }
+    var optimizerShowCostOverlay: String    { ja("コスト表示",        en: "Show Cost") }
     var optimizerNoData: String        {
         ja("データ不足。しばらくタイプしてからお試しください。",
            en: "Not enough data yet. Type for a while first.")

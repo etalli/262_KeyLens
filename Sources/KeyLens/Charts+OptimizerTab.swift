@@ -553,9 +553,15 @@ extension ChartsView {
             }
         } else {
             VStack(alignment: .leading, spacing: 8) {
-                Text(L10n.shared.optimizerInstruction)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                HStack {
+                    Text(L10n.shared.optimizerInstruction)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Toggle(L10n.shared.optimizerShowCostOverlay, isOn: $showCostOverlay)
+                        .toggleStyle(.checkbox)
+                        .font(.footnote)
+                }
 
                 // Layout picker — only shown when custom KLE profiles are available
                 if !optimizerKLEManager.profiles.isEmpty {
@@ -622,6 +628,10 @@ extension ChartsView {
 
         let fillColor: Color = {
             if isSelected { return Color.accentColor }
+            if showCostOverlay, let score = HeatmapExportView.effortScores[physSlot] {
+                let hue = 0.6 - (score / 10.0) * 0.6
+                return Color(hue: hue, saturation: 0.65, brightness: 0.9).opacity(0.45)
+            }
             if isLocked   { return Color.secondary.opacity(0.12) }
             if isChanged  { return Color.green.opacity(0.18) }
             if isModifier { return Color.blue.opacity(0.08) }
