@@ -371,6 +371,7 @@ private struct DataMenuRow: View {
         add(l.showAllMenuItem, icon: "list.bullet.rectangle") { appDelegate.showAllStats() }
         menu.addItem(.separator())
         add(l.exportCSVMenuItem, icon: "tablecells")           { appDelegate.exportCSV() }
+        add(l.exportMouseDirectionCSVMenuItem, icon: "arrow.up.left.and.arrow.down.right") { appDelegate.exportMouseDirectionCSV() }
         add(l.exportSQLiteMenuItem, icon: "cylinder")          { appDelegate.exportSQLite() }
         add(l.exportSummaryCardMenuItem, icon: "doc.richtext") { appDelegate.exportWeeklySummaryCard() }
         add(l.exportYearInReviewMenuItem, icon: "calendar.badge.clock") { appDelegate.exportYearInReviewCard() }

@@ -383,6 +383,10 @@ final class L10n {
         ja("CSV 書き出し…", en: "Export CSV…")
     }
 
+    var exportMouseDirectionCSVMenuItem: String {
+        ja("マウス方向データを CSV 書き出し…", en: "Export Mouse Direction CSV…")
+    }
+
     var exportSummaryCardMenuItem: String {
         ja("週次サマリーカードを書き出し…", en: "Export Weekly Summary Card…")
     }

@@ -152,6 +152,29 @@ extension AppDelegate {
         }
     }
 
+    func exportMouseDirectionCSV() {
+        let csv = MouseStore.shared.exportMouseDirectionCSV()
+
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let tag = dateFmt.string(from: Date())
+
+        let panel = NSOpenPanel()
+        panel.title = L10n.shared.exportMouseDirectionCSVMenuItem
+        panel.prompt = L10n.shared.exportCSVSaveButton
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let dir = panel.url else { return }
+            let url = dir.appendingPathComponent("KeyLens_mouse_direction_\(tag).csv")
+            try? csv.write(to: url, atomically: true, encoding: .utf8)
+            NSWorkspace.shared.open(dir)
+        }
+    }
+
     func exportSQLite() {
         let l = L10n.shared
         let dateFmt = DateFormatter()

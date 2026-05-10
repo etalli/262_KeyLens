@@ -57,7 +57,7 @@ extension ChartsView {
                             mouseDirectionChart
                         }
                         chartSection(l.chartTitleMouseDailyDirection, helpText: l.helpMouseDailyDirection) {
-                            mouseDailyDirectionTable
+                            mouseDailyDirectionChart
                         }
                     }
                     .padding(24)
@@ -186,55 +186,55 @@ extension ChartsView {
         }
     }
 
-    // MARK: - Daily Direction Table
+    // MARK: - Daily Direction Chart
 
     @ViewBuilder
-    var mouseDailyDirectionTable: some View {
+    var mouseDailyDirectionChart: some View {
         let l = L10n.shared
         if model.mouseDailyDirectionEntries.isEmpty {
             emptyState
         } else {
-            VStack(spacing: 0) {
-                // Header row
-                HStack(spacing: 0) {
-                    Text(l.dateLabel)
-                        .frame(width: 100, alignment: .leading)
-                    Text(l.mouseColLeft)
-                        .frame(width: 80, alignment: .trailing)
-                    Text(l.mouseColRight)
-                        .frame(width: 80, alignment: .trailing)
-                    Text(l.mouseColUp)
-                        .frame(width: 80, alignment: .trailing)
-                    Text(l.mouseColDown)
-                        .frame(width: 80, alignment: .trailing)
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-
-                Divider()
-
-                ForEach(Array(model.mouseDailyDirectionEntries.enumerated()), id: \.element.id) { idx, entry in
-                    HStack(spacing: 0) {
-                        Text(entry.date)
-                            .frame(width: 100, alignment: .leading)
-                        Text(formatPts(entry.left))
-                            .frame(width: 80, alignment: .trailing)
-                        Text(formatPts(entry.right))
-                            .frame(width: 80, alignment: .trailing)
-                        Text(formatPts(entry.up))
-                            .frame(width: 80, alignment: .trailing)
-                        Text(formatPts(entry.down))
-                            .frame(width: 80, alignment: .trailing)
-                    }
-                    .font(.system(size: 12, design: .monospaced))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(idx % 2 == 0 ? Color.clear : Color.primary.opacity(0.04))
+            let entries = Array(model.mouseDailyDirectionEntries.reversed())
+            let step = max(1, entries.count / 6)
+            Chart {
+                ForEach(entries) { entry in
+                    BarMark(x: .value(l.dateLabel, entry.date),
+                            y: .value("Distance", entry.left))
+                        .foregroundStyle(by: .value("Direction", l.mouseColLeft))
+                    BarMark(x: .value(l.dateLabel, entry.date),
+                            y: .value("Distance", entry.right))
+                        .foregroundStyle(by: .value("Direction", l.mouseColRight))
+                    BarMark(x: .value(l.dateLabel, entry.date),
+                            y: .value("Distance", entry.up))
+                        .foregroundStyle(by: .value("Direction", l.mouseColUp))
+                    BarMark(x: .value(l.dateLabel, entry.date),
+                            y: .value("Distance", entry.down))
+                        .foregroundStyle(by: .value("Direction", l.mouseColDown))
                 }
             }
-            .frame(maxWidth: 440, alignment: .leading)
+            .chartXAxis {
+                AxisMarks { value in
+                    if let date = value.as(String.self),
+                       let idx = entries.firstIndex(where: { $0.date == date }),
+                       idx % step == 0 {
+                        AxisGridLine()
+                        AxisTick()
+                        AxisValueLabel()
+                    }
+                }
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(formatPts(v)).font(.caption)
+                        }
+                    }
+                }
+            }
+            .chartXAxisLabel(l.axisLabelDate)
+            .frame(height: 200)
         }
     }
 

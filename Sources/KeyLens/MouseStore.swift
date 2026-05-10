@@ -259,6 +259,30 @@ final class MouseStore {
         }
     }
 
+    /// CSV export of all daily direction data (date, right, left, up, down), oldest first.
+    func exportMouseDirectionCSV() -> String {
+        queue.sync {
+            guard let db = dbQueue else { return "date,right,left,up,down\n" }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, dx_pos, dx_neg, dy_pos, dy_neg
+                    FROM mouse_daily
+                    ORDER BY date ASC
+                    """)
+            }) ?? []
+            var lines = ["date,right,left,up,down"]
+            for row in rows {
+                let date: String = row["date"] as String? ?? ""
+                let right = String(format: "%.2f", row["dx_pos"] as Double? ?? 0)
+                let left  = String(format: "%.2f", row["dx_neg"] as Double? ?? 0)
+                let up    = String(format: "%.2f", row["dy_neg"] as Double? ?? 0)
+                let down  = String(format: "%.2f", row["dy_pos"] as Double? ?? 0)
+                lines.append("\(date),\(right),\(left),\(up),\(down)")
+            }
+            return lines.joined(separator: "\n")
+        }
+    }
+
     /// All grid cells with at least one hit, for the heatmap.
     func heatmapGrid() -> [(gridX: Int, gridY: Int, hits: Int)] {
         queue.sync {
