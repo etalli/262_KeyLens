@@ -34,6 +34,7 @@ extension ChartsView {
                         chartSection(l.chartTitleMouseHourly, helpText: l.helpMouseHourly) {
                             mouseHourlyChart
                         }
+                        mouseActiveTimeSummaryView
                     }
                     .padding(24)
                 }
@@ -365,6 +366,26 @@ extension ChartsView {
             }
         }
         .padding(.vertical, 8)
+    }
+
+    // MARK: - Active Time Summary
+
+    @ViewBuilder
+    var mouseActiveTimeSummaryView: some View {
+        let l = L10n.shared
+        VStack(alignment: .leading, spacing: 8) {
+            Text(l.mouseActiveTimeLabel)
+                .font(.headline)
+
+            if model.mouseActiveTimeToday > 0 {
+                Text(l.mouseActiveTimeSummary(seconds: model.mouseActiveTimeToday))
+                    .font(.system(size: 28, weight: .semibold, design: .rounded))
+            } else {
+                Text(l.mouseActiveTimeNone)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+        }
     }
 
     // MARK: - Helpers

@@ -1708,6 +1708,19 @@ final class L10n {
         ja("日別マウス移動距離（直近30日）", en: "Daily Mouse Travel (Last 30 Days)")
     }
 
+    var mouseActiveTimeLabel: String { ja("アクティブ時間", en: "Active") }
+    var mouseActiveTimeNone: String  { ja("データなし",     en: "No data yet") }
+
+    func mouseActiveTimeSummary(seconds: Double) -> String {
+        let h = Int(seconds) / 3600
+        let m = (Int(seconds) % 3600) / 60
+        if h > 0 {
+            return resolved == .japanese ? "\(h)時間\(m)分" : "\(h)h \(m)m"
+        } else {
+            return resolved == .japanese ? "\(m)分" : "\(m)m"
+        }
+    }
+
     var helpMouseDailyDistance: String {
         ja(
             "直近30日間の日別マウス移動距離を棒グラフで表示します。単位はスクリーンポイント（px）です。",

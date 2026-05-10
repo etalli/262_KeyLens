@@ -374,7 +374,7 @@ extension KeyboardMonitor {
         if type == .mouseMoved {
             let dx = event.getDoubleValueField(.mouseEventDeltaX)
             let dy = event.getDoubleValueField(.mouseEventDeltaY)
-            MouseStore.shared.addMovement(dx: dx, dy: dy)
+            MouseStore.shared.addMovement(dx: dx, dy: dy, at: Date())
 
             mouseSampleCounter += 1
             if mouseSampleCounter >= 5 {
