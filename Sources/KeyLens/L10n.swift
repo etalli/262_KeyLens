@@ -2449,6 +2449,13 @@ final class L10n {
            en: "Tap to select or swap. Double-tap to toggle lock.")
     }
 
+    func accessibilityEffortScore(_ score: Double) -> String {
+        let rounded = String(format: "%.1f", score)
+        return resolved == .japanese
+            ? "、負荷スコア \(rounded) / 10"
+            : ", effort \(rounded) out of 10"
+    }
+
     func accessibilitySwapHistoryItem(index: Int, from: String, to: String) -> String {
         resolved == .japanese
             ? "スワップ\(index):\(from)と\(to)を交換"

@@ -651,8 +651,10 @@ extension ChartsView {
         let fillColor: Color = {
             if isSelected { return Color.accentColor }
             if showCostOverlay, let score = HeatmapExportView.effortScores[physSlot] {
-                let hue = 0.6 - (score / 10.0) * 0.6
-                return Color(hue: hue, saturation: 0.65, brightness: 0.9).opacity(0.45)
+                let t = score / 10.0
+                let hue        = 0.6 - t * 0.6          // blue → red
+                let brightness = 0.95 - t * 0.40        // bright (easy) → dark (hard)
+                return Color(hue: hue, saturation: 0.70, brightness: brightness).opacity(0.55)
             }
             if isLocked   { return Color.secondary.opacity(0.12) }
             if isChanged  { return Color.green.opacity(0.18) }
@@ -686,12 +688,18 @@ extension ChartsView {
             }
         }
         .frame(width: width, height: height)
-        .accessibilityLabel(L10n.shared.accessibilityKeyLabel(
-            key: keyName,
-            isSelected: isSelected,
-            isLocked: isLocked,
-            originalSlot: physSlot
-        ))
+        .accessibilityLabel({
+            var label = L10n.shared.accessibilityKeyLabel(
+                key: keyName,
+                isSelected: isSelected,
+                isLocked: isLocked,
+                originalSlot: physSlot
+            )
+            if showCostOverlay, let score = HeatmapExportView.effortScores[physSlot] {
+                label += L10n.shared.accessibilityEffortScore(score)
+            }
+            return label
+        }())
         .accessibilityHint(L10n.shared.accessibilityKeyHint)
         // Double-click to toggle lock
         .onTapGesture(count: 2) {
