@@ -652,8 +652,9 @@ extension ChartsView {
             if isSelected { return Color.accentColor }
             if showCostOverlay, let score = HeatmapExportView.effortScores[physSlot] {
                 let t = score / 10.0
-                let hue        = 0.6 - t * 0.6          // blue → red
-                let brightness = 0.95 - t * 0.40        // bright (easy) → dark (hard)
+                let hue        = 0.6 - t * 0.6
+                // Dark mode: bright=easy, dark=hard. Light mode: mid-tone range so easy keys don't wash out.
+                let brightness = colorScheme == .dark ? 0.95 - t * 0.40 : 0.65 - t * 0.30
                 return Color(hue: hue, saturation: 0.70, brightness: brightness).opacity(0.55)
             }
             if isLocked   { return Color.secondary.opacity(0.12) }
