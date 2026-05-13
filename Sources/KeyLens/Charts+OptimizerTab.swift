@@ -112,6 +112,9 @@ final class OptimizerSimulatorState: ObservableObject {
     /// バックグラウンドでスコアを再計算中のとき true。
     @Published var isComputing: Bool = false
 
+    private var loadTask:      Task<Void, Never>?
+    private var recomputeTask: Task<Void, Never>?
+
     // MARK: - Derived: display label at each physical slot
 
     /// Maps each physical slot to the key label currently displayed there.
@@ -138,7 +141,7 @@ final class OptimizerSimulatorState: ObservableObject {
     func loadIfNeeded() {
         guard baseSnapshot == nil, !isComputing else { return }
         isComputing = true
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        loadTask = Task.detached(priority: .userInitiated) { [weak self] in
             let bc   = KeyCountStore.shared.allBigramCounts
             let kc   = KeyCountStore.shared.allKeyCounts
             let snap = ErgonomicSnapshot.capture(
@@ -146,7 +149,7 @@ final class OptimizerSimulatorState: ObservableObject {
                 keyCounts:    kc,
                 layout:       .shared
             )
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self?.baseSnapshot    = snap
                 self?.currentSnapshot = snap
                 self?.isComputing     = false
@@ -265,18 +268,20 @@ final class OptimizerSimulatorState: ObservableObject {
 
     private func recompute() {
         let map = relocationMap
+        recomputeTask?.cancel()
         isComputing = true
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let bc      = KeyCountStore.shared.allBigramCounts
-            let kc      = KeyCountStore.shared.allKeyCounts
-            let layout  = KeyRelocationSimulator.layout(applying: map, over: ANSILayout())
-            let simReg  = LayoutRegistry.forSimulation(layout: layout)
-            let snap    = ErgonomicSnapshot.capture(
+        recomputeTask = Task.detached(priority: .userInitiated) { [weak self] in
+            let bc     = KeyCountStore.shared.allBigramCounts
+            let kc     = KeyCountStore.shared.allKeyCounts
+            let layout = KeyRelocationSimulator.layout(applying: map, over: ANSILayout())
+            let simReg = LayoutRegistry.forSimulation(layout: layout)
+            let snap   = ErgonomicSnapshot.capture(
                 bigramCounts: bc,
                 keyCounts:    kc,
                 layout:       simReg
             )
-            DispatchQueue.main.async {
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
                 self?.currentSnapshot = snap
                 self?.isComputing     = false
             }

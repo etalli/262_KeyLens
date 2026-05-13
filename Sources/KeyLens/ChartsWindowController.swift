@@ -74,6 +74,9 @@ final class ChartDataModel: ObservableObject {
     @Published var mouseHourlyActivity:        [MouseHourEntry]             = []
     @Published var mouseDirectionEntries:      [MouseDirectionEntry]        = []
     @Published var mouseDailyDirectionEntries: [MouseDailyDirectionEntry]   = []
+    // Issue #394: Mouse idle vs. active time
+    @Published var mouseActiveTimeToday:       Double                       = 0
+    @Published var mouseDailyActiveTimes:      [(date: String, activeSeconds: Double)] = []
     // Issue #182: Mouse vs Keyboard balance
     @Published var mouseKeyboardBalance:       [MouseKeyboardBalanceEntry]  = []
     // Issue #90: Ranked bigrams for training — session is built in the view using the user's length preference.
@@ -245,6 +248,8 @@ final class ChartDataModel: ObservableObject {
             // --- Mouse data ---
             let mouseDailyDistances    = ms.dailyDistances().map(MouseDailyEntry.init)
             let mouseHourlyActivity    = ms.hourlyDistributionMouse().map { MouseHourEntry(hour: $0.hour, distancePts: $0.distancePts) }
+            let mouseActiveTimeToday   = ms.activeTimeToday()
+            let mouseDailyActiveTimes  = ms.dailyActiveTimes()
             let dir                    = ms.directionBreakdown()
             let mouseDirectionEntries  = [
                 MouseDirectionEntry(id: "left",  direction: "Left ←",  distancePts: dir.left),
@@ -324,6 +329,8 @@ final class ChartDataModel: ObservableObject {
                 self.mouseHourlyActivity        = mouseHourlyActivity
                 self.mouseDirectionEntries      = mouseDirectionEntries
                 self.mouseDailyDirectionEntries = mouseDailyDirectionEntries
+                self.mouseActiveTimeToday       = mouseActiveTimeToday
+                self.mouseDailyActiveTimes      = mouseDailyActiveTimes
                 self.mouseKeyboardBalance       = mouseKeyboardBalance
                 self.heatmapGrid                = heatmapGrid
                 self.totalCount                 = totalCount

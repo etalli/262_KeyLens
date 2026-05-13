@@ -22,6 +22,11 @@ final class MouseStore {
     private var pendingDxNeg: Double = 0   // leftward sum (positive value)
     private var pendingDyPos: Double = 0   // downward sum
     private var pendingDyNeg: Double = 0   // upward sum (positive value)
+    private var pendingActiveSeconds: Double = 0
+
+    // Idle detection — time of last mouseMoved event
+    private var lastMovementTime: Date? = nil
+    private static let idleThreshold: TimeInterval = 2.0
 
     // Grid accumulator for heatmap — key: gridX * 100 + gridY → hit count
     private var pendingGrid: [Int: Int] = [:]
@@ -81,6 +86,11 @@ final class MouseStore {
                     t.primaryKey(["grid_x", "grid_y"])
                 }
             }
+            migrator.registerMigration("v3_active_time") { db in
+                try db.alter(table: "mouse_daily") { t in
+                    t.add(column: "active_seconds", .double).notNull().defaults(to: 0)
+                }
+            }
             try migrator.migrate(db)
 
             dbQueue = db
@@ -96,12 +106,20 @@ final class MouseStore {
     /// Hot path: addition only, zero disk I/O.
     ///
     /// マウス移動イベントを蓄積する（ホットパス: 加算のみ、ディスクI/Oなし）。
-    func addMovement(dx: Double, dy: Double) {
+    func addMovement(dx: Double, dy: Double, at now: Date = Date()) {
         queue.async { [self] in
             let dist = (dx * dx + dy * dy).squareRoot()
             pendingDistance += dist
             if dx > 0 { pendingDxPos += dx  } else { pendingDxNeg += -dx }
             if dy > 0 { pendingDyPos += dy  } else { pendingDyNeg += -dy }
+
+            if let last = lastMovementTime {
+                let gap = now.timeIntervalSince(last)
+                if gap < Self.idleThreshold {
+                    pendingActiveSeconds += gap
+                }
+            }
+            lastMovementTime = now
         }
     }
 
@@ -132,31 +150,34 @@ final class MouseStore {
     private func flushLocked() {
         guard let db = dbQueue else { return }
 
-        let dist  = pendingDistance
-        let dxPos = pendingDxPos
-        let dxNeg = pendingDxNeg
-        let dyPos = pendingDyPos
-        let dyNeg = pendingDyNeg
-        let grid  = pendingGrid
+        let dist          = pendingDistance
+        let dxPos         = pendingDxPos
+        let dxNeg         = pendingDxNeg
+        let dyPos         = pendingDyPos
+        let dyNeg         = pendingDyNeg
+        let activeSecs    = pendingActiveSeconds
+        let grid          = pendingGrid
         pendingDistance = 0; pendingDxPos = 0; pendingDxNeg = 0
         pendingDyPos    = 0; pendingDyNeg = 0; pendingGrid = [:]
+        pendingActiveSeconds = 0
 
         let dateStr = Self.dayFormatter.string(from: Date())
         let hour    = Calendar.current.component(.hour, from: Date())
 
         do {
             try db.write { db in
-                if dist > 0 {
+                if dist > 0 || activeSecs > 0 {
                     try db.execute(sql: """
-                        INSERT INTO mouse_daily (date, distance_pts, dx_pos, dx_neg, dy_pos, dy_neg)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        INSERT INTO mouse_daily (date, distance_pts, dx_pos, dx_neg, dy_pos, dy_neg, active_seconds)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(date) DO UPDATE SET
-                            distance_pts = distance_pts + excluded.distance_pts,
-                            dx_pos       = dx_pos       + excluded.dx_pos,
-                            dx_neg       = dx_neg       + excluded.dx_neg,
-                            dy_pos       = dy_pos       + excluded.dy_pos,
-                            dy_neg       = dy_neg       + excluded.dy_neg
-                        """, arguments: [dateStr, dist, dxPos, dxNeg, dyPos, dyNeg])
+                            distance_pts   = distance_pts   + excluded.distance_pts,
+                            dx_pos         = dx_pos         + excluded.dx_pos,
+                            dx_neg         = dx_neg         + excluded.dx_neg,
+                            dy_pos         = dy_pos         + excluded.dy_pos,
+                            dy_neg         = dy_neg         + excluded.dy_neg,
+                            active_seconds = active_seconds + excluded.active_seconds
+                        """, arguments: [dateStr, dist, dxPos, dxNeg, dyPos, dyNeg, activeSecs])
 
                     try db.execute(sql: """
                         INSERT INTO mouse_hourly (date, hour, distance_pts)
@@ -293,6 +314,36 @@ final class MouseStore {
             return rows.map { (gridX: $0["grid_x"] as Int? ?? 0,
                                gridY: $0["grid_y"] as Int? ?? 0,
                                hits:  $0["hits"]   as Int? ?? 0) }
+        }
+    }
+
+    /// Active mouse time in seconds for today (in-memory + stored).
+    func activeTimeToday() -> Double {
+        queue.sync {
+            let dateStr = Self.dayFormatter.string(from: Date())
+            var stored: Double = 0
+            if let db = dbQueue {
+                stored = (try? db.read { db in
+                    try Double.fetchOne(db, sql: "SELECT active_seconds FROM mouse_daily WHERE date = ?",
+                                        arguments: [dateStr])
+                }) ?? 0
+            }
+            return stored + pendingActiveSeconds
+        }
+    }
+
+    /// Daily active time for the last N days, oldest first.
+    func dailyActiveTimes(days: Int = 30) -> [(date: String, activeSeconds: Double)] {
+        queue.sync {
+            guard let db = dbQueue else { return [] }
+            let rows = (try? db.read { db in
+                try Row.fetchAll(db, sql: """
+                    SELECT date, active_seconds FROM mouse_daily
+                    ORDER BY date DESC LIMIT ?
+                    """, arguments: [days])
+            }) ?? []
+            return rows.map { (date: $0["date"] as String? ?? "", activeSeconds: $0["active_seconds"] as Double? ?? 0) }
+                       .reversed()
         }
     }
 
