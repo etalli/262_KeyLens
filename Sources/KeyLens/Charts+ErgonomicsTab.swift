@@ -11,6 +11,8 @@ enum ErgoSubTab: String, CaseIterable {
     case fatigue
     case optimizer
     case comparison
+    case training
+    case inspector
 }
 
 extension ChartsView {
@@ -24,6 +26,10 @@ extension ChartsView {
                 Text(L10n.shared.ergoSubTabFatigue).tag(ErgoSubTab.fatigue)
                 Text(L10n.shared.ergoSubTabOptimizer).tag(ErgoSubTab.optimizer)
                 Text(L10n.shared.ergoSubTabComparison).tag(ErgoSubTab.comparison)
+                if advancedMode {
+                    Text(L10n.shared.ergoSubTabTraining).tag(ErgoSubTab.training)
+                    Text(L10n.shared.ergoSubTabInspector).tag(ErgoSubTab.inspector)
+                }
             }
 
             switch ergoSubTab {
@@ -77,6 +83,12 @@ extension ChartsView {
 
             case .comparison:
                 comparisonTab
+
+            case .training:
+                trainingTab
+
+            case .inspector:
+                inspectorTab
             }
         }
     }

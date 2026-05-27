@@ -2406,6 +2406,8 @@ final class L10n {
     var ergoSubTabFatigue: String      { ja("疲労",              en: "Fatigue") }
     var ergoSubTabOptimizer: String    { ja("オプティマイザ",     en: "Optimizer") }
     var ergoSubTabComparison: String   { ja("比較",              en: "Compare") }
+    var ergoSubTabTraining: String     { ja("トレーニング",      en: "Training") }
+    var ergoSubTabInspector: String    { ja("インスペクタ",      en: "Inspector") }
 
     // MARK: - Charts: Key Swap Optimizer (Issue #235)
 
