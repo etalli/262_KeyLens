@@ -1,4 +1,4 @@
-# KeyLens May 8, 2026
+# KeyLens June 12, 2026
 
 English | [日本語](docs/README.ja.md)
 
@@ -38,6 +38,7 @@ KeyLens changes that. It records which keys you press, how often, and with which
 - Simulate how Colemak, Dvorak, or a custom layout would affect your travel distance, using your actual data
 - Track WPM, keystroke rhythm, and fatigue over days and weeks
 - See which shortcuts you use most and whether your modifier placement is costing you
+- Track mouse usage too — travel distance, direction balance, active vs. idle time, and how your effort splits between mouse and keyboard
 
 ---
 
