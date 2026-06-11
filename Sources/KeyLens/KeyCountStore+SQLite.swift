@@ -57,7 +57,9 @@ struct PendingStore {
 extension KeyCountStore {
     /// Returns the histogram bucket index (0–6) for a given IKI value in ms.
     /// Buckets: 0=0–50ms, 1=50–100ms, ..., 5=250–300ms, 6=300+ms
-    static func ikiBucket(for ms: Double) -> Int { min(Int(ms / 50.0), 6) }
+    // Clamp to 0...6: a negative interval (clock skew / out-of-order events) must not
+    // produce a negative bucket index, which would later crash the histogram read.
+    static func ikiBucket(for ms: Double) -> Int { max(0, min(Int(ms / 50.0), 6)) }
     static let ikiBucketLabels = ["0–50", "50–100", "100–150", "150–200", "200–250", "250–300", "300+"]
 }
 
@@ -422,11 +424,12 @@ extension KeyCountStore {
                }) {
                 for row in rows {
                     let b: Int = row["bucket"]
-                    if b < 7 { buckets[b] += (row["total"] as Int) }
+                    // Guard both bounds — legacy rows may hold negative bucket indices.
+                    if b >= 0 && b < 7 { buckets[b] += (row["total"] as Int) }
                 }
             }
             for (_, dateBuckets) in pending.ikiBuckets {
-                for (b, v) in dateBuckets where b < 7 { buckets[b] += v }
+                for (b, v) in dateBuckets where b >= 0 && b < 7 { buckets[b] += v }
             }
             let total = buckets.reduce(0, +)
             return Self.ikiBucketLabels.enumerated().map { i, label in
