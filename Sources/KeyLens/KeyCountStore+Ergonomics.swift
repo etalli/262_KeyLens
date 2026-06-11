@@ -162,18 +162,6 @@ extension KeyCountStore {
     /// Captures bigram/key counts inside the serial queue, then runs the expensive
     /// ErgonomicSnapshot.capture() and recommendation engine outside it.
     func topRecommendations(limit: Int = 3) -> [ErgonomicRecommendation] {
-        let q = queue.sync { makeQuery() }
-        let bigramCounts = q.allBigramCounts
-        let keyCounts    = q.allKeyCounts
-        let snapshot = ErgonomicSnapshot.capture(
-            bigramCounts: bigramCounts,
-            keyCounts:    keyCounts,
-            layout:       .shared
-        )
-        let sampleCount = bigramCounts.values.reduce(0, +)
-        return ErgonomicRecommendationEngine(topK: limit).topRecommendations(
-            from: snapshot,
-            sampleCount: sampleCount
-        )
+        querySnapshot().topRecommendations(limit: limit)
     }
 }
