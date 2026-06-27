@@ -68,7 +68,7 @@
 
 ### AI 分析
 
-打鍵データを書き出し（Settings… > Data > Export CSV）、内蔵プロンプト（Settings… > Data > Edit AI Prompt）とともに AI ツール（Claude、ChatGPT など）に貼り付けることで、レイアウト最適化のアドバイスを得られます。
+打鍵データを書き出し（Data… > Export CSV）、内蔵プロンプト（Data… > Edit AI Prompt）とともに AI ツール（Claude、ChatGPT など）に貼り付けることで、レイアウト最適化のアドバイスを得られます。
 
 ---
 

@@ -68,7 +68,7 @@ Sub-tabs: Tips · Bigrams · Layout · Fatigue · Optimizer · Compare · (Train
 
 ### AI Analysis
 
-Export your keystroke data (Settings… > Data > Export CSV) and paste it into an AI tool (Claude, ChatGPT, etc.) along with the built-in prompt (Settings… > Data > Edit AI Prompt) for layout optimization advice.
+Export your keystroke data (Data… > Export CSV) and paste it into an AI tool (Claude, ChatGPT, etc.) along with the built-in prompt (Data… > Edit AI Prompt) for layout optimization advice.
 
 ---
 
