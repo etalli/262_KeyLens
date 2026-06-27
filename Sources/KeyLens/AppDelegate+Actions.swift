@@ -134,21 +134,21 @@ extension AppDelegate {
         dateFmt.dateFormat = "yyyy-MM-dd"
         let tag = dateFmt.string(from: Date())
 
-        let panel = NSOpenPanel()
+        let panel = NSSavePanel()
         panel.title = L10n.shared.exportCSVMenuItem
         panel.prompt = L10n.shared.exportCSVSaveButton
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
+        panel.nameFieldStringValue = "KeyLens_summary_\(tag).csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
 
         NSApp.activate(ignoringOtherApps: true)
         panel.begin { response in
-            guard response == .OK, let dir = panel.url else { return }
-            let summaryURL = dir.appendingPathComponent("KeyLens_summary_\(tag).csv")
-            let dailyURL   = dir.appendingPathComponent("KeyLens_daily_\(tag).csv")
+            guard response == .OK, let summaryURL = panel.url else { return }
+            let dailyURL = summaryURL.deletingLastPathComponent()
+                .appendingPathComponent("KeyLens_daily_\(tag).csv")
             try? summary.write(to: summaryURL, atomically: true, encoding: .utf8)
             try? daily.write(to: dailyURL, atomically: true, encoding: .utf8)
-            NSWorkspace.shared.open(dir)
+            NSWorkspace.shared.activateFileViewerSelecting([summaryURL, dailyURL])
         }
     }
 
@@ -159,19 +159,18 @@ extension AppDelegate {
         dateFmt.dateFormat = "yyyy-MM-dd"
         let tag = dateFmt.string(from: Date())
 
-        let panel = NSOpenPanel()
+        let panel = NSSavePanel()
         panel.title = L10n.shared.exportMouseDirectionCSVMenuItem
         panel.prompt = L10n.shared.exportCSVSaveButton
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
+        panel.nameFieldStringValue = "KeyLens_mouse_direction_\(tag).csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
 
         NSApp.activate(ignoringOtherApps: true)
         panel.begin { response in
-            guard response == .OK, let dir = panel.url else { return }
-            let url = dir.appendingPathComponent("KeyLens_mouse_direction_\(tag).csv")
+            guard response == .OK, let url = panel.url else { return }
             try? csv.write(to: url, atomically: true, encoding: .utf8)
-            NSWorkspace.shared.open(dir)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
         }
     }
 
