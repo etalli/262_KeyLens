@@ -36,7 +36,7 @@ Sub-tabs: Live · Activity · Keyboard · Shortcuts · Apps · Devices
 | Sub-tab | What it shows |
 |---------|---------------|
 | **Live** | Recent IKI bar chart, manual WPM measurement, typing intelligence |
-| **Activity** | Daily WPM, daily totals, IKI distribution, hourly distribution, weekly heatmap |
+| **Activity** | Three sub-tabs: **Speed** (Typing Speed, Delete/Backspace Rate, IKI Distribution) · **Patterns** (Weekly Heatmap, Session Rhythm, Hourly Distribution) · **Volume** (Finger Travel, Daily Totals, Monthly Totals, Key Accumulation, Sessions) |
 | **Keyboard** | Keyboard heatmap (frequency / strain), top 20 keys, key categories |
 | **Shortcuts** | Top ⌘ keyboard shortcuts, all keyboard combos |
 | **Apps** | Keystroke counts and ergonomic scores per application |
