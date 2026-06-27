@@ -130,9 +130,13 @@ final class ChartDataModel: ObservableObject {
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let queryStartedAt = CFAbsoluteTimeGetCurrent()
+            // Single consistent snapshot for all CountData-backed reads (Issue #424):
+            // replaces ~40 individual queue.sync round-trips with one. SQLite-direct
+            // reads below (sessions, IKI histogram, training history) stay on `store`.
+            let q = store.querySnapshot()
             // --- Keyboard data ---
-            let topKeys             = store.topKeys(limit: 20).map(TopKeyEntry.init)
-            let rawDailyTotals      = store.dailyTotals()
+            let topKeys             = q.topKeys(limit: 20).map(TopKeyEntry.init)
+            let rawDailyTotals      = q.dailyTotals()
             let dailyTotals         = rawDailyTotals.map(DailyTotalEntry.init)
             let keyAccumulation: [AccumulationEntry] = {
                 var running = 0
@@ -141,31 +145,31 @@ final class ChartDataModel: ObservableObject {
                     return AccumulationEntry(id: entry.date, date: entry.date, cumulative: running)
                 }
             }()
-            let topDevicesForAccum  = store.topDevices(limit: 20)
+            let topDevicesForAccum  = q.topDevices(limit: 20)
             let keyAccumulationByDevice: [String: [AccumulationEntry]] = {
                 var result: [String: [AccumulationEntry]] = [:]
                 for d in topDevicesForAccum {
                     var running = 0
-                    result[d.device] = store.dailyTotals(forDevice: d.device).map { entry in
+                    result[d.device] = q.dailyTotals(forDevice: d.device).map { entry in
                         running += entry.total
                         return AccumulationEntry(id: "\(d.device)-\(entry.date)", date: entry.date, cumulative: running)
                     }
                 }
                 return result
             }()
-            let categories          = store.countsByType().map(CategoryEntry.init)
-            let perDayKeys          = store.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
-            let shortcuts           = store.topModifiedKeys(prefix: "⌘", limit: 20).map(ShortcutEntry.init)
-            let allCombos           = store.topModifiedKeys(prefix: "", limit: 30).map(ShortcutEntry.init)
-            let keyCounts           = Dictionary(uniqueKeysWithValues: store.allEntries().map { ($0.key, $0.total) })
-            let topBigrams          = store.topBigrams(limit: 20).map(BigramEntry.init)
-            let sameFingerRate      = store.sameFingerRate
-            let todaySameFingerRate = store.todaySameFingerRate
-            let handAlternationRate = store.handAlternationRate
-            let todayHandAltRate    = store.todayHandAlternationRate
+            let categories          = q.countsByType().map(CategoryEntry.init)
+            let perDayKeys          = q.topKeysPerDay(limit: 10).map(DailyKeyEntry.init)
+            let shortcuts           = q.topModifiedKeys(prefix: "⌘", limit: 20).map(ShortcutEntry.init)
+            let allCombos           = q.topModifiedKeys(prefix: "", limit: 30).map(ShortcutEntry.init)
+            let keyCounts           = Dictionary(uniqueKeysWithValues: q.allEntries().map { ($0.key, $0.total) })
+            let topBigrams          = q.topBigrams(limit: 20).map(BigramEntry.init)
+            let sameFingerRate      = q.sameFingerRate
+            let todaySameFingerRate = q.todaySameFingerRate
+            let handAlternationRate = q.handAlternationRate
+            let todayHandAltRate    = q.todayHandAlternationRate
 
             // Phase 3: Learning Curve
-            let ergRates       = store.dailyErgonomicRates()
+            let ergRates       = q.dailyErgonomicRates()
             let dailyErgonomics = ergRates.flatMap { row -> [DailyErgonomicEntry] in
                 [
                     DailyErgonomicEntry(date: row.date, series: "Same-finger", rate: row.sameFingerRate),
@@ -173,77 +177,77 @@ final class ChartDataModel: ObservableObject {
                     DailyErgonomicEntry(date: row.date, series: "High-strain",  rate: row.highStrainRate),
                 ]
             }
-            let rawDailyWPM   = store.dailyWPM()
+            let rawDailyWPM   = q.dailyWPM()
             let weeklyDeltas  = Self.computeWeeklyDeltas(ergRates: ergRates, rawDailyTotals: rawDailyTotals, rawDailyWPM: rawDailyWPM)
 
             // Issue #5: Activity Trends
-            let hourlyDistribution = store.hourlyDistribution()
-            let monthlyTotals      = store.monthlyTotals().map(MonthlyTotalEntry.init)
+            let hourlyDistribution = q.hourlyDistribution()
+            let monthlyTotals      = q.monthlyTotals().map(MonthlyTotalEntry.init)
             // Issue #78: Weekly Activity Heatmap
-            let weeklyHeatmap      = store.hourlyCountsByDayOfWeek().map(HeatmapCell.init)
+            let weeklyHeatmap      = q.hourlyCountsByDayOfWeek().map(HeatmapCell.init)
             // Per-application counts
-            let topApps            = store.topApps(limit: 20).map(AppEntry.init)
-            let todayTopApps       = store.todayTopApps(limit: 10).map(AppEntry.init)
-            let appErgScores       = store.appErgonomicScores(minKeystrokes: 100).map(AppErgScoreEntry.init)
+            let topApps            = q.topApps(limit: 20).map(AppEntry.init)
+            let todayTopApps       = q.todayTopApps(limit: 10).map(AppEntry.init)
+            let appErgScores       = q.appErgonomicScores(minKeystrokes: 100).map(AppErgScoreEntry.init)
             // Per-device counts
-            let topDevices         = store.topDevices(limit: 20).map(DeviceEntry.init)
-            let todayTopDevices    = store.todayTopDevices(limit: 10).map(DeviceEntry.init)
-            let dailyDeviceTotals  = store.dailyDeviceTotals().map { DailyDeviceEntry(date: $0.date, device: $0.device, count: $0.count) }
-            let deviceErgScores    = store.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
+            let topDevices         = q.topDevices(limit: 20).map(DeviceEntry.init)
+            let todayTopDevices    = q.todayTopDevices(limit: 10).map(DeviceEntry.init)
+            let dailyDeviceTotals  = q.dailyDeviceTotals().map { DailyDeviceEntry(date: $0.date, device: $0.device, count: $0.count) }
+            let deviceErgScores    = q.deviceErgonomicScores(minKeystrokes: 100).map(DeviceErgScoreEntry.init)
             // Issue #59 Phase 2: daily WPM
-            let dailyWPM           = store.dailyWPM().map(DailyWPMEntry.init)
+            let dailyWPM           = q.dailyWPM().map(DailyWPMEntry.init)
             // Issue #65: daily backspace rate
-            let dailyAccuracy      = store.dailyBackspaceRates().map(DailyAccuracyEntry.init)
-            // Issue #102: IKI histogram
+            let dailyAccuracy      = q.dailyBackspaceRates().map(DailyAccuracyEntry.init)
+            // Issue #102: IKI histogram (SQLite-direct, not CountData)
             let ikiHistogram       = store.ikiHistogramEntries()
             // Issue #103: slowest bigrams by average IKI
-            let slowBigrams        = store.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
+            let slowBigrams        = q.slowestBigrams(minCount: 5, limit: 20).map(SlowBigramEntry.init)
             // Issue #104: IKI per finger
-            let fingerIKI          = store.ikiPerFinger().map(FingerIKIEntry.init)
+            let fingerIKI          = q.ikiPerFinger().map(FingerIKIEntry.init)
             // Issue #364: per-finger keystroke share
-            let fingerLoad         = store.keystrokeSharePerFinger()
+            let fingerLoad         = q.keystrokeSharePerFinger()
             // Issue #365: per-finger SFB ranking
-            let fingerSFB          = store.sfbPerFinger()
+            let fingerSFB          = q.sfbPerFinger()
             // Issue #61: layout efficiency comparison
-            let layoutEfficiency   = store.layoutEfficiencyScores()
-            // Issue #60: session detection
+            let layoutEfficiency   = q.layoutEfficiencyScores()
+            // Issue #60: session detection (SQLite-direct, not CountData)
             let sessionSummaries    = store.allSessionSummaries()
-            // Issue #292: session rhythm heatmap
+            // Issue #292: session rhythm heatmap (SQLite-direct, not CountData)
             let sessionHeatmapCells = store.sessionRhythmHeatmap()
             // Issue #290: consecutive active-day streak
             let sessionStreakDays    = Self.computeSessionStreak(sessionSummaries)
             // Issue #90: Training
-            let trainingScores     = store.rankedBigramsForTraining(minCount: 5, topK: 10)
+            let trainingScores     = q.rankedBigramsForTraining(minCount: 5, topK: 10)
             // Issue #89: Trigram training targets
-            let trainingTrigramScores = store.rankedTrigramsForTraining(minCount: 5, topK: 8)
+            let trainingTrigramScores = q.rankedTrigramsForTraining(minCount: 5, topK: 8)
             // Issue #63: Today's hourly fatigue curve
-            let fatigueCurve       = store.todayHourlyFatigueCurve()
-            // Issue #88: Training history
+            let fatigueCurve       = q.todayHourlyFatigueCurve()
+            // Issue #88: Training history (SQLite-direct, not CountData)
             let trainingHistory    = store.trainingHistory(limit: 20)
             // Issue #84: Full IKI map for before/after comparison.
             // Issue #280: Bounded to bigrams between the top-40 keys (≤1,600 entries).
             let topKeySet = Set(keyCounts.sorted { $0.value > $1.value }.prefix(40).map(\.key))
-            let bigramIKIMap = store.allBigramIKI().filter { bigram, _ in
+            let bigramIKIMap = q.allBigramIKI().filter { bigram, _ in
                 guard let b = Bigram.parse(bigram) else { return true }
                 return topKeySet.contains(b.from) && topKeySet.contains(b.to)
             }
             // Issue #209: Layer key efficiency
-            let layerEfficiency    = store.layerEfficiency()
+            let layerEfficiency    = q.layerEfficiency()
             // Issue #334: modifier key finger breakdown
-            let modifierFingerData = store.modifierFingerBreakdown()
+            let modifierFingerData = q.modifierFingerBreakdown()
             // Issue #335: same-finger shortcut strain
-            let shortcutStrain = store.shortcutStrain()
+            let shortcutStrain = q.shortcutStrainEntries()
 
             // Summary tab scalars (moved from view bodies to avoid main-thread DB calls)
-            let totalCount           = store.totalCount
-            let todayCount           = store.todayCount
-            let todayTravelMeters    = store.todayTravelDistanceMeters()
-            let typingStyle      = store.currentTypingStyle
-            let fatigueLevel     = store.currentFatigueLevel
-            let typingRhythm     = store.currentTypingRhythm
-            let ergonomicScore   = store.currentErgonomicScore
+            let totalCount           = q.totalCount
+            let todayCount           = q.todayCount
+            let todayTravelMeters    = q.todayTravelDistanceMeters()
+            let typingStyle      = q.currentTypingStyle
+            let fatigueLevel     = q.currentFatigueLevel
+            let typingRhythm     = q.currentTypingRhythm
+            let ergonomicScore   = q.currentErgonomicScore
             let weeklySummaryData = WeeklySummaryData.current()
-            let ergoRecommendations = store.topRecommendations()
+            let ergoRecommendations = q.topRecommendations()
 
             // --- Mouse data ---
             let mouseDailyDistances    = ms.dailyDistances().map(MouseDailyEntry.init)
@@ -365,8 +369,10 @@ final class ChartDataModel: ObservableObject {
         isLayoutComparisonLoading = true
         let store = KeyCountStore.shared
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let bigramSnapshot = store.allBigramCounts
-            let keySnapshot    = store.allKeyCounts
+            // Single snapshot for both reads (Issue #424) instead of two queue.sync round-trips.
+            let q              = store.querySnapshot()
+            let bigramSnapshot = q.allBigramCounts
+            let keySnapshot    = q.allKeyCounts
             let result         = LayoutComparison.make(bigramCounts: bigramSnapshot, keyCounts: keySnapshot)
             DispatchQueue.main.async { [weak self] in
                 self?.layoutComparison          = result

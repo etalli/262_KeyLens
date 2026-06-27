@@ -79,6 +79,34 @@ private extension KeyMetricsQuery {
     }
 }
 
+// MARK: - Snapshot-backed scalars
+
+extension KeyMetricsQuery {
+
+    /// Total keystroke count across all keys in the captured snapshot.
+    var totalCount: Int {
+        store.counts.values.reduce(0, +)
+    }
+
+    /// Returns top ergonomic recommendations derived from this snapshot.
+    /// Runs the expensive ErgonomicSnapshot.capture() and recommendation engine
+    /// purely on the captured counts — no store round-trip.
+    func topRecommendations(limit: Int = 3) -> [ErgonomicRecommendation] {
+        let bigramCounts = allBigramCounts
+        let keyCounts    = allKeyCounts
+        let snapshot = ErgonomicSnapshot.capture(
+            bigramCounts: bigramCounts,
+            keyCounts:    keyCounts,
+            layout:       .shared
+        )
+        let sampleCount = bigramCounts.values.reduce(0, +)
+        return ErgonomicRecommendationEngine(topK: limit).topRecommendations(
+            from: snapshot,
+            sampleCount: sampleCount
+        )
+    }
+}
+
 // MARK: - Activity queries
 
 extension KeyMetricsQuery {

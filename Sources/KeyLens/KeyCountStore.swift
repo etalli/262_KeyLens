@@ -352,6 +352,13 @@ final class KeyCountStore {
 
     // MARK: - Query factory
 
+    /// Takes a single consistent snapshot for batch read queries.
+    /// Use this instead of many individual wrapper calls (each of which does its
+    /// own queue.sync) when a caller needs several metrics at once — e.g. ChartDataModel.reload().
+    func querySnapshot() -> KeyMetricsQuery {
+        queue.sync { makeQuery() }
+    }
+
     /// Creates a read-only snapshot of the current store state for use with KeyMetricsQuery.
     /// Must be called from inside queue.sync.
     func makeQuery() -> KeyMetricsQuery {
