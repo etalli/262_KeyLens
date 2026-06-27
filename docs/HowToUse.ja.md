@@ -13,7 +13,7 @@
 | **Settings…** | メニューウィジェット・言語・通知・Advanced Mode・オーバーレイ・WPM ゲージのカスタマイズ |
 | **About KeyLens** | バージョン情報 |
 | **Check for Updates…** | GitHub で最新リリースを確認 |
-| **Help** | ヘルプポップオーバーを開く |
+| **Help** | ブラウザで KeyLens ランディングページを開く |
 | **Quit** | アプリを終了し、未保存のデータをすべて書き出す |
 
 ウィジェット（**Charts…** の上に表示される統計行）は **Settings… > Customize Menu** でオン/オフや並び替えが可能です。利用可能なウィジェット: Today Summary、WPM、Mini Chart、Avg Interval、Shortcut Efficiency、Streak、Recording Since、Slow Events。

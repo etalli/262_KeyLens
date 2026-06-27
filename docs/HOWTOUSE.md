@@ -13,7 +13,7 @@ Click the keyboard icon (⌨) in the menu bar to open the panel.
 | **Settings…** | Customize menu widgets, language, notifications, Advanced Mode, overlay, WPM gauge |
 | **About KeyLens** | Version info |
 | **Check for Updates…** | Check for a newer release on GitHub |
-| **Help** | Opens the help popover |
+| **Help** | Opens the KeyLens landing page in the browser |
 | **Quit** | Quits the app and flushes all pending data |
 
 Widgets (the stats rows above **Charts…**) are toggleable and reorderable via **Settings… > Customize Menu**. Available widgets: Today Summary, WPM, Mini Chart, Avg Interval, Shortcut Efficiency, Streak, Recording Since, Slow Events.
