@@ -60,7 +60,7 @@ KeyLens changes that. It records which keys you press, how often, and with which
 
 ## Docs
 
-- [HowToUse](docs/HowToUse.md) — usage guide
+- [HowToUse](docs/HOWTOUSE.md) — usage guide
 - [Architecture](docs/Architecture.md) — internal design and security model
 - [HowToBuild](docs/HowToBuild.md) — build, test, and logs
 - [Roadmap](docs/Roadmap.md) — development roadmap
